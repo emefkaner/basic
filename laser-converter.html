@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laser-Gravur Konverter</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#181b22; --panel2:#1f232c; --border:#2a2f3a;
+    --text:#e7eaf0; --muted:#9aa3b2; --accent:#5b9dff; --accent2:#3a7bff;
+    --good:#3ecf8e; --shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.45;
+  }
+  header{
+    padding:18px 24px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:linear-gradient(180deg,#141821,#0f1115);
+  }
+  header h1{font-size:18px; margin:0; font-weight:650; letter-spacing:.2px}
+  header .sub{color:var(--muted); font-size:13px}
+  .badge{margin-left:auto; font-size:12px; color:var(--muted); border:1px solid var(--border); padding:5px 10px; border-radius:20px}
+  .wrap{display:grid; grid-template-columns:340px 1fr; gap:0; min-height:calc(100vh - 61px)}
+  @media(max-width:900px){ .wrap{grid-template-columns:1fr} }
+
+  /* Sidebar */
+  aside{border-right:1px solid var(--border); padding:18px; overflow-y:auto; background:var(--panel)}
+  .section{margin-bottom:22px}
+  .section h2{font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:0 0 10px}
+
+  .presets{display:grid; grid-template-columns:1fr; gap:8px}
+  .preset{
+    text-align:left; cursor:pointer; border:1px solid var(--border); background:var(--panel2);
+    color:var(--text); border-radius:10px; padding:11px 12px; display:flex; gap:10px; align-items:center;
+    transition:.15s; font:inherit;
+  }
+  .preset:hover{border-color:var(--accent)}
+  .preset.active{border-color:var(--accent); background:#1c2537; box-shadow:0 0 0 1px var(--accent) inset}
+  .preset .ico{font-size:20px; width:26px; text-align:center}
+  .preset .t{font-weight:600; font-size:13.5px}
+  .preset .d{font-size:11.5px; color:var(--muted)}
+
+  .control{margin-bottom:16px}
+  .control .row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+  .control label{font-size:13px; font-weight:550}
+  .control .val{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; background:var(--panel2); padding:2px 7px; border-radius:5px; min-width:44px; text-align:center}
+  input[type=range]{width:100%; accent-color:var(--accent); height:22px}
+  select, input[type=number]{
+    width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--border);
+    border-radius:8px; padding:8px 10px; font:inherit; font-size:13px;
+  }
+  .inline{display:flex; gap:8px; align-items:center}
+  .inline > *{flex:1}
+  .checks{display:flex; flex-direction:column; gap:8px}
+  .chk{display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer; user-select:none}
+  .chk input{width:16px; height:16px; accent-color:var(--accent)}
+  .hint{font-size:11.5px; color:var(--muted); margin-top:4px}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel2); color:var(--text);
+    border-radius:9px; padding:10px 14px; font:inherit; font-size:13.5px; font-weight:600; transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent2); border-color:var(--accent2); color:#fff}
+  .btn.primary:hover{background:#2f6ef0}
+  .btn.block{width:100%}
+  .btn.ghost{background:transparent}
+  .btnrow{display:flex; gap:8px}
+
+  /* Main */
+  main{padding:18px 22px; display:flex; flex-direction:column; gap:16px; min-width:0}
+  .drop{
+    border:2px dashed var(--border); border-radius:14px; padding:44px 20px; text-align:center;
+    color:var(--muted); transition:.15s; cursor:pointer; background:var(--panel);
+  }
+  .drop.hot{border-color:var(--accent); background:#141a26; color:var(--text)}
+  .drop .big{font-size:34px; margin-bottom:8px}
+  .drop b{color:var(--text)}
+
+  .thumbs{display:flex; gap:8px; flex-wrap:wrap}
+  .thumb{position:relative; width:64px; height:64px; border-radius:8px; overflow:hidden; border:2px solid var(--border); cursor:pointer; background:#000}
+  .thumb.active{border-color:var(--accent)}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+  .thumb .x{position:absolute; top:2px; right:2px; background:rgba(0,0,0,.65); color:#fff; border:none; width:18px; height:18px; border-radius:5px; font-size:12px; line-height:1; cursor:pointer; padding:0}
+
+  .previews{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:700px){ .previews{grid-template-columns:1fr} }
+  .pane{background:var(--panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column}
+  .pane .cap{padding:8px 12px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center}
+  .canvasbox{padding:10px; display:flex; align-items:center; justify-content:center; background:
+    repeating-conic-gradient(#1a1d24 0% 25%, #14161c 0% 50%) 50%/20px 20px; min-height:220px; flex:1}
+  canvas{max-width:100%; height:auto; image-rendering:pixelated; border-radius:4px; box-shadow:var(--shadow)}
+  .empty{color:var(--muted); font-size:14px; text-align:center; padding:40px}
+
+  .toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .toolbar .spacer{flex:1}
+  .stat{font-size:12px; color:var(--muted)}
+  footer{padding:12px 24px; border-top:1px solid var(--border); color:var(--muted); font-size:12px; text-align:center}
+  .divider{height:1px; background:var(--border); margin:18px 0}
+  details.adv summary{cursor:pointer; font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:10px; outline:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔥 Laser-Gravur Konverter</h1>
+  <span class="sub">Bilder für die Lasergravur aufbereiten – Schwarz-Weiß, Dithering, Threshold</span>
+  <span class="badge">100% offline · deine Bilder verlassen den Browser nicht</span>
+</header>
+
+<div class="wrap">
+  <!-- ================= SIDEBAR ================= -->
+  <aside>
+    <div class="section">
+      <h2>1 · Preset</h2>
+      <div class="presets" id="presets">
+        <button class="preset" data-preset="photo">
+          <span class="ico">🖼️</span>
+          <span><span class="t">Foto / Portrait</span><br><span class="d">Graustufen + Floyd-Steinberg Dithering</span></span>
+        </button>
+        <button class="preset" data-preset="logo">
+          <span class="ico">✒️</span>
+          <span><span class="t">Logo / Line-Art</span><br><span class="d">Harte Schwarz-Weiß-Schwelle</span></span>
+        </button>
+        <button class="preset" data-preset="sketch">
+          <span class="ico">✏️</span>
+          <span><span class="t">Skizze / Zeichnung</span><br><span class="d">Kantenerkennung + Schwelle</span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>2 · Verfahren</h2>
+      <div class="control">
+        <div class="row"><label for="mode">Ausgabe-Modus</label></div>
+        <select id="mode">
+          <option value="grayscale">Graustufen (Bild-Modus)</option>
+          <option value="dither">Dithering (Punktmuster → S/W)</option>
+          <option value="threshold">Threshold (harte S/W-Kante)</option>
+        </select>
+        <div class="hint" id="modeHint"></div>
+      </div>
+      <div class="control" id="ditherWrap">
+        <div class="row"><label for="ditherAlg">Dither-Algorithmus</label></div>
+        <select id="ditherAlg">
+          <option value="floyd">Floyd-Steinberg (Standard, fein)</option>
+          <option value="atkinson">Atkinson (kontrastreicher)</option>
+          <option value="ordered">Ordered / Bayer (gleichmäßig)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>3 · Anpassung</h2>
+
+      <div class="control">
+        <div class="row"><label for="exposure">Belichtung</label><span class="val" id="exposureV">0</span></div>
+        <input type="range" id="exposure" min="-100" max="100" value="0">
+      </div>
+      <div class="control">
+        <div class="row"><label for="contrast">Kontrast</label><span class="val" id="contrastV">0</span></div>
+        <input type="range" id="contrast" min="-100" max="100" value="0">
+      </div>
+      <div class="control">
+        <div class="row"><label for="gamma">Gamma / Mitten</label><span class="val" id="gammaV">1.00</span></div>
+        <input type="range" id="gamma" min="30" max="300" value="100">
+      </div>
+      <div class="control">
+        <div class="row"><label for="threshold">Schwellwert</label><span class="val" id="thresholdV">128</span></div>
+        <input type="range" id="threshold" min="1" max="254" value="128">
+        <div class="hint">Wirkt bei Threshold &amp; Dithering (Helligkeitsgrenze S/W).</div>
+      </div>
+      <div class="control">
+        <div class="row"><label for="sharpen">Schärfen</label><span class="val" id="sharpenV">0</span></div>
+        <input type="range" id="sharpen" min="0" max="100" value="0">
+      </div>
+      <div class="control">
+        <div class="row"><label for="blur">Weichzeichnen</label><span class="val" id="blurV">0</span></div>
+        <input type="range" id="blur" min="0" max="100" value="0">
+        <div class="hint">Reduziert Rauschen vor dem Dithering.</div>
+      </div>
+
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="invert"> Invertieren <span class="hint" style="margin:0">(für dunkle Materialien / hell gravieren)</span></label>
+        <label class="chk"><input type="checkbox" id="autoLevels"> Auto-Tonwerte (Histogramm strecken)</label>
+      </div>
+    </div>
+
+    <div class="section">
+      <details class="adv" open>
+        <summary>4 · Größe &amp; Auflösung</summary>
+        <div class="control">
+          <div class="inline">
+            <div>
+              <div class="row"><label>Breite (px)</label></div>
+              <input type="number" id="outW" min="1" placeholder="auto">
+            </div>
+            <div>
+              <div class="row"><label>Höhe (px)</label></div>
+              <input type="number" id="outH" min="1" placeholder="auto">
+            </div>
+          </div>
+          <label class="chk" style="margin-top:8px"><input type="checkbox" id="lockRatio" checked> Seitenverhältnis beibehalten</label>
+        </div>
+        <div class="control">
+          <div class="inline">
+            <div>
+              <div class="row"><label>Zielbreite (mm)</label></div>
+              <input type="number" id="mmW" min="1" placeholder="z.B. 80">
+            </div>
+            <div>
+              <div class="row"><label>DPI</label></div>
+              <input type="number" id="dpi" min="50" value="300">
+            </div>
+          </div>
+          <button class="btn ghost block" id="applyMM" style="margin-top:8px">mm → Pixel berechnen</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="divider"></div>
+    <div class="btnrow">
+      <button class="btn block" id="resetBtn">↺ Zurücksetzen</button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <div class="drop" id="drop">
+      <div class="big">⬆️</div>
+      <div><b>Bilder hierher ziehen</b> oder klicken zum Auswählen</div>
+      <div class="hint">JPG, PNG, WebP, GIF · mehrere Dateien möglich</div>
+    </div>
+    <input type="file" id="file" accept="image/*" multiple hidden>
+
+    <div class="thumbs" id="thumbs"></div>
+
+    <div class="toolbar">
+      <button class="btn primary" id="downloadBtn" disabled>⬇️ PNG herunterladen</button>
+      <button class="btn" id="downloadAllBtn" disabled>⬇️ Alle exportieren</button>
+      <div class="spacer"></div>
+      <span class="stat" id="dims"></span>
+    </div>
+
+    <div class="previews">
+      <div class="pane">
+        <div class="cap"><span>Original</span><span id="origInfo"></span></div>
+        <div class="canvasbox"><div class="empty" id="origEmpty">Noch kein Bild geladen</div><canvas id="origCanvas" hidden></canvas></div>
+      </div>
+      <div class="pane">
+        <div class="cap"><span>Ergebnis (Vorschau)</span><span id="outInfo"></span></div>
+        <div class="canvasbox"><div class="empty" id="outEmpty">–</div><canvas id="outCanvas" hidden></canvas></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>Tipp: Für Fotos auf Holz/Leder eignet sich <b>Foto-Preset</b> mit Dithering. Für saubere Konturen (Acryl, Metall) nutze <b>Logo/Line-Art</b>. Alles läuft lokal im Browser.</footer>
+
+<script>
+"use strict";
+(function(){
+  // ---------- State ----------
+  const images = [];        // {name, imgEl, width, height}
+  let current = -1;
+  let debounceTimer = null;
+
+  const $ = id => document.getElementById(id);
+  const els = {
+    file:$("file"), drop:$("drop"), thumbs:$("thumbs"),
+    origCanvas:$("origCanvas"), outCanvas:$("outCanvas"),
+    origEmpty:$("origEmpty"), outEmpty:$("outEmpty"),
+    origInfo:$("origInfo"), outInfo:$("outInfo"), dims:$("dims"),
+    mode:$("mode"), modeHint:$("modeHint"), ditherWrap:$("ditherWrap"), ditherAlg:$("ditherAlg"),
+    exposure:$("exposure"), contrast:$("contrast"), gamma:$("gamma"),
+    threshold:$("threshold"), sharpen:$("sharpen"), blur:$("blur"),
+    invert:$("invert"), autoLevels:$("autoLevels"),
+    outW:$("outW"), outH:$("outH"), lockRatio:$("lockRatio"),
+    mmW:$("mmW"), dpi:$("dpi"), applyMM:$("applyMM"),
+    downloadBtn:$("downloadBtn"), downloadAllBtn:$("downloadAllBtn"), resetBtn:$("resetBtn"),
+  };
+
+  const MODE_HINTS = {
+    grayscale:"Weiche Graustufen – gut für Laser mit echter Graustufen-Modulation (PWM).",
+    dither:"Wandelt Helligkeit in reine schwarze/weiße Punkte – ideal für 1-Bit-Lasergravur von Fotos.",
+    threshold:"Jeder Pixel wird schwarz oder weiß – ideal für Logos, Text und Line-Art."
+  };
+
+  const PRESETS = {
+    photo:  {mode:"dither",   ditherAlg:"floyd",   exposure:5,  contrast:15, gamma:110, threshold:128, sharpen:20, blur:0,  invert:false, autoLevels:true},
+    logo:   {mode:"threshold",ditherAlg:"floyd",   exposure:0,  contrast:35, gamma:100, threshold:135, sharpen:0,  blur:0,  invert:false, autoLevels:false},
+    sketch: {mode:"threshold",ditherAlg:"floyd",   exposure:0,  contrast:20, gamma:90,  threshold:150, sharpen:60, blur:10, invert:false, autoLevels:true, edge:true},
+  };
+  let edgeMode = false; // sketch preset toggles edge detection
+
+  // ---------- Slider labels ----------
+  function fmt(){
+    $("exposureV").textContent = els.exposure.value;
+    $("contrastV").textContent = els.contrast.value;
+    $("gammaV").textContent = (els.gamma.value/100).toFixed(2);
+    $("thresholdV").textContent = els.threshold.value;
+    $("sharpenV").textContent = els.sharpen.value;
+    $("blurV").textContent = els.blur.value;
+  }
+
+  // ---------- File handling ----------
+  els.drop.addEventListener("click", ()=>els.file.click());
+  els.file.addEventListener("change", e=>handleFiles(e.target.files));
+  ["dragenter","dragover"].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.add("hot")}));
+  ["dragleave","drop"].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.remove("hot")}));
+  els.drop.addEventListener("drop", e=>{ if(e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+  // allow pasting
+  window.addEventListener("paste", e=>{
+    const items = e.clipboardData && e.clipboardData.files;
+    if(items && items.length) handleFiles(items);
+  });
+
+  function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f=>f.type.startsWith("image/"));
+    if(!files.length) return;
+    let loaded = 0;
+    files.forEach(f=>{
+      const url = URL.createObjectURL(f);
+      const img = new Image();
+      img.onload = ()=>{
+        images.push({name:f.name.replace(/\.[^.]+$/,"")||"bild", imgEl:img, width:img.naturalWidth, height:img.naturalHeight});
+        loaded++;
+        if(loaded===files.length){
+          renderThumbs();
+          selectImage(images.length-files.length); // select first new
+        } else {
+          renderThumbs();
+        }
+      };
+      img.onerror = ()=>{ loaded++; };
+      img.src = url;
+    });
+  }
+
+  function renderThumbs(){
+    els.thumbs.innerHTML="";
+    images.forEach((im,i)=>{
+      const d = document.createElement("div");
+      d.className="thumb"+(i===current?" active":"");
+      const t = document.createElement("img"); t.src=im.imgEl.src; d.appendChild(t);
+      const x = document.createElement("button"); x.className="x"; x.textContent="×";
+      x.title="Entfernen";
+      x.addEventListener("click",e=>{e.stopPropagation(); removeImage(i);});
+      d.appendChild(x);
+      d.addEventListener("click",()=>selectImage(i));
+      els.thumbs.appendChild(d);
+    });
+  }
+
+  function removeImage(i){
+    images.splice(i,1);
+    if(images.length===0){ current=-1; showEmpty(); renderThumbs(); return; }
+    if(current>=images.length) current=images.length-1;
+    else if(i<current) current--;
+    renderThumbs(); selectImage(current);
+  }
+
+  function showEmpty(){
+    els.origCanvas.hidden=true; els.outCanvas.hidden=true;
+    els.origEmpty.style.display=""; els.outEmpty.style.display="";
+    els.origEmpty.textContent="Noch kein Bild geladen"; els.outEmpty.textContent="–";
+    els.downloadBtn.disabled=true; els.downloadAllBtn.disabled=true;
+    els.origInfo.textContent=""; els.outInfo.textContent=""; els.dims.textContent="";
+  }
+
+  function selectImage(i){
+    current=i;
+    const im=images[i];
+    // set default size fields if empty
+    if(!els.outW.value && !els.outH.value){
+      els.outW.value=im.width; els.outH.value=im.height;
+    }
+    renderThumbs();
+    drawOriginal();
+    process();
+    els.downloadBtn.disabled=false;
+    els.downloadAllBtn.disabled=images.length<2? false:false;
+    els.downloadAllBtn.disabled=false;
+  }
+
+  function drawOriginal(){
+    const im=images[current];
+    const c=els.origCanvas, ctx=c.getContext("2d");
+    const maxDim=520;
+    let w=im.width, h=im.height, scale=Math.min(1, maxDim/Math.max(w,h));
+    c.width=Math.round(w*scale); c.height=Math.round(h*scale);
+    ctx.drawImage(im.imgEl,0,0,c.width,c.height);
+    els.origCanvas.hidden=false; els.origEmpty.style.display="none";
+    els.origInfo.textContent=im.width+" × "+im.height+" px";
+  }
+
+  // ---------- Size sync ----------
+  els.outW.addEventListener("input",()=>{
+    if(els.lockRatio.checked && current>=0){
+      const im=images[current]; const ratio=im.height/im.width;
+      if(els.outW.value) els.outH.value=Math.round(els.outW.value*ratio);
+    }
+    scheduleProcess();
+  });
+  els.outH.addEventListener("input",()=>{
+    if(els.lockRatio.checked && current>=0){
+      const im=images[current]; const ratio=im.width/im.height;
+      if(els.outH.value) els.outW.value=Math.round(els.outH.value*ratio);
+    }
+    scheduleProcess();
+  });
+  els.applyMM.addEventListener("click",()=>{
+    const mm=parseFloat(els.mmW.value), dpi=parseFloat(els.dpi.value);
+    if(mm>0 && dpi>0 && current>=0){
+      const px=Math.round(mm/25.4*dpi);
+      els.outW.value=px;
+      const im=images[current];
+      els.outH.value=Math.round(px*(im.height/im.width));
+      process();
+    }
+  });
+
+  // ---------- Controls wiring ----------
+  ["mode","ditherAlg"].forEach(id=>els[id].addEventListener("change",()=>{updateModeUI();scheduleProcess();}));
+  ["exposure","contrast","gamma","threshold","sharpen","blur"].forEach(id=>{
+    els[id].addEventListener("input",()=>{fmt();scheduleProcess();});
+  });
+  ["invert","autoLevels"].forEach(id=>els[id].addEventListener("change",scheduleProcess));
+
+  function updateModeUI(){
+    els.modeHint.textContent=MODE_HINTS[els.mode.value]||"";
+    els.ditherWrap.style.display = els.mode.value==="dither"? "":"none";
+  }
+
+  // ---------- Presets ----------
+  document.querySelectorAll(".preset").forEach(b=>{
+    b.addEventListener("click",()=>applyPreset(b.dataset.preset,b));
+  });
+  function applyPreset(name,btn){
+    const p=PRESETS[name]; if(!p) return;
+    document.querySelectorAll(".preset").forEach(x=>x.classList.remove("active"));
+    (btn||document.querySelector('[data-preset="'+name+'"]')).classList.add("active");
+    els.mode.value=p.mode; els.ditherAlg.value=p.ditherAlg;
+    els.exposure.value=p.exposure; els.contrast.value=p.contrast; els.gamma.value=p.gamma;
+    els.threshold.value=p.threshold; els.sharpen.value=p.sharpen; els.blur.value=p.blur;
+    els.invert.checked=p.invert; els.autoLevels.checked=p.autoLevels;
+    edgeMode=!!p.edge;
+    fmt(); updateModeUI(); process();
+  }
+
+  els.resetBtn.addEventListener("click",()=>{
+    els.exposure.value=0; els.contrast.value=0; els.gamma.value=100;
+    els.threshold.value=128; els.sharpen.value=0; els.blur.value=0;
+    els.invert.checked=false; els.autoLevels.checked=false; edgeMode=false;
+    els.mode.value="grayscale"; els.ditherAlg.value="floyd";
+    document.querySelectorAll(".preset").forEach(x=>x.classList.remove("active"));
+    fmt(); updateModeUI(); if(current>=0) process();
+  });
+
+  // ---------- Processing pipeline ----------
+  function scheduleProcess(){
+    if(current<0) return;
+    clearTimeout(debounceTimer);
+    debounceTimer=setTimeout(process,60);
+  }
+
+  function process(){
+    if(current<0) return;
+    const im=images[current];
+    let w=parseInt(els.outW.value)||im.width;
+    let h=parseInt(els.outH.value)||im.height;
+    w=Math.max(1,Math.min(w,6000)); h=Math.max(1,Math.min(h,6000));
+
+    // draw to work canvas at target size
+    const work=document.createElement("canvas"); work.width=w; work.height=h;
+    const wctx=work.getContext("2d");
+    wctx.imageSmoothingEnabled=true; wctx.imageSmoothingQuality="high";
+    wctx.drawImage(im.imgEl,0,0,w,h);
+    let imgData=wctx.getImageData(0,0,w,h);
+    let data=imgData.data;
+
+    // 1. grayscale (luminance)
+    const gray=new Float32Array(w*h);
+    for(let i=0,p=0;i<data.length;i+=4,p++){
+      gray[p]=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+    }
+
+    // 2. exposure (brightness add) & contrast & gamma
+    const exp=parseInt(els.exposure.value)*1.5;         // -150..150
+    const con=parseInt(els.contrast.value)/100;         // -1..1
+    const cf=(259*(con*255+255))/(255*(259-con*255));   // contrast factor
+    const g=parseInt(els.gamma.value)/100;
+    const invG=1/g;
+    for(let p=0;p<gray.length;p++){
+      let v=gray[p]+exp;
+      v=cf*(v-128)+128;                                  // contrast
+      v=v<0?0:v>255?255:v;
+      v=255*Math.pow(v/255,invG);                        // gamma
+      gray[p]=v<0?0:v>255?255:v;
+    }
+
+    // 3. blur (simple box blur, radius from slider)
+    const blurR=Math.round(parseInt(els.blur.value)/100*4);
+    let buf=gray;
+    if(blurR>0) buf=boxBlur(gray,w,h,blurR);
+
+    // 4. sharpen (unsharp mask)
+    const sh=parseInt(els.sharpen.value)/100;
+    if(sh>0){
+      const blurred=boxBlur(buf,w,h,1);
+      const amt=sh*1.6;
+      const out=new Float32Array(buf.length);
+      for(let p=0;p<buf.length;p++){
+        let v=buf[p]+amt*(buf[p]-blurred[p]);
+        out[p]=v<0?0:v>255?255:v;
+      }
+      buf=out;
+    }
+
+    // 5. edge detection (sketch)
+    if(edgeMode){
+      buf=sobel(buf,w,h); // returns edge magnitude, already 0..255, white bg dark lines handled by invert below
+      // sobel gives bright edges on black; for engraving we usually want dark lines on white -> invert
+      for(let p=0;p<buf.length;p++) buf[p]=255-buf[p];
+    }
+
+    // 6. auto levels
+    if(els.autoLevels.checked) buf=autoLevels(buf);
+
+    // 7. invert
+    if(els.invert.checked){ for(let p=0;p<buf.length;p++) buf[p]=255-buf[p]; }
+
+    // 8. mode: grayscale / threshold / dither
+    const mode=els.mode.value;
+    const th=parseInt(els.threshold.value);
+    if(mode==="threshold"){
+      for(let p=0;p<buf.length;p++) buf[p]=buf[p]>=th?255:0;
+    } else if(mode==="dither"){
+      buf=dither(buf,w,h,els.ditherAlg.value,th);
+    }
+    // grayscale: leave as-is
+
+    // write back
+    for(let i=0,p=0;i<data.length;i+=4,p++){
+      const v=buf[p];
+      data[i]=data[i+1]=data[i+2]=v; data[i+3]=255;
+    }
+    wctx.putImageData(imgData,0,0);
+
+    // store full-res result for download
+    im.resultCanvas=work;
+
+    // preview (scaled to fit)
+    const c=els.outCanvas, ctx=c.getContext("2d");
+    const maxDim=520; const scale=Math.min(1,maxDim/Math.max(w,h));
+    c.width=Math.round(w*scale); c.height=Math.round(h*scale);
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(work,0,0,c.width,c.height);
+    els.outCanvas.hidden=false; els.outEmpty.style.display="none";
+    els.outInfo.textContent=w+" × "+h+" px";
+    els.dims.textContent="Ausgabe: "+w+" × "+h+" px"+(els.mmW.value?" · "+els.mmW.value+" mm @ "+els.dpi.value+" dpi":"");
+  }
+
+  // ---------- Image ops ----------
+  function boxBlur(src,w,h,r){
+    if(r<=0) return src;
+    const tmp=new Float32Array(src.length), out=new Float32Array(src.length);
+    // horizontal
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        let s=0,c=0;
+        for(let dx=-r;dx<=r;dx++){ const xx=x+dx; if(xx>=0&&xx<w){s+=src[y*w+xx];c++;} }
+        tmp[y*w+x]=s/c;
+      }
+    }
+    // vertical
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        let s=0,c=0;
+        for(let dy=-r;dy<=r;dy++){ const yy=y+dy; if(yy>=0&&yy<h){s+=tmp[yy*w+x];c++;} }
+        out[y*w+x]=s/c;
+      }
+    }
+    return out;
+  }
+
+  function sobel(src,w,h){
+    const out=new Float32Array(src.length);
+    const gxk=[-1,0,1,-2,0,2,-1,0,1], gyk=[-1,-2,-1,0,0,0,1,2,1];
+    for(let y=1;y<h-1;y++){
+      for(let x=1;x<w-1;x++){
+        let gx=0,gy=0,k=0;
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          const v=src[(y+dy)*w+(x+dx)]; gx+=v*gxk[k]; gy+=v*gyk[k]; k++;
+        }
+        let m=Math.sqrt(gx*gx+gy*gy); out[y*w+x]=m>255?255:m;
+      }
+    }
+    return out;
+  }
+
+  function autoLevels(src){
+    let mn=255,mx=0;
+    for(let p=0;p<src.length;p++){ if(src[p]<mn)mn=src[p]; if(src[p]>mx)mx=src[p]; }
+    if(mx-mn<1) return src;
+    const out=new Float32Array(src.length), range=mx-mn;
+    for(let p=0;p<src.length;p++) out[p]=(src[p]-mn)/range*255;
+    return out;
+  }
+
+  function dither(src,w,h,alg,th){
+    const buf=Float32Array.from(src);
+    const out=new Float32Array(src.length);
+    if(alg==="ordered"){
+      const m=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const t=(m[y&3][x&3]/16-0.5)*64;
+        out[y*w+x]=(buf[y*w+x]+t)>=th?255:0;
+      }
+      return out;
+    }
+    // error diffusion
+    const kernels={
+      floyd:[[1,0,7/16],[-1,1,3/16],[0,1,5/16],[1,1,1/16]],
+      atkinson:[[1,0,1/8],[2,0,1/8],[-1,1,1/8],[0,1,1/8],[1,1,1/8],[0,2,1/8]]
+    };
+    const K=kernels[alg]||kernels.floyd;
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const idx=y*w+x;
+        const old=buf[idx];
+        const nv=old>=th?255:0;
+        out[idx]=nv;
+        const err=old-nv;
+        for(const [dx,dy,f] of K){
+          const xx=x+dx, yy=y+dy;
+          if(xx>=0&&xx<w&&yy>=0&&yy<h) buf[yy*w+xx]+=err*f;
+        }
+      }
+    }
+    return out;
+  }
+
+  // ---------- Download ----------
+  els.downloadBtn.addEventListener("click",()=>{
+    if(current<0||!images[current].resultCanvas) return;
+    downloadCanvas(images[current].resultCanvas, images[current].name+"_laser.png");
+  });
+  els.downloadAllBtn.addEventListener("click",()=>{
+    // ensure all processed with current settings
+    const savedCurrent=current;
+    images.forEach((im,i)=>{
+      current=i;
+      // restore size fields per image? keep current px if ratio locked; simplest: process each at its own native ratio using current width
+      process();
+      downloadCanvas(im.resultCanvas, im.name+"_laser.png");
+    });
+    current=savedCurrent;
+    if(current>=0) process();
+  });
+  function downloadCanvas(canvas,name){
+    canvas.toBlob(blob=>{
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob); a.download=name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    },"image/png");
+  }
+
+  // ---------- Init ----------
+  fmt(); updateModeUI(); showEmpty();
+})();
+</script>
+</body>
+</html>

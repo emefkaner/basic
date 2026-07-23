@@ -1,6 +1,7 @@
 import { config } from './config.js';
 import { getSettings, listEpisodes } from './store.js';
 import { formatDuration } from './audio.js';
+import { publicUrl } from './storage.js';
 
 // XML-Sonderzeichen maskieren.
 function esc(str = '') {
@@ -21,11 +22,11 @@ export function buildFeed() {
     .filter((e) => e.status === 'published')
     .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
-  const coverUrl = s.cover ? `${base}/media/assets/${encodeURIComponent(s.cover)}` : '';
+  const coverUrl = s.cover ? publicUrl(`assets/${s.cover}`) : '';
 
   const items = published
     .map((e) => {
-      const audioUrl = `${base}/media/episodes/${encodeURIComponent(e.audioFile)}`;
+      const audioUrl = e.audioUrl || '';
       const pubDate = new Date(e.publishedAt).toUTCString();
       return `    <item>
       <title>${esc(e.title)}</title>

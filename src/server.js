@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { config, paths } from './config.js';
 import { issueCookie, clearCookie, isLoggedIn, checkPassword } from './auth.js';
 import { buildFeed } from './rss.js';
+import { initStore } from './store.js';
+import { storageEnabled } from './storage.js';
 import episodesRouter from './routes/episodes.js';
 import settingsRouter from './routes/settings.js';
 
@@ -26,9 +28,9 @@ app.get('/feed.xml', (req, res) => {
   res.type('application/rss+xml; charset=utf-8').send(buildFeed());
 });
 
-// Fertige Audiodateien und Cover müssen öffentlich sein, damit Spotify sie laden kann.
-app.use('/media/episodes', express.static(paths.episodes, { maxAge: '1y' }));
-app.use('/media/assets', express.static(paths.assets, { maxAge: '1h' }));
+// Lokaler Fallback ohne R2: fertige Audiodateien und Cover öffentlich ausliefern,
+// damit Spotify sie laden kann. Mit R2 zeigen die Feed-URLs direkt auf R2.
+app.use('/media', express.static(paths.media, { maxAge: '1h' }));
 
 // ---- Login ----
 app.post('/login', (req, res) => {
@@ -64,9 +66,15 @@ app.get(['/', '/settings', '/episode/:id'], (req, res) => {
 // Übrige statische Dateien (JS/CSS/Manifest/Service-Worker).
 app.use(express.static(publicDir));
 
-app.listen(config.port, () => {
-  console.log(`Podcast-App läuft auf Port ${config.port}`);
-  console.log(`Öffentliche URL:  ${config.publicUrl}`);
-  console.log(`RSS-Feed:         ${config.publicUrl}/feed.xml`);
-  if (!config.password) console.warn('WARNUNG: APP_PASSWORD ist nicht gesetzt – Login nicht möglich.');
-});
+// Beim Start ggf. Metadaten aus dem R2-Backup wiederherstellen, dann lauschen.
+initStore()
+  .catch((e) => console.error('Store-Init fehlgeschlagen:', e.message))
+  .finally(() => {
+    app.listen(config.port, () => {
+      console.log(`Podcast-App läuft auf Port ${config.port}`);
+      console.log(`Öffentliche URL:  ${config.publicUrl}`);
+      console.log(`RSS-Feed:         ${config.publicUrl}/feed.xml`);
+      console.log(`Speicher:         ${storageEnabled() ? 'Cloudflare R2' : 'lokal (DATA_DIR)'}`);
+      if (!config.password) console.warn('WARNUNG: APP_PASSWORD ist nicht gesetzt – Login nicht möglich.');
+    });
+  });

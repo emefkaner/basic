@@ -9,14 +9,15 @@ import { listEpisodes, getEpisode, saveEpisode, deleteEpisode, getSettings } fro
 import { buildEpisode } from '../audio.js';
 import { transcribe } from '../transcribe.js';
 import { generateDescription } from '../describe.js';
+import { uploadFile, downloadToFile, deleteKey } from '../storage.js';
 
 const router = express.Router();
 router.use(requireAuth);
 
-// Uploads landen zunächst als Rohdatei im uploads-Ordner.
+// Uploads landen zunächst als Rohdatei im ephemeren tmp-Ordner.
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, paths.uploads),
+    destination: (req, file, cb) => cb(null, paths.tmp),
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname) || '.webm';
       cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`);
@@ -25,12 +26,8 @@ const upload = multer({
   limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB – reicht für lange Folgen
 });
 
-// Alle Episoden auflisten.
-router.get('/', (req, res) => {
-  res.json(listEpisodes());
-});
+router.get('/', (req, res) => res.json(listEpisodes()));
 
-// Einzelne Episode (zum Pollen des Verarbeitungsstatus).
 router.get('/:id', (req, res) => {
   const ep = getEpisode(req.params.id);
   if (!ep) return res.status(404).json({ error: 'Nicht gefunden' });
@@ -48,11 +45,11 @@ router.post('/', upload.single('audio'), async (req, res) => {
     description: '',
     transcript: '',
     status: 'processing', // processing -> draft -> published
-    rawFile: req.file.filename,
-    audioFile: '',
+    rawTmp: req.file.filename,   // ephemerer Roh-Upload (nur während Verarbeitung)
+    audioKey: '',                // R2-/Medien-Key der fertigen MP3
+    audioUrl: '',                // öffentliche URL der fertigen MP3
     duration: 0,
     size: 0,
-    // KI-Sprachoptimierung: an/aus + Stärke 0..100 (Regler in der App).
     enhance: {
       enabled: req.body.enhance === 'true' || req.body.enhance === '1',
       strength: Math.min(100, Math.max(0, Number(req.body.strength) || 60)),
@@ -63,7 +60,6 @@ router.post('/', upload.single('audio'), async (req, res) => {
   };
   saveEpisode(episode);
 
-  // Nicht auf die (langsame) Verarbeitung warten – Client pollt den Status.
   processEpisode(id).catch((err) => {
     console.error('Verarbeitung fehlgeschlagen:', err);
     const ep = getEpisode(id);
@@ -83,19 +79,18 @@ router.put('/:id', (req, res) => {
   res.json(ep);
 });
 
-// Veröffentlichen – passiert nur nach ausdrücklicher Bestätigung im Frontend.
+// Veröffentlichen – nur nach ausdrücklicher Bestätigung im Frontend.
 router.post('/:id/publish', (req, res) => {
   const ep = getEpisode(req.params.id);
   if (!ep) return res.status(404).json({ error: 'Nicht gefunden' });
   if (ep.status === 'processing') return res.status(409).json({ error: 'Wird noch verarbeitet' });
-  if (!ep.audioFile) return res.status(409).json({ error: 'Keine fertige Audiodatei' });
+  if (!ep.audioUrl) return res.status(409).json({ error: 'Keine fertige Audiodatei' });
   ep.status = 'published';
   ep.publishedAt = ep.publishedAt || new Date().toISOString();
   saveEpisode(ep);
   res.json(ep);
 });
 
-// Veröffentlichung zurückziehen (Folge verschwindet wieder aus dem Feed).
 router.post('/:id/unpublish', (req, res) => {
   const ep = getEpisode(req.params.id);
   if (!ep) return res.status(404).json({ error: 'Nicht gefunden' });
@@ -104,13 +99,12 @@ router.post('/:id/unpublish', (req, res) => {
   res.json(ep);
 });
 
-// Episode löschen (inkl. Dateien).
-router.delete('/:id', (req, res) => {
+// Episode löschen (inkl. Mediendatei).
+router.delete('/:id', async (req, res) => {
   const ep = getEpisode(req.params.id);
   if (!ep) return res.status(404).json({ error: 'Nicht gefunden' });
-  for (const [dir, file] of [[paths.uploads, ep.rawFile], [paths.episodes, ep.audioFile]]) {
-    if (file) fs.rmSync(path.join(dir, file), { force: true });
-  }
+  if (ep.audioKey) await deleteKey(ep.audioKey);
+  if (ep.rawTmp) fs.rmSync(path.join(paths.tmp, ep.rawTmp), { force: true });
   deleteEpisode(ep.id);
   res.json({ ok: true });
 });
@@ -121,28 +115,36 @@ async function processEpisode(id) {
   let ep = getEpisode(id);
   if (!ep) return;
 
-  const rawPath = path.join(paths.uploads, ep.rawFile);
-  const introPath = settings.intro ? path.join(paths.assets, settings.intro) : null;
-  const outroPath = settings.outro ? path.join(paths.assets, settings.outro) : null;
-  const outFile = `${id}.mp3`;
-  const outPath = path.join(paths.episodes, outFile);
+  const rawPath = path.join(paths.tmp, ep.rawTmp);
 
-  // 1) Intro + Aufnahme + Outro zusammenfügen.
+  // Intro/Outro bei Bedarf aus dem Speicher in den tmp-Ordner holen.
+  let introPath = null, outroPath = null;
+  if (settings.intro) {
+    introPath = await downloadToFile(`assets/${settings.intro}`, path.join(paths.tmp, `intro-${id}${path.extname(settings.intro)}`));
+  }
+  if (settings.outro) {
+    outroPath = await downloadToFile(`assets/${settings.outro}`, path.join(paths.tmp, `outro-${id}${path.extname(settings.outro)}`));
+  }
+
+  const outPath = path.join(paths.tmp, `${id}.mp3`);
+
+  // 1) Intro + Aufnahme + Outro zusammenfügen (inkl. optionaler KI-Optimierung).
   const { duration, size } = await buildEpisode({
-    intro: introPath,
-    main: rawPath,
-    outro: outroPath,
-    outFile: outPath,
-    enhance: ep.enhance,
+    intro: introPath, main: rawPath, outro: outroPath, outFile: outPath, enhance: ep.enhance,
   });
 
+  // 2) Fertige MP3 in den persistenten Speicher (R2 oder lokal) hochladen.
+  const audioKey = `episodes/${id}.mp3`;
+  const audioUrl = await uploadFile(outPath, audioKey, 'audio/mpeg');
+
   ep = getEpisode(id);
-  ep.audioFile = outFile;
+  ep.audioKey = audioKey;
+  ep.audioUrl = audioUrl;
   ep.duration = duration;
   ep.size = size;
   saveEpisode(ep);
 
-  // 2) Transkribieren (nur die Rohaufnahme, ohne Intro/Outro).
+  // 3) Transkribieren (nur die Rohaufnahme, ohne Intro/Outro).
   let transcript = '';
   try {
     transcript = await transcribe(rawPath);
@@ -150,13 +152,21 @@ async function processEpisode(id) {
     console.error('Transkription fehlgeschlagen:', err.message);
   }
 
-  // 3) Infotext-Vorschlag generieren.
+  // 4) Infotext-Vorschlag generieren.
   const description = await generateDescription({ transcript, title: ep.title });
 
   ep = getEpisode(id);
   ep.transcript = transcript;
   ep.description = description;
-  ep.status = 'draft'; // bereit zur Freigabe durch den Nutzer
+  ep.status = 'draft';
+  saveEpisode(ep);
+
+  // Aufräumen: ephemere Arbeitsdateien entfernen.
+  for (const f of [rawPath, outPath, introPath, outroPath]) {
+    if (f) fs.rmSync(f, { force: true });
+  }
+  ep = getEpisode(id);
+  ep.rawTmp = '';
   saveEpisode(ep);
 }
 

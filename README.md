@@ -39,8 +39,28 @@ Auf dem Handy braucht die Mikrofon-Aufnahme **HTTPS** (lokal geht `localhost`).
 | `PUBLIC_URL`        | öffentliche Adresse der App, z. B. `https://…onrender.com`  |
 | `OPENAI_API_KEY`    | Transkription (Whisper) – für den KI-Infotext aus Audio     |
 | `ANTHROPIC_API_KEY` | KI-Infotext (Claude), optional – ohne Key einfacher Fallback|
-| `DATA_DIR`          | Speicherort für Uploads/MP3s/Metadaten (Render: `/data`)    |
+| `DATA_DIR`          | Lokaler Zwischenspeicher / Fallback (Render: `/data`)       |
+| `R2_*`              | Cloudflare R2 (empfohlen, siehe unten) – dauerhafter Speicher|
 | `PORT`              | Server-Port (Standard 3000)                                 |
+
+## Speicher: Cloudflare R2 (empfohlen)
+
+Podcast-MP3s brauchen dauerhaften, öffentlich streambaren Speicher mit viel
+Bandbreite. **Dropbox/OneDrive/Google Drive sind dafür ungeeignet** (HTML-Links
+statt Direktdateien, kein sauberes Streaming, Traffic-Drosselung/-Sperren).
+
+**Cloudflare R2** ist ideal: **10 GB Speicher gratis, kostenloser Traffic**,
+saubere Direktlinks. Setup:
+
+1. Cloudflare-Account → **R2** → Bucket anlegen.
+2. Bucket **öffentlich** schalten (r2.dev-Subdomain aktivieren oder eigene Domain).
+3. **API-Token** (S3) erstellen → Access Key + Secret.
+4. Die fünf `R2_*`-Variablen setzen (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+   `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_URL`).
+
+Sind alle gesetzt, liegen MP3s, Cover **und** ein Metadaten-Backup in R2 – der
+Server braucht dann keinen persistenten Datenträger. Fehlt eine Variable, nutzt
+die App automatisch die lokale Platte (`DATA_DIR`).
 
 ---
 

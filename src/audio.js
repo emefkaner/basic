@@ -38,7 +38,7 @@ function enhanceChain(strength) {
   // 2) Optional: RNNoise-Modell, falls vorhanden (deutlich stärker gegen
   //    Umgebungsgeräusche wie Restaurant/Auto). Datei einfach nach
   //    data/assets/rnnoise.rnn legen – ansonsten wird es übersprungen.
-  const rnn = path.join(paths.assets, 'rnnoise.rnn');
+  const rnn = path.join(paths.media, 'assets', 'rnnoise.rnn');
   if (fs.existsSync(rnn)) {
     parts.push(`arnndn=m='${rnn.replace(/\\/g, '/')}'`);
   }

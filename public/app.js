@@ -241,7 +241,7 @@ async function renderEpisode(id) {
     return;
   }
 
-  const audioUrl = `/media/episodes/${encodeURIComponent(ep.audioFile)}`;
+  const audioUrl = ep.audioUrl || '';
   const isPublished = ep.status === 'published';
   view.innerHTML = `
     <button class="back" onclick="history.back()">← Zurück</button>
@@ -357,7 +357,7 @@ async function renderSettings() {
       <label>Cover-Bild (Pflicht für Spotify, quadratisch ≥ 1400px) ${s.cover ? '✓ gesetzt' : ''}</label>
       <input type="file" id="a_cover" accept="image/*" />
       <button class="btn primary" id="saveAssets" style="margin-top:14px;">Dateien hochladen</button>
-      ${s.cover ? `<img src="/media/assets/${encodeURIComponent(s.cover)}" alt="Cover" style="width:120px;height:120px;object-fit:cover;border-radius:12px;margin-top:14px;" />` : ''}
+      ${s.coverUrl ? `<img src="${s.coverUrl}" alt="Cover" style="width:120px;height:120px;object-fit:cover;border-radius:12px;margin-top:14px;" />` : ''}
     </div>
 
     <div class="card">

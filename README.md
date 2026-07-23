@@ -87,6 +87,18 @@ die App automatisch die lokale Platte (`DATA_DIR`).
    quadratisch, ≥ 1400 px).
 4. Fertig – die **RSS-Feed-URL** steht unten in den Einstellungen.
 
+## Bestehenden Podcast umziehen (Import)
+
+Wenn du schon einen Podcast hast (z. B. bei Spotify/Anchor), kannst du alle
+Folgen übernehmen: **Einstellungen → „Bestehende Folgen importieren"** → aktuelle
+RSS-Feed-URL eintragen → Import starten. Die App liest den Feed, übernimmt alle
+Folgen (idempotent, keine Duplikate), kopiert auf Wunsch die MP3s in deinen
+Speicher und übernimmt Podcast-Infos + Cover.
+
+Danach beim alten Anbieter bzw. bei Apple/Spotify die **Feed-Weiterleitung
+(Redirect)** auf deine neue `…/feed.xml`-URL setzen – so bleiben Follower,
+Bewertungen und das Archiv erhalten.
+
 ## Bei Spotify eintragen
 
 1. [Spotify for Podcasters / Creators](https://podcasters.spotify.com) öffnen.

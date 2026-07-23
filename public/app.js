@@ -361,6 +361,22 @@ async function renderSettings() {
     </div>
 
     <div class="card">
+      <h2 class="section" style="margin-top:0;">Bestehende Folgen importieren (Umzug)</h2>
+      <p class="muted">Trag die RSS-URL deines aktuellen Podcasts ein (z. B. cinespasten). Alle Folgen werden übernommen.</p>
+      <label>Aktuelle RSS-Feed-URL</label>
+      <input type="text" id="imp_url" placeholder="https://…/feed.xml oder anchor.fm/s/…/podcast/rss" />
+      <label style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="imp_rehost" checked style="width:auto;" /> Audiodateien in meinen Speicher kopieren (empfohlen)
+      </label>
+      <label style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="imp_meta" checked style="width:auto;" /> Podcast-Infos &amp; Cover übernehmen
+      </label>
+      <button class="btn primary" id="importBtn" style="margin-top:14px;">Import starten</button>
+      <p class="field-hint">Je nach Anzahl/Größe der Folgen kann das ein paar Minuten dauern. Läuft mehrfach ohne Duplikate.</p>
+      <div id="importResult" class="muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
       <h2 class="section" style="margin-top:0;">Dein RSS-Feed</h2>
       <p class="muted">Diese URL trägst du <b>einmalig</b> bei Spotify for Podcasters ein. Danach erscheinen neue Folgen automatisch.</p>
       <input type="text" readonly value="${location.origin}/feed.xml" onclick="this.select()" />
@@ -379,6 +395,28 @@ async function renderSettings() {
       }),
     });
     toast('Gespeichert.');
+  });
+
+  $('#importBtn').addEventListener('click', async () => {
+    const url = $('#imp_url').value.trim();
+    if (!url) return toast('Bitte Feed-URL eingeben.');
+    const btn = $('#importBtn'), out = $('#importResult');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Importiere …';
+    out.textContent = 'Lade Feed und übernehme Folgen … (nicht schließen)';
+    try {
+      const r = await api('/api/import', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedUrl: url, rehost: $('#imp_rehost').checked, importMeta: $('#imp_meta').checked }),
+      });
+      out.innerHTML = `<span class="success">✓ Fertig:</span> ${r.imported} importiert, ${r.skipped} übersprungen (von ${r.total}).` +
+        (r.metaImported ? ' Podcast-Infos übernommen.' : '') +
+        (r.errors && r.errors.length ? `<br><span class="error">${r.errors.length} Warnung(en): ${escapeHtml(r.errors.slice(0,3).join('; '))}</span>` : '');
+      toast('Import fertig ✓');
+    } catch (e) {
+      out.innerHTML = `<span class="error">Fehler: ${escapeHtml(e.message)}</span>`;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Import starten';
+    }
   });
 
   $('#saveAssets').addEventListener('click', async () => {

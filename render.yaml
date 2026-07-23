@@ -1,0 +1,27 @@
+# Render-Blueprint: legt Web-Service + persistenten Datenträger an.
+# Anleitung: render.com -> New -> Blueprint -> dieses Repo auswählen.
+services:
+  - type: web
+    name: podcast-studio
+    runtime: docker
+    plan: starter            # kleiner, günstiger Plan mit persistentem Disk-Support
+    healthCheckPath: /healthz
+    disk:
+      name: podcast-data
+      mountPath: /data       # hier liegen Uploads, fertige MP3s und Metadaten
+      sizeGB: 5              # bei Bedarf erhöhen (je nach Anzahl/Länge der Folgen)
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: PORT
+        value: 3000
+      - key: PUBLIC_URL
+        sync: false          # nach dem ersten Deploy auf die echte Render-URL setzen
+      - key: APP_PASSWORD
+        sync: false          # im Render-Dashboard eintragen (geheim)
+      - key: SESSION_SECRET
+        generateValue: true  # Render erzeugt einen sicheren Zufallswert
+      - key: OPENAI_API_KEY
+        sync: false          # für Transkription (Whisper)
+      - key: ANTHROPIC_API_KEY
+        sync: false          # für den KI-Infotext (Claude), optional

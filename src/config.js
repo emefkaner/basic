@@ -26,6 +26,11 @@ export const config = {
   publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
   openaiKey: process.env.OPENAI_API_KEY || '',
   anthropicKey: process.env.ANTHROPIC_API_KEY || '',
+  // Spotify for Podcasters (Anchor) – für den direkten Push per Browser-Automation.
+  anchor: {
+    email: process.env.ANCHOR_EMAIL || '',
+    password: process.env.ANCHOR_PASSWORD || '',
+  },
   // Cloudflare R2 (S3-kompatibel). Alle Felder nötig, sonst lokaler Fallback.
   r2: {
     accountId: process.env.R2_ACCOUNT_ID || '',
@@ -50,4 +55,6 @@ export const defaultSettings = {
   intro: '',
   outro: '',
   cover: '',
+  // Quell-Feed für den Import (dein bisheriger Anchor-Feed).
+  sourceFeedUrl: process.env.SOURCE_FEED_URL || '',
 };

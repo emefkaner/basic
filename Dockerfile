@@ -1,9 +1,9 @@
-# Schlankes Node-Image + system-ffmpeg (robuster als Binär-Download zur Build-Zeit).
+# Node + system-ffmpeg (Audio) + Chromium (Anchor-Push per Browser-Automation).
 FROM node:20-slim
 
-# ffmpeg für Audio-Zusammenschnitt, -Optimierung und -Analyse.
+# ffmpeg für Audio-Zusammenschnitt/-Optimierung.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -12,10 +12,12 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev
 
-# Restlichen Code kopieren.
+# Chromium für Playwright inkl. benötigter System-Bibliotheken installieren.
+# (Nur nötig für den optionalen "direkt zu Anchor pushen"-Modus.)
+RUN npx playwright install --with-deps chromium
+
 COPY . .
 
-# Datenordner (wird auf Render/Railway idealerweise auf ein Volume gemountet).
 ENV DATA_DIR=/data
 RUN mkdir -p /data
 

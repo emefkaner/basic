@@ -264,11 +264,23 @@ async function renderEpisode(id) {
     </div>
 
     <div class="card">
+      <h2 class="section" style="margin-top:0;">1) Eigener RSS-Feed</h2>
       ${isPublished
         ? `<p class="success">✓ Diese Folge ist im RSS-Feed und wird von Spotify abgeholt.</p>
            <button class="btn danger" id="unpubBtn">Aus Feed zurückziehen</button>`
         : `<button class="btn primary" id="pubBtn">Veröffentlichen (in den RSS-Feed)</button>
            <p class="field-hint">Es wird vor der Veröffentlichung nochmal nachgefragt.</p>`}
+    </div>
+
+    <div class="card">
+      <h2 class="section" style="margin-top:0;">2) Direkt zu Spotify Podcasters (Anchor)</h2>
+      ${ep.anchorStatus === 'pushed'
+        ? `<p class="success">✓ An Spotify Podcasters gepusht${ep.anchorPushedAt ? ' am ' + fmtDate(ep.anchorPushedAt) : ''}.</p>`
+        : ''}
+      ${ep.anchorStatus === 'failed'
+        ? `<p class="error">Letzter Push fehlgeschlagen: ${escapeHtml(ep.anchorError || '')}</p>` : ''}
+      <button class="btn" id="anchorBtn">In deinen bestehenden Podcast pushen</button>
+      <p class="field-hint">Nutzt Browser-Automation (inoffiziell). Läuft in deine bestehende cinespasten-Show – Follower bleiben. Kann bei UI-Änderungen von Spotify mal haken.</p>
       <button class="btn ghost small" id="delBtn2" style="margin-top:12px;">Folge löschen</button>
     </div>
 
@@ -305,6 +317,20 @@ async function renderEpisode(id) {
     await api(`/api/episodes/${encodeURIComponent(id)}/unpublish`, { method: 'POST' });
     toast('Zurückgezogen.');
     renderEpisode(id);
+  });
+
+  $('#anchorBtn').addEventListener('click', async () => {
+    if (!confirm('Diese Folge jetzt direkt in deinen bestehenden Spotify-Podcasters-Account (Anchor) hochladen und veröffentlichen?')) return;
+    const btn = $('#anchorBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Pushe … (kann 1–2 Min. dauern)';
+    try {
+      await api(`/api/episodes/${encodeURIComponent(id)}/push-anchor`, { method: 'POST' });
+      toast('An Spotify Podcasters gepusht ✓');
+      renderEpisode(id);
+    } catch (e) {
+      toast('Push fehlgeschlagen: ' + e.message, 5000);
+      btn.disabled = false; btn.textContent = 'In deinen bestehenden Podcast pushen';
+    }
   });
 
   $('#delBtn2').addEventListener('click', () => deleteEpisode(id));
@@ -364,7 +390,7 @@ async function renderSettings() {
       <h2 class="section" style="margin-top:0;">Bestehende Folgen importieren (Umzug)</h2>
       <p class="muted">Trag die RSS-URL deines aktuellen Podcasts ein (z. B. cinespasten). Alle Folgen werden übernommen.</p>
       <label>Aktuelle RSS-Feed-URL</label>
-      <input type="text" id="imp_url" placeholder="https://…/feed.xml oder anchor.fm/s/…/podcast/rss" />
+      <input type="text" id="imp_url" value="${escapeAttr(s.sourceFeedUrl || '')}" placeholder="https://…/feed.xml oder anchor.fm/s/…/podcast/rss" />
       <label style="display:flex;align-items:center;gap:10px;">
         <input type="checkbox" id="imp_rehost" checked style="width:auto;" /> Audiodateien in meinen Speicher kopieren (empfohlen)
       </label>

@@ -10,6 +10,8 @@ import { buildEpisode } from '../audio.js';
 import { transcribe } from '../transcribe.js';
 import { generateDescription } from '../describe.js';
 import { uploadFile, downloadToFile, deleteKey } from '../storage.js';
+import { config } from '../config.js';
+import { publishToAnchor } from '../anchorPublisher.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -89,6 +91,48 @@ router.post('/:id/publish', (req, res) => {
   ep.publishedAt = ep.publishedAt || new Date().toISOString();
   saveEpisode(ep);
   res.json(ep);
+});
+
+// Direkt in Spotify for Podcasters (Anchor) pushen – per Browser-Automation.
+router.post('/:id/push-anchor', async (req, res) => {
+  const ep = getEpisode(req.params.id);
+  if (!ep) return res.status(404).json({ error: 'Nicht gefunden' });
+  if (!ep.audioKey && !ep.audioUrl) return res.status(409).json({ error: 'Keine fertige Audiodatei' });
+  if (!config.anchor.email || !config.anchor.password) {
+    return res.status(400).json({ error: 'ANCHOR_EMAIL/ANCHOR_PASSWORD sind nicht gesetzt.' });
+  }
+
+  // Fertige MP3 lokal bereitstellen (aus dem Speicher laden, falls nötig).
+  const localPath = path.join(paths.tmp, `push-${ep.id}.mp3`);
+  try {
+    if (ep.audioKey) {
+      await downloadToFile(ep.audioKey, localPath);
+    } else {
+      const r = await fetch(ep.audioUrl);
+      if (!r.ok) throw new Error(`Download fehlgeschlagen (HTTP ${r.status})`);
+      fs.writeFileSync(localPath, Buffer.from(await r.arrayBuffer()));
+    }
+  } catch (e) {
+    return res.status(500).json({ error: `Audio konnte nicht geladen werden: ${e.message}` });
+  }
+
+  const result = await publishToAnchor({
+    email: config.anchor.email,
+    password: config.anchor.password,
+    audioPath: localPath,
+    title: ep.title,
+    description: ep.description,
+  });
+  fs.rmSync(localPath, { force: true });
+
+  const cur = getEpisode(ep.id);
+  cur.anchorStatus = result.ok ? 'pushed' : 'failed';
+  cur.anchorError = result.ok ? '' : (result.error || '');
+  cur.anchorPushedAt = result.ok ? new Date().toISOString() : cur.anchorPushedAt || null;
+  saveEpisode(cur);
+
+  if (!result.ok) return res.status(502).json(result);
+  res.json({ ok: true, episode: cur });
 });
 
 router.post('/:id/unpublish', (req, res) => {

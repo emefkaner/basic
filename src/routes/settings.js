@@ -24,7 +24,7 @@ router.get('/', (req, res) => res.json({ ...getSettings(), coverUrl: coverUrlOf(
 
 // Textfelder speichern.
 router.put('/', (req, res) => {
-  const allowed = ['title', 'description', 'author', 'ownerName', 'ownerEmail', 'language', 'category', 'explicit'];
+  const allowed = ['title', 'description', 'author', 'ownerName', 'ownerEmail', 'language', 'category', 'explicit', 'sourceFeedUrl'];
   const patch = {};
   for (const key of allowed) {
     if (key in req.body) patch[key] = key === 'explicit' ? Boolean(req.body[key]) : req.body[key];

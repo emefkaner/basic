@@ -107,6 +107,23 @@ Bewertungen und das Archiv erhalten.
 
 ---
 
+## Direkt zu Spotify for Podcasters pushen (optional, inoffiziell)
+
+Zusätzlich zum RSS-Feed kann die App eine Folge **direkt in deinen bestehenden
+Spotify-Podcasters-(Anchor-)Account** hochladen und veröffentlichen – so bleibt
+deine bestehende Show inkl. Follower erhalten, ohne Umzug.
+
+- Setze `ANCHOR_EMAIL` und `ANCHOR_PASSWORD` (Konto **ohne** 2-Faktor).
+- In der Folge dann „In deinen bestehenden Podcast pushen".
+
+> ⚠️ **Ehrlicher Hinweis:** Es gibt keine offizielle API. Dieser Modus steuert die
+> echte Weboberfläche per Browser-Automation (Playwright). Das ist **fragil**
+> (Layout-Änderungen bei Spotify können ihn brechen) und **entspricht nicht den
+> Spotify-Nutzungsbedingungen** – Nutzung auf eigenes Risiko. Bei Fehlern legt die
+> App Screenshots unter `DATA_DIR/debug` ab, damit man die Selektoren in
+> `src/anchorPublisher.js` nachziehen kann. Der **RSS-Feed** ist der stabile,
+> offizielle Hauptweg; der Anchor-Push ist die Bequemlichkeits-Ergänzung.
+
 ## Optionale, stärkere Rauschunterdrückung (RNNoise)
 
 Standardmäßig läuft die KI-Optimierung über ffmpeg (kostenlos, lokal). Für noch

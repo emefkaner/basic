@@ -1,6 +1,7 @@
 import express from 'express';
 import { requireAuth } from '../auth.js';
 import { importFeed } from '../importer.js';
+import { saveSettings } from '../store.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -14,6 +15,7 @@ router.post('/', async (req, res) => {
       rehost: req.body.rehost !== false,
       importMeta: req.body.importMeta !== false,
     });
+    saveSettings({ sourceFeedUrl: feedUrl }); // für nächste Läufe merken
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="920" height="620" viewBox="0 0 920 620">
 <defs><marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,4 L8,1.5 L8,6.5 Z" fill="#c0392b"/></marker></defs>
 <rect width="920" height="620" fill="#f7f5f0"/>
-<text x="460.0" y="42" text-anchor="middle" font-family="Segoe UI,Arial" font-size="23" font-weight="600" fill="#1a2b3c">Haltering mit Guckloch – Querschnitt</text>
+<text x="460.0" y="42" text-anchor="middle" font-family="Segoe UI,Arial" font-size="23" font-weight="600" fill="#1a2b3c">Haltering mit Guckloch – abgerundete Kanten</text>
 <text x="460.0" y="66" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="400" fill="#6b7a89">haelt die ausfahrbaren Teile im Rohr, in der Mitte frei zum Durchschauen</text>
 <rect x="285.0" y="370.0" width="12.5" height="130" fill="#d9d2c4" stroke="#7f8c8d" stroke-width="1.2" stroke-dasharray="5 4"/>
 <rect x="622.5" y="370.0" width="12.5" height="130" fill="#d9d2c4" stroke="#7f8c8d" stroke-width="1.2" stroke-dasharray="5 4"/>
 <text x="460" y="620" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="400" fill="#7f8c8d">Rohr (Ø70) – wird von unten reingeschoben</text>
-<polygon points="547.5,370.0 547.5,352.5 653.5,352.5 653.5,470.0 636.0,470.0 636.0,370.0" fill="#8fb8d8" stroke="#1a2b3c" stroke-width="1.6"/>
-<polygon points="372.5,370.0 372.5,352.5 266.5,352.5 266.5,470.0 284.0,470.0 284.0,370.0" fill="#8fb8d8" stroke="#1a2b3c" stroke-width="1.6"/>
+<polygon points="547.5,370.0 547.5,360.0 547.6,358.8 547.9,357.7 548.3,356.6 548.9,355.6 549.7,354.7 550.6,353.9 551.6,353.3 552.7,352.9 553.8,352.6 555.0,352.5 646.0,352.5 647.2,352.6 648.3,352.9 649.4,353.3 650.4,353.9 651.3,354.7 652.1,355.6 652.7,356.6 653.1,357.7 653.4,358.8 653.5,360.0 653.5,462.5 653.4,463.7 653.1,464.8 652.7,465.9 652.1,466.9 651.3,467.8 650.4,468.6 649.4,469.2 648.3,469.6 647.2,469.9 646.0,470.0 643.5,470.0 642.3,469.9 641.2,469.6 640.1,469.2 639.1,468.6 638.2,467.8 637.4,466.9 636.8,465.9 636.4,464.8 636.1,463.7 636.0,462.5 636.0,370.0" fill="#8fb8d8" stroke="#1a2b3c" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="372.5,370.0 372.5,360.0 372.4,358.8 372.1,357.7 371.7,356.6 371.1,355.6 370.3,354.7 369.4,353.9 368.4,353.3 367.3,352.9 366.2,352.6 365.0,352.5 274.0,352.5 272.8,352.6 271.7,352.9 270.6,353.3 269.6,353.9 268.7,354.7 267.9,355.6 267.3,356.6 266.9,357.7 266.6,358.8 266.5,360.0 266.5,462.5 266.6,463.7 266.9,464.8 267.3,465.9 267.9,466.9 268.7,467.8 269.6,468.6 270.6,469.2 271.7,469.6 272.8,469.9 274.0,470.0 276.5,470.0 277.7,469.9 278.8,469.6 279.9,469.2 280.9,468.6 281.8,467.8 282.6,466.9 283.2,465.9 283.6,464.8 283.9,463.7 284.0,462.5 284.0,370.0" fill="#8fb8d8" stroke="#1a2b3c" stroke-width="1.6" stroke-linejoin="round"/>
 <line x1="460" y1="282.5" x2="460" y2="510" stroke="#27ae60" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#a)"/>
 <text x="460" y="274.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#27ae60">Blick</text>
 <line x1="372.5" y1="374.5" x2="547.5" y2="374.5" stroke="#c0392b" stroke-width="1.3" marker-start="url(#a)" marker-end="url(#a)"/>
@@ -18,8 +18,6 @@
 <text x="460" y="466" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="600" fill="#c0392b">Ø 70,4 innen (Rohr Ø70 + Spiel)</text>
 <line x1="671.5" y1="470" x2="671.5" y2="352.5" stroke="#c0392b" stroke-width="1.3" marker-start="url(#a)" marker-end="url(#a)"/>
 <text x="677.5" y="415" text-anchor="start" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#1a2b3c">23,5 mm</text>
-<line x1="671.5" y1="470" x2="671.5" y2="370.0" stroke="#c0392b" stroke-width="1.3" marker-start="url(#a)" marker-end="url(#a)"/>
-<text x="677.5" y="422" text-anchor="start" font-family="Segoe UI,Arial" font-size="11" font-weight="400" fill="#6b7a89">greift 20 mm</text>
-<text x="330.0" y="354.0" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="400" fill="#2c3e50">Halte-Nase stoppt die Teile</text>
-<text x="460.0" y="602" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="400" fill="#6b7a89">Passung: 0,4 mm Spiel einkalkuliert. Zu stramm/locker? CLEARANCE im Skript ändern.</text>
+<text x="340.0" y="354.0" text-anchor="middle" font-family="Segoe UI,Arial" font-size="11" font-weight="400" fill="#2c3e50">Halte-Nase stoppt die Teile</text>
+<text x="460.0" y="602" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="400" fill="#6b7a89">Kanten mit R1.5 mm abgerundet · Passung 0,4 mm Spiel · CLEARANCE/R_ROUND im Skript änderbar</text>
 </svg>

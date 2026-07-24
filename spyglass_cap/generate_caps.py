@@ -99,6 +99,54 @@ def orient_outward(tris):
     return tris
 
 
+def fillet(profile, radius, steps=10, skip=frozenset()):
+    """Rundet die Ecken eines 2D-Profils [(r, z), ...] ab, indem jede Ecke
+    durch einen tangentialen Kreisbogen ersetzt wird. Indizes in 'skip'
+    bleiben scharf (z.B. verdeckte Innenecken)."""
+    if radius <= 0:
+        return profile
+    n = len(profile)
+    out = []
+    for i in range(n):
+        p0 = profile[(i - 1) % n]
+        p = profile[i]
+        p1 = profile[(i + 1) % n]
+        if i in skip:
+            out.append(p)
+            continue
+        v1 = (p0[0] - p[0], p0[1] - p[1])
+        v2 = (p1[0] - p[0], p1[1] - p[1])
+        l1 = math.hypot(*v1)
+        l2 = math.hypot(*v2)
+        if l1 < 1e-9 or l2 < 1e-9:
+            out.append(p)
+            continue
+        u1 = (v1[0] / l1, v1[1] / l1)
+        u2 = (v2[0] / l2, v2[1] / l2)
+        half = math.acos(max(-1.0, min(1.0, u1[0]*u2[0] + u1[1]*u2[1]))) / 2.0
+        if half < 1e-4 or math.pi/2 - half < 1e-4:
+            out.append(p)
+            continue
+        d = min(radius / math.tan(half), l1 * 0.49, l2 * 0.49)
+        r_eff = d * math.tan(half)
+        t1 = (p[0] + u1[0]*d, p[1] + u1[1]*d)
+        bis = (u1[0] + u2[0], u1[1] + u2[1])
+        bl = math.hypot(*bis)
+        ub = (bis[0]/bl, bis[1]/bl)
+        c = (p[0] + ub[0]*(r_eff/math.sin(half)),
+             p[1] + ub[1]*(r_eff/math.sin(half)))
+        a1 = math.atan2(t1[1]-c[1], t1[0]-c[0])
+        t2 = (p[0] + u2[0]*d, p[1] + u2[1]*d)
+        a2 = math.atan2(t2[1]-c[1], t2[0]-c[0])
+        da = a2 - a1
+        while da > math.pi:  da -= 2*math.pi
+        while da < -math.pi: da += 2*math.pi
+        for s in range(steps + 1):
+            a = a1 + da * s / steps
+            out.append((c[0] + r_eff*math.cos(a), c[1] + r_eff*math.sin(a)))
+    return out
+
+
 def save_stl(tris, path):
     tris = orient_outward(tris)
     data = np.zeros(len(tris), dtype=mesh.Mesh.dtype)
@@ -190,6 +238,7 @@ R_VIEW_HOLE_D  = 35.0    # Guckloch in der Mitte (3,5 cm)
 R_WALL         = 3.5     # Wandstaerke der Schuerze (die ueber das Rohr greift)
 R_SKIRT_H      = 20.0    # wie weit der Ring ueber das Rohr greift
 R_FACE_TH      = 3.5     # Dicke der vorderen Halte-Flaeche (mit Guckloch)
+R_ROUND        = 1.5     # Kantenradius (Abrundung) fuer den Original-Look
 
 def make_retaining_ring():
     inner_r = (R_TUBE_OUTER_D + CLEARANCE) / 2.0   # Schuerze innen (Rohr passt rein)
@@ -213,6 +262,11 @@ def make_retaining_ring():
     print(f"     Aussen-Oe des Rings:        {2*outer_r:.1f} mm")
     print(f"     Halte-Nase (Ueberlappung):  {ledge:.1f} mm ringsum")
     print(f"     Hoehe gesamt:               {z2:.1f} mm")
+    print(f"     Kanten abgerundet mit R:    {R_ROUND:.1f} mm")
+    # Sichtbare Kanten abrunden (Guckloch-Rand, Aussenkante vorne/hinten,
+    # Mundkante). Die verdeckten Innenecken auf Hoehe z1 bleiben scharf,
+    # damit Sitzflaeche und Halte-Nase voll erhalten bleiben.
+    profile = fillet(profile, R_ROUND, skip={0, 5})
     return revolve(profile)
 
 

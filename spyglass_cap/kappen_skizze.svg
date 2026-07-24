@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="560" viewBox="0 0 940 560">
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,4 L8,1.5 L8,6.5 Z" fill="#c0392b"/></marker></defs>
+<rect width="940" height="560" fill="#f7f5f0"/>
+<text x="470.0" y="40" text-anchor="middle" font-family="Segoe UI,Arial" font-size="22" font-weight="600" fill="#1a2b3c">Kappe fuer verkuerztes Piraten-Fernrohr  –  Querschnitte</text>
+<text x="250" y="95" text-anchor="middle" font-family="Segoe UI,Arial" font-size="18" font-weight="600" fill="#2c3e50">A  Überstülp-Kappe</text>
+<text x="250" y="118" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="400" fill="#6b7a89">wenn 70 mm = Außen-Ø des Rohrs</text>
+<polygon points="120.1,430.0 120.1,351.8 379.9,351.8 379.9,430.0 369.7,430.0 369.7,362.0 130.3,362.0 130.3,430.0" fill="#8fb8d8" stroke="#1a2b3c" stroke-width="1.5"/>
+<rect x="131.0" y="430.0" width="238.0" height="55" fill="none" stroke="#7f8c8d" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="250" y="508" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="400" fill="#7f8c8d">Rohr Ø70</text>
+<line x1="120.12" y1="448" x2="379.88" y2="448" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="250" y="468" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#1a2b3c">Ø 76,4 außen</text>
+<line x1="130.32" y1="362.0" x2="369.68" y2="362.0" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="250" y="356.0" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="600" fill="#c0392b">Ø 70,4 innen (Rohr+Spiel)</text>
+<line x1="395.88" y1="430" x2="395.88" y2="351.8" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="401.88" y="390" text-anchor="start" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#1a2b3c">23 mm</text>
+<line x1="395.88" y1="430" x2="395.88" y2="362.0" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="690" y="95" text-anchor="middle" font-family="Segoe UI,Arial" font-size="18" font-weight="600" fill="#2c3e50">B  Deckel mit Zapfen</text>
+<text x="690" y="118" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="400" fill="#6b7a89">wenn 25 mm = mittige Öffnung/Bohrung</text>
+<polygon points="653.3,430.0 648.2,424.9 648.2,375.6 571.0,375.6 571.0,365.4 809.0,365.4 809.0,375.6 731.8,375.6 731.8,424.9 726.7,430.0" fill="#c8a15a" stroke="#1a2b3c" stroke-width="1.5"/>
+<rect x="645.8" y="430.0" width="88.4" height="55" fill="none" stroke="#7f8c8d" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="690" y="508" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12" font-weight="400" fill="#7f8c8d">Loch Ø25</text>
+<line x1="571.0" y1="351.4" x2="809.0" y2="351.4" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="690" y="345.4" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#1a2b3c">Ø 70 Deckel</text>
+<line x1="648.18" y1="448" x2="731.82" y2="448" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="690" y="468" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="600" fill="#c0392b">Ø 24,6 Zapfen</text>
+<line x1="825.0" y1="430" x2="825.0" y2="375.6" stroke="#c0392b" stroke-width="1.2" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="831.0" y="405" text-anchor="start" font-family="Segoe UI,Arial" font-size="12" font-weight="600" fill="#1a2b3c">Zapfen 16</text>
+<text x="470.0" y="540" text-anchor="middle" font-family="Segoe UI,Arial" font-size="13" font-weight="400" fill="#6b7a89">Spiel/Passung: Standard 0,4 mm einkalkuliert  –  zu stramm/locker? CLEARANCE im Skript ändern</text>
+</svg>

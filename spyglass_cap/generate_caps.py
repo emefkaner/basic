@@ -180,9 +180,46 @@ def make_top_hat():
     return revolve(profile)
 
 
+# ---------------------------------------------------------------------------
+# Variante C: HALTERING mit Guckloch  (das ist, was du brauchst)
+# ---------------------------------------------------------------------------
+# Kein geschlossener Deckel: haelt die ausfahrbaren Teile im Rohr, laesst
+# aber in der Mitte ein Guckloch frei. Wird ueber das Rohrende gestuelpt.
+R_TUBE_OUTER_D = 70.0    # AUSSENdurchmesser des Rohrs (worauf der Ring greift)
+R_VIEW_HOLE_D  = 35.0    # Guckloch in der Mitte (3,5 cm)
+R_WALL         = 3.5     # Wandstaerke der Schuerze (die ueber das Rohr greift)
+R_SKIRT_H      = 20.0    # wie weit der Ring ueber das Rohr greift
+R_FACE_TH      = 3.5     # Dicke der vorderen Halte-Flaeche (mit Guckloch)
+
+def make_retaining_ring():
+    inner_r = (R_TUBE_OUTER_D + CLEARANCE) / 2.0   # Schuerze innen (Rohr passt rein)
+    outer_r = inner_r + R_WALL                      # Schuerze aussen
+    hole_r  = R_VIEW_HOLE_D / 2.0                    # Guckloch
+    z0 = 0.0                       # offene Kante (wird ueber das Rohr geschoben)
+    z1 = R_SKIRT_H                 # Unterseite der Halte-Flaeche (Rohr stoesst an)
+    z2 = R_SKIRT_H + R_FACE_TH     # Vorderseite
+    profile = [
+        (hole_r,  z1),   # innere Kante der Halte-Nase, unten
+        (hole_r,  z2),   # innere Kante, vorne (Guckloch-Rand)
+        (outer_r, z2),   # vorne aussen
+        (outer_r, z0),   # Schuerze aussen, unten
+        (inner_r, z0),   # Schuerze innen, unten (offen fuers Rohr)
+        (inner_r, z1),   # Schuerze innen, oben (trifft Halte-Nase)
+    ]
+    ledge = inner_r - hole_r
+    print("Variante C  HALTERING mit Guckloch:")
+    print(f"     Guckloch:                   {2*hole_r:.1f} mm")
+    print(f"     Innen-Oe (Rohr Ø{R_TUBE_OUTER_D:.0f}+Spiel):  {2*inner_r:.1f} mm")
+    print(f"     Aussen-Oe des Rings:        {2*outer_r:.1f} mm")
+    print(f"     Halte-Nase (Ueberlappung):  {ledge:.1f} mm ringsum")
+    print(f"     Hoehe gesamt:               {z2:.1f} mm")
+    return revolve(profile)
+
+
 if __name__ == "__main__":
     import os
     here = os.path.dirname(os.path.abspath(__file__))
+    save_stl(make_retaining_ring(), os.path.join(here, "kappe_C_haltering.stl"))
     save_stl(make_slip_over(), os.path.join(here, "kappe_A_ueberstuelp.stl"))
     save_stl(make_top_hat(),   os.path.join(here, "kappe_B_deckel_zapfen.stl"))
     print("\nFertig. Zum Aendern der Masse einfach die Variablen oben anpassen "

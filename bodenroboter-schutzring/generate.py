@@ -2,10 +2,11 @@
 """
 Auffahrschutz-Ring fuer Saug-/Wischroboter um ein Tischbein.
 
-Erzeugt STL-Dateien fuer einen runden Schutzwall, der in identische
-Kreissegmente geteilt ist. Die Segmente werden mit einer senkrechten
-Schwalbenschwanz-Verbindung von oben ineinander geschoben und ergeben
-zusammengesteckt einen geschlossenen, in sich steifen Ring.
+Der Ring liegt auf dem Boden aussen um den Tischfuss herum. Er ist in
+identische Kreissegmente geteilt, die an den Stossstellen eine gerade
+Verzahnung (Kammprofil) tragen: satt Klebeflaeche, exakte Ausrichtung,
+und weil bei zwei Haelften beide Stossflaechen in derselben Ebene liegen,
+laesst sich das Ganze geradlinig zusammenschieben statt einzufaedeln.
 
 Aufbau des Meshes
 -----------------
@@ -16,11 +17,9 @@ simplen Loft (Dreiecksstreifen zwischen benachbarten Profilen) plus je
 einer triangulierten Deckflaeche -- ohne CAD-Booleans und damit garantiert
 mannigfaltig und dicht.
 
-Ueber diesen Mechanismus entstehen auch die beiden Verrundungen:
-  * oben umlaufend eine Rundung an Aussen- und Innenkante (Optik)
-  * unten eine kleine Einfuehrfase am Schwalbenschwanz-Zapfen (Montage)
-Die Standflaeche unten bleibt scharfkantig, damit der Ring plan aufliegt
-und der Roboter keine Kante zum Auffahren findet.
+Ueber diesen Mechanismus entsteht auch die Verrundung oben, umlaufend an
+Aussen- und Innenkante. Die Standflaeche unten bleibt scharfkantig, damit
+der Ring plan aufliegt und der Roboter keine Kante zum Auffahren findet.
 
 Alle Masse in Millimetern.
 """
@@ -33,9 +32,16 @@ import os
 # Parameter
 # ---------------------------------------------------------------------------
 
-AUSSEN_DURCHMESSER = 365.0   # Aussendurchmesser des fertigen Rings
+# Der Ring liegt auf dem Boden AUSSEN UM den Tischfuss herum -- der Roboter
+# stoesst also an die Ringwand, bevor er den Fuss ueberhaupt erreicht.
+# Massgeblich ist damit der Innendurchmesser: er muss ueber den Fuss passen.
+FUSS_DURCHMESSER   = 365.0   # gemessener Durchmesser des Tischfusses
+LUFT               = 5.0     # Spiel zwischen Fuss und Ring, je Seite
 WANDSTAERKE        = 5.0     # Dicke der Wand
 HOEHE              = 50.0    # Hoehe der Wand
+
+INNEN_DURCHMESSER  = FUSS_DURCHMESSER + 2 * LUFT
+AUSSEN_DURCHMESSER = INNEN_DURCHMESSER + 2 * WANDSTAERKE
 
 VERRUNDUNG         = 2.0     # Radius der Rundung an der Oberkante
 
@@ -46,28 +52,33 @@ KLOTZ_AUSSEN       = 12.0    # zusaetzliches Material nach aussen
 KLOTZ_LAENGE       = 18.0    # volle Klotzbreite ab Stossfuge (Bogenlaenge)
 KLOTZ_AUSLAUF      = 14.0    # Laenge der Schraege, mit der der Klotz auslaeuft
 
-# Schwalbenschwanz. Der Querschnitt liegt waagerecht, gesteckt wird senkrecht.
-SCHWALBE_HALS      = 4.0     # radiale Breite an der Stossfuge (schmal)
-SCHWALBE_KOPF      = 6.5     # radiale Breite am Ende (breit -> haelt)
-SCHWALBE_TIEFE     = 9.0     # wie weit der Zapfen ueber die Fuge ragt
-SPIEL              = 0.25    # Passungsspiel je Flanke (Schiebesitz)
-EINFUEHRFASE       = 0.6     # Verjuengung des Zapfens am unteren Ende
-EINFUEHRFASE_HOEHE = 1.5     # ueber welche Hoehe die Fase auslaeuft
+# Gerade Verzahnung (Kammprofil) an der Stossfuge.
+#
+# Bei genau zwei Haelften liegen beide Stossflaechen in DERSELBEN Ebene --
+# die Haelften lassen sich also geradlinig zusammenschieben. Deshalb gerade
+# Zaehne statt Schwalbenschwanz: der Schwalbenschwanz muesste ueber die
+# volle Hoehe senkrecht eingefaedelt werden und wuerde den Kleber abstreifen.
+#
+# Die Stossflaeche wird radial in ZAHN_BAENDER gleich breite Baender geteilt,
+# die abwechselnd vorstehen und zurueckspringen. Am einen Ende stehen die
+# geraden Baender vor, am anderen die ungeraden -- dadurch passen zwei
+# identische Teile zusammen. Aussen und innen bleibt je eine solide Randzone
+# stehen, damit die Kantenverrundung oben nicht in die Verzahnung schneidet.
+ZAHN_BAENDER       = 2       # Anzahl der Baender in der Verzahnungszone
+ZAHN_TIEFE         = 12.0    # wie weit ein Zahn ueber die Fuge ragt
+ZAHN_RANDZONE      = 3.5     # solide Randzone der Stossflaeche, je Seite
+ZAHN_GRUNDLUFT     = 0.4     # Luft am Grund der Aussparung
+SPIEL              = 0.15    # Klebespalt je Flanke
 
 BOGEN_SCHRITT_GRAD = 1.0     # Aufloesung der Rundungen in der Draufsicht
 VERRUNDUNG_STUFEN  = 8       # Aufloesung der Kantenverrundung in der Hoehe
 
 DRUCKBETT = (350.0, 350.0)   # angenommener nutzbarer Bauraum X/Y
 
-# Einteilige Ringe. Ein Kreis braucht seinen Durchmesser in BEIDEN Achsen --
-# der massgebliche Wert ist also immer die kuerzere Bettkante. 365 mm passen
-# auf kein Bett dieser Groessenordnung, deshalb zusaetzlich die groessten
-# Durchmesser, die auf die beiden plausiblen H2S-Bauraeume passen:
-#   350 mm Kante - 2 x 7.5 mm Sicherheitsabstand -> 335 mm
-#   320 mm Kante - 2 x 7.5 mm Sicherheitsabstand -> 305 mm
-# Wer zusaetzlich einen Brim fahren will, rechnet dessen Breite (~5 mm)
-# nochmal je Seite ab und geht 10 mm kleiner.
-EINTEILIG_DURCHMESSER = (365.0, 335.0, 305.0)
+# Einteiliger Ring -- nur als Referenz fuer einen groesseren Drucker. Ein
+# Kreis braucht seinen Durchmesser in BEIDEN Achsen, massgeblich ist also
+# immer die kuerzere Bettkante. Bei diesem Ring waeren das gut 400 mm.
+EINTEILIG_DURCHMESSER = (AUSSEN_DURCHMESSER,)
 
 
 # ---------------------------------------------------------------------------
@@ -160,29 +171,37 @@ def triangulieren(poly):
 R_AUSSEN = AUSSEN_DURCHMESSER / 2.0
 R_INNEN = R_AUSSEN - WANDSTAERKE
 R_KLOTZ = R_AUSSEN + KLOTZ_AUSSEN
-R_SCHWALBE = (R_INNEN + R_KLOTZ) / 2.0          # Mitte des Verbindungsklotzes
 R_BOGEN = (R_AUSSEN + R_INNEN) / 2.0            # Referenz fuer Bogenlaengen
+
+# Grenzen der Verzahnungszone. Bewusst als feste Radien berechnet und NICHT
+# vom Einzug der Kantenverrundung abgeleitet: die Verzahnung muss ueber die
+# ganze Hoehe identisch bleiben, sonst passen die Haelften oben nicht mehr.
+R_ZONE_INNEN = R_INNEN + ZAHN_RANDZONE
+R_ZONE_AUSSEN = R_KLOTZ - ZAHN_RANDZONE
+ZAHN_BANDBREITE = (R_ZONE_AUSSEN - R_ZONE_INNEN) / ZAHN_BAENDER
+
+
+def _band(k):
+    """Radiale Grenzen (innen, aussen) des k-ten Bandes der Verzahnung."""
+    return (R_ZONE_INNEN + k * ZAHN_BANDBREITE,
+            R_ZONE_INNEN + (k + 1) * ZAHN_BANDBREITE)
 
 
 def _bogen_schritte(w_spanne):
     return max(1, int(math.ceil(abs(w_spanne) / math.radians(BOGEN_SCHRITT_GRAD))))
 
 
-def segment_profil(anzahl_segmente, einzug=0.0, zapfen_fase=0.0):
+def segment_profil(anzahl_segmente, einzug=0.0):
     """Waagerechter Querschnitt eines Segments als geschlossenes Polygon.
 
-    einzug       -- radiales Zuruecksetzen der Aussenhaut (Kantenverrundung).
-                    Aussen- und Klotzradius wandern nach innen, der
-                    Innenradius nach aussen.
-    zapfen_fase  -- radiale Verjuengung des Schwalbenschwanz-Zapfens je
-                    Flanke (Einfuehrfase am unteren Ende).
+    einzug -- radiales Zuruecksetzen der Aussenhaut (Kantenverrundung).
+              Aussen- und Klotzradius wandern nach innen, der Innenradius
+              nach aussen. Die Stossflaechen und die gesamte Verzahnung
+              bleiben davon unberuehrt, sonst wuerden die Haelften oben
+              nicht mehr passen.
 
-    Winkel 0   -> Schwalbenschwanz-NUT (Aufnahme)
-    Winkel phi -> Schwalbenschwanz-ZAPFEN (ragt in den Nachbarn)
-    Damit sind alle Segmente eines Rings identisch.
-
-    Die Stossfugen (Winkel 0 und phi) und die gesamte Nut bleiben vom
-    Einzug unberuehrt -- sonst wuerden die Segmente oben nicht mehr passen.
+    Am Ende phi stehen die geraden Baender der Verzahnung vor, am Anfang 0
+    die ungeraden. Dadurch passen zwei identische Teile zusammen.
     """
     r_aussen = R_AUSSEN - einzug
     r_innen = R_INNEN + einzug
@@ -190,22 +209,12 @@ def segment_profil(anzahl_segmente, einzug=0.0, zapfen_fase=0.0):
 
     phi = 2.0 * math.pi / anzahl_segmente
 
-    # Bogenlaengen -> Winkel (durchgaengig ueber denselben Referenzradius)
+    # Bogenlaengen -> Winkel (durchgaengig ueber denselben Referenzradius,
+    # damit Zahn und Aussparung exakt zueinander passen)
     a_klotz = KLOTZ_LAENGE / R_BOGEN
     a_auslauf = (KLOTZ_LAENGE + KLOTZ_AUSLAUF) / R_BOGEN
-    a_zapfen = SCHWALBE_TIEFE / R_BOGEN
-    a_nut = (SCHWALBE_TIEFE + 0.5) / R_BOGEN     # 0.5 mm Luft am Nutgrund
-
-    # Radien der Schwalbenschwanz-Flanken
-    z_hals_a = R_SCHWALBE + SCHWALBE_HALS / 2.0 - zapfen_fase
-    z_hals_i = R_SCHWALBE - SCHWALBE_HALS / 2.0 + zapfen_fase
-    z_kopf_a = R_SCHWALBE + SCHWALBE_KOPF / 2.0 - zapfen_fase
-    z_kopf_i = R_SCHWALBE - SCHWALBE_KOPF / 2.0 + zapfen_fase
-
-    n_hals_a = R_SCHWALBE + SCHWALBE_HALS / 2.0 + SPIEL
-    n_hals_i = R_SCHWALBE - SCHWALBE_HALS / 2.0 - SPIEL
-    n_kopf_a = R_SCHWALBE + SCHWALBE_KOPF / 2.0 + SPIEL
-    n_kopf_i = R_SCHWALBE - SCHWALBE_KOPF / 2.0 - SPIEL
+    a_zahn = ZAHN_TIEFE / R_BOGEN
+    a_nut = (ZAHN_TIEFE + ZAHN_GRUNDLUFT) / R_BOGEN
 
     s_klotz = _bogen_schritte(a_klotz)
     s_wand = _bogen_schritte(phi - 2 * a_auslauf)
@@ -220,12 +229,22 @@ def segment_profil(anzahl_segmente, einzug=0.0, zapfen_fase=0.0):
     p.append(pol(phi - a_klotz, r_klotz))                 # Auslaufschraege
     bogen(p, phi - a_klotz, phi, r_klotz, s_klotz)
 
-    # --- Schwalbenschwanz-Zapfen am Ende phi -------------------------------
-    p.append(pol(phi, z_hals_a))                          # Stirnflaeche aussen
-    p.append(pol(phi + a_zapfen, z_kopf_a))               # aeussere Flanke
-    p.append(pol(phi + a_zapfen, z_kopf_i))               # Kopfflaeche
-    p.append(pol(phi, z_hals_i))                          # innere Flanke
-    p.append(pol(phi, r_innen))                           # Stirnflaeche innen
+    # --- Stossflaeche am Ende phi, von aussen nach innen -------------------
+    # Zaehne ragen nach +phi in den Nachbarn hinein, Aussparungen nach -phi.
+    p.append(pol(phi, R_ZONE_AUSSEN))                     # solide Randzone
+    for k in range(ZAHN_BAENDER - 1, -1, -1):
+        lo, hi = _band(k)
+        if k % 2 == 0:                                    # Zahn
+            p.append(pol(phi, hi - SPIEL))
+            p.append(pol(phi + a_zahn, hi - SPIEL))
+            p.append(pol(phi + a_zahn, lo + SPIEL))
+            p.append(pol(phi, lo + SPIEL))
+            p.append(pol(phi, lo))
+        else:                                             # Aussparung
+            p.append(pol(phi - a_nut, hi))
+            p.append(pol(phi - a_nut, lo))
+            p.append(pol(phi, lo))
+    p.append(pol(phi, r_innen))                           # solide Randzone
 
     # --- Innenkontur, Winkel fallend von phi nach 0 ------------------------
     bogen(p, phi, phi - a_klotz, r_innen, s_klotz)
@@ -234,11 +253,21 @@ def segment_profil(anzahl_segmente, einzug=0.0, zapfen_fase=0.0):
     p.append(pol(a_klotz, r_innen))
     bogen(p, a_klotz, 0.0, r_innen, s_klotz)
 
-    # --- Schwalbenschwanz-Nut am Anfang 0 ----------------------------------
-    p.append(pol(0.0, n_hals_i))                          # Stirnflaeche innen
-    p.append(pol(a_nut, n_kopf_i))                        # innere Flanke
-    p.append(pol(a_nut, n_kopf_a))                        # Nutgrund
-    p.append(pol(0.0, n_hals_a))                          # aeussere Flanke
+    # --- Stossflaeche am Anfang 0, von innen nach aussen -------------------
+    # Hier ist das Muster genau umgekehrt: ungerade Baender ragen vor.
+    p.append(pol(0.0, R_ZONE_INNEN))                      # solide Randzone
+    for k in range(ZAHN_BAENDER):
+        lo, hi = _band(k)
+        if k % 2 == 1:                                    # Zahn
+            p.append(pol(0.0, lo + SPIEL))
+            p.append(pol(-a_zahn, lo + SPIEL))
+            p.append(pol(-a_zahn, hi - SPIEL))
+            p.append(pol(0.0, hi - SPIEL))
+            p.append(pol(0.0, hi))
+        else:                                             # Aussparung
+            p.append(pol(a_nut, lo))
+            p.append(pol(a_nut, hi))
+            p.append(pol(0.0, hi))
     # Der Umlauf schliesst sich ueber p[0] = (0, r_klotz). Dieser Punkt darf
     # hier nicht erneut angehaengt werden, sonst entsteht eine Kante der
     # Laenge 0 und das Ear-Clipping findet kein Ohr mehr.
@@ -266,17 +295,14 @@ def ring_profil(d_aussen, einzug=0.0):
 # ---------------------------------------------------------------------------
 
 def hoehen_stufen():
-    """Liste (z, einzug, zapfen_fase) von unten nach oben."""
-    stufen = [(0.0, 0.0, EINFUEHRFASE)]
+    """Liste (z, einzug) von unten nach oben.
 
-    # Einfuehrfase am Zapfen auslaufen lassen
-    for i in range(1, VERRUNDUNG_STUFEN + 1):
-        z = EINFUEHRFASE_HOEHE * i / VERRUNDUNG_STUFEN
-        rest = EINFUEHRFASE * (1.0 - i / VERRUNDUNG_STUFEN) ** 2
-        stufen.append((z, 0.0, rest))
-
+    Die Verzahnung wird waagerecht zusammengeschoben und braucht daher
+    keine Einfuehrfase am unteren Ende -- das Profil ist ueber die ganze
+    Hoehe konstant, bis oben die Kantenverrundung einsetzt.
+    """
     # gerader Bereich bis zum Beginn der Kantenverrundung
-    stufen.append((HOEHE - VERRUNDUNG, 0.0, 0.0))
+    stufen = [(0.0, 0.0), (HOEHE - VERRUNDUNG, 0.0)]
 
     # Viertelkreis-Verrundung an der Oberkante
     for i in range(1, VERRUNDUNG_STUFEN + 1):
@@ -284,7 +310,7 @@ def hoehen_stufen():
         winkel = math.pi / 2.0 * t
         z = HOEHE - VERRUNDUNG + VERRUNDUNG * math.sin(winkel)
         einzug = VERRUNDUNG * (1.0 - math.cos(winkel))
-        stufen.append((z, einzug, 0.0))
+        stufen.append((z, einzug))
 
     return stufen
 
@@ -337,25 +363,18 @@ def loften(profile, hoehen):
 
 def segment_mesh(anzahl_segmente):
     stufen = hoehen_stufen()
-    profile = [segment_profil(anzahl_segmente, einzug, fase)
-               for (_, einzug, fase) in stufen]
-    hoehen = [z for (z, _, _) in stufen]
+    profile = [segment_profil(anzahl_segmente, einzug) for (_, einzug) in stufen]
+    hoehen = [z for (z, _) in stufen]
     return loften(profile, hoehen)
 
 
 def ring_mesh(d_aussen):
     """Ungeteilter Ring mit derselben Oberkanten-Verrundung."""
-    stufen = [(z, e, f) for (z, e, f) in hoehen_stufen() if f == 0.0]
-    # doppelte Hoehen (aus der Fasen-Stufe) entfernen
-    entpackt = []
-    for eintrag in stufen:
-        if not entpackt or abs(eintrag[0] - entpackt[-1][0]) > 1e-9:
-            entpackt.append(eintrag)
-    entpackt[0] = (0.0, 0.0, 0.0)
+    entpackt = hoehen_stufen()
 
     dreiecke = []
-    profile = [ring_profil(d_aussen, e) for (_, e, _) in entpackt]
-    hoehen = [z for (z, _, _) in entpackt]
+    profile = [ring_profil(d_aussen, e) for (_, e) in entpackt]
+    hoehen = [z for (z, _) in entpackt]
     n = len(profile[0][0])
 
     # Boden
@@ -443,6 +462,62 @@ def offene_kanten(dreiecke):
     return sum(1 for n in zaehler.values() if n != 2)
 
 
+def _punkt_in_polygon(p, poly):
+    """Ray-Casting: liegt p innerhalb von poly?"""
+    x, y = p
+    drin = False
+    n = len(poly)
+    for i in range(n):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % n]
+        if (y1 > y) != (y2 > y):
+            xs = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+            if xs > x:
+                drin = not drin
+    return drin
+
+
+def _abstand_zu_rand(p, poly):
+    """Kuerzester Abstand von p zum Polygonrand."""
+    x, y = p
+    best = float("inf")
+    n = len(poly)
+    for i in range(n):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % n]
+        dx, dy = x2 - x1, y2 - y1
+        L2 = dx * dx + dy * dy
+        t = 0.0 if L2 == 0.0 else max(0.0, min(1.0, ((x - x1) * dx + (y - y1) * dy) / L2))
+        best = min(best, math.hypot(x - (x1 + t * dx), y - (y1 + t * dy)))
+    return best
+
+
+def passung_pruefen(anzahl_segmente, toleranz=0.01):
+    """Prueft, ob zwei benachbarte Segmente kollisionsfrei zusammenpassen.
+
+    Baut die Querschnitte zweier benachbarter Segmente in Einbaulage und
+    sucht Punkte, die deutlich im jeweils anderen Teil liegen. So faellt
+    ein falsch herum laufendes Zahnmuster sofort auf und nicht erst nach
+    Stunden Druckzeit.
+
+    Rueckgabe: (anzahl_kollisionen, groesste_ueberdeckung_mm)
+    """
+    phi = 2.0 * math.pi / anzahl_segmente
+    cw, sw = math.cos(phi), math.sin(phi)
+    a = segment_profil(anzahl_segmente)
+    b = [(x * cw - y * sw, x * sw + y * cw) for x, y in a]
+
+    treffer, tiefste = 0, 0.0
+    for quelle, ziel in ((a, b), (b, a)):
+        for punkt in quelle:
+            if _punkt_in_polygon(punkt, ziel):
+                tiefe = _abstand_zu_rand(punkt, ziel)
+                if tiefe > toleranz:
+                    treffer += 1
+                    tiefste = max(tiefste, tiefe)
+    return treffer, tiefste
+
+
 def bester_bauraum(dreiecke):
     """Guenstigste Platzierung auf dem Druckbett.
 
@@ -516,10 +591,11 @@ def main():
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
     os.makedirs(ziel, exist_ok=True)
 
-    print("Ring: aussen %.1f / innen %.1f / Wand %.1f / Hoehe %.1f mm, "
+    print("Tischfuss %.1f mm + %.1f mm Luft je Seite"
+          % (FUSS_DURCHMESSER, LUFT))
+    print("Ring: innen %.1f / aussen %.1f / Wand %.1f / Hoehe %.1f mm, "
           "Oberkante R%.1f verrundet"
-          % (AUSSEN_DURCHMESSER, AUSSEN_DURCHMESSER - 2 * WANDSTAERKE,
-             WANDSTAERKE, HOEHE, VERRUNDUNG))
+          % (INNEN_DURCHMESSER, AUSSEN_DURCHMESSER, WANDSTAERKE, HOEHE, VERRUNDUNG))
     print("Angenommener Bauraum: %.0f x %.0f mm\n" % DRUCKBETT)
 
     fehler = 0
@@ -527,13 +603,18 @@ def main():
         d = segment_mesh(n)
         offen = offene_kanten(d)
         fehler += offen
-        name = "schutzring_%dteilig_segment.stl" % n
+        name = "schutzring_%dteilig_%.0fmm_segment.stl" % (n, AUSSEN_DURCHMESSER)
         stl_schreiben(os.path.join(ziel, name), d, name)
         passt, bx, by, winkel, rand = bester_bauraum(d)
-        print("%-34s %5d Dr. | %6.1f cm3 je Segment (%dx = %6.1f cm3) | "
-              "%5.1f x %5.1f mm @ %5.1f Grad, Rand %+6.1f mm -> %-11s | offene Kanten %d"
+        kollisionen, tiefe = passung_pruefen(n)
+        fehler += kollisionen
+        print("%-36s %5d Dr. | %6.1f cm3 je Segment (%dx = %6.1f cm3) | "
+              "%5.1f x %5.1f mm @ %5.1f Grad, Rand %+6.1f mm -> %-11s | "
+              "offene Kanten %d | Passung %s"
               % (name, len(d), volumen(d) / 1000.0, n, n * volumen(d) / 1000.0,
-                 bx, by, winkel, rand, "passt" if passt else "PASST NICHT", offen))
+                 bx, by, winkel, rand, "passt" if passt else "PASST NICHT", offen,
+                 "ok" if kollisionen == 0
+                 else "KOLLISION %.2f mm" % tiefe))
 
     print()
     for d_aussen in EINTEILIG_DURCHMESSER:

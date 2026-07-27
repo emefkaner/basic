@@ -1,96 +1,118 @@
 # Auffahrschutz-Ring fürs Tischbein
 
-Runder Schutzwall, der über den Tischfuß gestülpt wird, damit der Saug-/Wischroboter
-nicht mehr darauf auffährt und sich festfährt.
+Runder Schutzwall, der auf dem Boden **außen um den Tischfuß** liegt. Der
+Saug-/Wischroboter stößt an die Ringwand, bevor er den Fuß überhaupt erreicht,
+und kann sich damit nicht mehr daraufsetzen.
 
 | Maß | Wert |
 |---|---|
+| Tischfuß (gemessen) | 365 mm |
+| Luft zum Fuß | 5 mm je Seite |
+| **Innendurchmesser** | **375 mm** |
+| Außendurchmesser | 385 mm |
 | Wandstärke | 5 mm |
 | Höhe | 50 mm |
 | Oberkante | innen und außen mit R2 verrundet |
 | Unterkante | scharfkantig, damit der Ring plan aufliegt |
 
-Ein geschlossener Ring ist als Hoop in sich steif — der Hebel ist der ganze
-Durchmesser als Standbreite gegen ~40 mm Anstoßhöhe. Da kippt nichts weg, ein
-zusätzlicher Bodenflansch ist nicht nötig.
+Ausgeführt als **zwei identische Hälften**, die an den Stoßstellen ineinander
+verzahnt und verklebt werden. Verklebt ist der Ring ein geschlossener Hoop und
+damit in sich steif — der Hebel ist der ganze Durchmesser als Standbreite gegen
+~40 mm Anstoßhöhe, da kippt nichts weg.
 
-## Welche Datei?
+## Dateien
 
-Der einteilige Ring ist die Hauptvariante. Maßgeblich für den Bauraum ist immer
-die **kürzere** Bettkante: ein Kreis braucht seinen Durchmesser in beiden Achsen,
-Drehen bringt nichts.
-
-| Datei | Außen | Innen (lichte Weite) | Braucht Bettkante |
-|---|---|---|---|
-| `schutzring_einteilig_335mm.stl` | 335 mm | **325 mm** | ≥ 350 mm |
-| `schutzring_einteilig_305mm.stl` | 305 mm | **295 mm** | ≥ 320 mm |
-| `schutzring_einteilig_365mm.stl` | 365 mm | 355 mm | ≥ 380 mm — passt auf die H2S **nicht** |
-
-Beide druckbaren Größen lassen 7,5 mm Rand je Seite. Wer einen Brim fahren will,
-rechnet dessen Breite nochmal je Seite ab — oder nimmt einen Skirt statt Brim.
-
-**Entscheidend ist die lichte Weite.** Der Tischfuß muss durch die 325 mm bzw.
-295 mm passen. Das ist die einzige Zahl, die vorher gemessen sein sollte.
-
-### Warum nicht 365 mm am Stück?
-
-Rein geometrisch:
-
-- Ein Kreis mit 365 mm Durchmesser braucht 365 mm in beiden Achsen. Drehen macht
-  ein rundes Teil nicht schmaler.
-- Kippen hilft auch nicht: um die Grundfläche unter 350 mm zu drücken, müsste der
-  Ring um ≥ 69° gekippt werden. Dann ist er 359 mm hoch und reißt die Z-Grenze
-  von 325 mm — abgesehen von den Stützen, die das bräuchte.
-
-Die 365-mm-Datei liegt für einen größeren Drucker trotzdem bei.
-
-### Rückfallvariante, falls der Fuß breiter ist als 325 mm
-
-Dann geht einteilig auf diesem Drucker nicht mehr, und es bleiben die geteilten
-Ringe mit vollen 365 mm außen / 355 mm innen. Sie werden über eine senkrechte
-Schwalbenschwanz-Verbindung von oben zusammengesteckt.
-
-| Datei | Segmente | Grundfläche je Segment |
+| Datei | Stück | Grundfläche je Teil |
 |---|---|---|
-| `schutzring_2teilig_segment.stl` | 2 × drucken | 321,5 × 321,5 mm bei 44,4° gedreht |
-| `schutzring_3teilig_segment.stl` | 3 × drucken | 246 × 246 mm |
-| `schutzring_4teilig_segment.stl` | 4 × drucken | 199 × 199 mm |
+| `schutzring_2teilig_385mm_segment.stl` | **2 × drucken** | 341,2 × 341,3 mm bei 135,8° gedreht |
+| `schutzring_3teilig_385mm_segment.stl` | 3 × drucken | 265 × 265 mm |
+| `schutzring_4teilig_385mm_segment.stl` | 4 × drucken | 217 × 217 mm |
+| `schutzring_einteilig_385mm.stl` | — | 385 × 385 mm, braucht ein Bett ≥ 400 mm |
 
-An jeder Stoßstelle sitzt ein Verbindungsklotz, der die Wand lokal auf 17 mm
-verdickt — nur nach **außen**, damit innen überall die vollen 355 mm frei bleiben.
-Schwalbenschwanz: Hals 4 mm, Kopf 6,5 mm, Tiefe 9 mm, 0,25 mm Spiel je Flanke,
-unten 0,6 mm Einführfase. Gesteckt wird senkrecht von oben — nur so lässt sich
-das letzte Segment in beide Nachbarn gleichzeitig einschieben.
+Alle Teile eines Rings sind identisch — an einem Ende stehen die geraden Bänder
+der Verzahnung vor, am anderen die ungeraden, dadurch passt jedes Teil auf jedes.
+
+### Achtung beim Bauraum
+
+Die zweiteilige Variante braucht **350 × 350 mm** und lässt dann nur 8,7 mm Rand.
+Das reicht für einen Skirt, aber nicht für einen Brim.
+
+Wenn der nutzbare Bereich der H2S in einer Achse nur 320 mm ist — laut
+Spezifikation ist der Bauraum 350 × 320 × 325 mm — dann geht die zweiteilige
+Variante **nicht**. Eine Halbschale dieses Durchmessers passt in kein Quadrat
+unter ~329 mm, das ist eine harte geometrische Grenze. In dem Fall die
+dreiteilige Datei nehmen, die passt mit 85 mm Rand.
+
+Am schnellsten geklärt: die STL in Bambu Studio laden und schauen, ob die Platte
+meckert.
+
+## Verzahnung
+
+Bei genau zwei Hälften liegen beide Stoßflächen in **derselben** Ebene. Die
+Hälften lassen sich deshalb geradlinig zusammenschieben, beide Fugen schließen
+gleichzeitig. Darum gerade Zähne und bewusst *kein* Schwalbenschwanz: den
+müsstest du über die vollen 50 mm senkrecht einfädeln und würdest dabei den
+Kleber abstreifen.
+
+Die Stoßfläche ist an der Fuge auf 17 mm verdickt — nur nach **außen**, damit
+innen die vollen 375 mm für den Fuß frei bleiben. Sie ist radial aufgeteilt in:
+
+- 3,5 mm solide Randzone innen
+- zwei Bänder à 5 mm, die abwechselnd 12 mm vorstehen bzw. zurückspringen
+- 3,5 mm solide Randzone außen
+
+Die Randzonen stehen da, damit die Kantenverrundung oben nicht in die Verzahnung
+schneidet. Klebespalt 0,15 mm je Flanke.
+
+Klebefläche pro Stoßstelle: rund 3250 mm². Eine glatte Stoßfuge auf der 5-mm-Wand
+hätte 250 mm² — also gut das Dreizehnfache.
+
+Örtlich ist der Ring an den beiden Stoßstellen außen 409 mm statt 385 mm. Innen
+bleibt es überall bei 375 mm.
 
 ## Drucken
 
-- **Material:** PETG. Ein Wischroboter bringt Feuchtigkeit mit, und PETG ist zäher
-  gegen die dauernden Stöße. PLA geht auch, ist aber spröder.
+- **Material:** PETG. Ein Wischroboter bringt Feuchtigkeit mit, und PETG ist
+  zäher gegen die dauernden Stöße. PLA geht auch, ist aber spröder.
 - **Lage:** so wie in der STL, also stehend (Z = Wandhöhe). Keine Stützen nötig,
-  es gibt keine Überhänge.
-- **Haftung:** der geschlossene Ring ist beim Drucken in sich stabil und steht
-  auf gut 5000 mm² Fläche. Ein Skirt reicht meist; bei PETG-Neigung zum Lösen
-  lieber einen schmalen Brim — dann aber den Platzbedarf beachten.
+  es gibt keine Überhänge — das ganze Teil ist ein senkrechtes Prisma, bis oben
+  die Verrundung einsetzt.
+- **Haftung:** Skirt. Für einen Brim ist bei der zweiteiligen Variante kein
+  Platz (siehe oben).
 - **Wände/Infill:** 3 Wandlinien und 15–20 % Infill reichen. Wer es massiv will,
   stellt bei 0,4er Düse 6 Wandlinien und 0 % Infill ein — dann besteht die
   5-mm-Wand komplett aus Perimetern.
 - **Schichthöhe:** 0,2–0,28 mm, das Teil hat keine feinen Details.
-- **Materialbedarf** (335 mm einteilig): massiv gerechnet 257 cm³. Mit den
-  empfohlenen Einstellungen landet man grob bei 140–160 g.
+- **Materialbedarf:** massiv gerechnet 357 cm³ für den ganzen Ring. Mit den
+  empfohlenen Einstellungen landet man grob bei 190–220 g.
+
+## Zusammenbau
+
+1. Beide Hälften trocken zusammenstecken und prüfen, ob die Verzahnung
+   spielfrei aufeinandergeht. Falls sie klemmt: die Zahnflanken kurz mit
+   Schleifpapier brechen.
+2. Kleber auf die Zahnflanken und die Randzonen beider Stoßflächen.
+   **Zweikomponenten-Epoxid** ist hier richtig — der Klebespalt beträgt 0,15 mm
+   je Flanke, und Epoxid füllt Spalte, während Sekundenkleber einen Pressitz
+   bräuchte. Falls es Sekundenkleber sein soll, dann Gel.
+3. Beide Hälften auf dem Boden um den Fuß legen und geradlinig
+   zusammenschieben. Beide Fugen schließen gleichzeitig.
+4. Auf einer ebenen Fläche aushärten lassen, damit der Ring plan bleibt.
 
 ## Ansichten
 
 Im Ordner `stl/`:
 
-- `ansicht_ring_einteilig.svg` — der einteilige Ring
-- `ansicht_ring_2teilig.svg` — die geteilte Rückfallvariante
-- `ansicht_steckverbindung.svg` — maßstäbliche Detailzeichnung der Stoßstelle
-- `vorschau.svg` — Querschnitt der geteilten Varianten
+- `ansicht_ring_2teilig.svg` — der fertig verklebte Ring
+- `ansicht_haelfte.svg` — eine Hälfte, wie sie gedruckt wird
+- `ansicht_verzahnung.svg` — maßstäbliche Detailzeichnung der Stoßfuge
+- `vorschau.svg` — Querschnitt der Varianten
 
 ## Maße ändern
 
-Alle Maße stehen als Konstanten oben in `generate.py`, die Durchmesser der
-einteiligen Ringe in `EINTEILIG_DURCHMESSER`. Ändern und neu erzeugen:
+Alle Maße stehen als Konstanten oben in `generate.py`. Der Ring wird aus
+`FUSS_DURCHMESSER` und `LUFT` abgeleitet — wenn der Fuß doch anders gemessen
+wird, reicht es, diese eine Zahl zu ändern:
 
 ```bash
 python3 generate.py     # schreibt die STL-Dateien nach stl/
@@ -101,15 +123,16 @@ Beides läuft mit reinem Python 3, ohne Abhängigkeiten und ohne installiertes C
 
 Die Bauteile entstehen als Stapel waagerechter Querschnitte mit identischer
 Punktreihenfolge, die zu einem Mesh verbunden werden — keine Boolean-Operationen,
-daher keine typischen STL-Fehler. `generate.py` prüft nach dem Erzeugen, dass jede
-Kante genau zweimal vorkommt, und bricht ab, wenn ein Mesh nicht geschlossen ist.
+daher keine typischen STL-Fehler.
 
-Für die geteilte Variante gilt zusätzlich: wird `AUSSEN_DURCHMESSER` oder
-`KLOTZ_AUSSEN` geändert, muss der Klotz dick genug bleiben, damit neben der Nut
-nach der Kantenverrundung noch Material steht:
+`generate.py` prüft nach dem Erzeugen zweierlei und bricht bei Verstoß ab:
 
-```
-KLOTZ_AUSSEN / 2 >= VERRUNDUNG + SCHWALBE_KOPF / 2 + SPIEL - WANDSTAERKE / 2 + mindestwand
-```
+- **Dichtheit:** jede Kante muss genau zweimal vorkommen.
+- **Passung:** die Querschnitte zweier benachbarter Segmente werden in Einbaulage
+  gegeneinander gelegt und auf Überdeckung geprüft. Ein falsch herum laufendes
+  Zahnmuster oder ein zu klein gewähltes `SPIEL` fällt damit sofort auf und
+  nicht erst nach Stunden Druckzeit.
 
-Mit den aktuellen Werten bleiben neben der Nut oben 3,0 mm stehen.
+Wird `KLOTZ_AUSSEN` verkleinert oder `VERRUNDUNG` vergrößert, muss `ZAHN_RANDZONE`
+größer bleiben als `VERRUNDUNG`, sonst schneidet die Kantenverrundung oben in die
+Verzahnung.

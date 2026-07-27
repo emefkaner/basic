@@ -146,9 +146,9 @@ def detail_steckverbindung(pfad, anzahl_segmente=3):
          # damit sie nicht in Titel- und Fusszeile ragen.
          '<clipPath id="feld"><rect x="%.2f" y="%.2f" width="%.2f" height="%.2f"/></clipPath>'
          % (x0, -y1, x1 - x0, y1 - y0),
-         '<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="2.4" '
+         '<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="2.1" '
          'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
-         'Steckverbindung, von oben gesehen</text>'
+         'Verzahnung an der Stossfuge, von oben</text>'
          % ((x0 + x1) / 2.0, -y1 - 1.8)]
 
     z.append('<g clip-path="url(#feld)">')
@@ -171,31 +171,32 @@ def detail_steckverbindung(pfad, anzahl_segmente=3):
                  'stroke-width="0.11"/>' % (xa, -ya, xb, -yb))
         label(tx, ty, text, anker)
 
-    r_s = g.R_SCHWALBE
-    a_zapfen = g.SCHWALBE_TIEFE
+    lo0, hi0 = g._band(0)
+    lo1, hi1 = g._band(1)
 
-    masslinie(r_s - g.SCHWALBE_KOPF / 2, a_zapfen, r_s + g.SCHWALBE_KOPF / 2, a_zapfen,
-              "Kopf %.1f" % g.SCHWALBE_KOPF, r_s, a_zapfen + 0.9)
-    masslinie(r_s - g.SCHWALBE_HALS / 2, -1.6, r_s + g.SCHWALBE_HALS / 2, -1.6,
-              "Hals %.1f" % g.SCHWALBE_HALS, r_s, -3.7)
-    masslinie(g.R_KLOTZ - 1.6, 0.0, g.R_KLOTZ - 1.6, a_zapfen,
-              "Tiefe %.1f" % g.SCHWALBE_TIEFE, g.R_KLOTZ - 2.2, a_zapfen / 2, "end")
+    masslinie(lo0, g.ZAHN_TIEFE, hi0, g.ZAHN_TIEFE,
+              "Zahn %.1f" % g.ZAHN_BANDBREITE, (lo0 + hi0) / 2, g.ZAHN_TIEFE + 0.9)
+    masslinie(hi1 + 1.6, 0.0, hi1 + 1.6, g.ZAHN_TIEFE,
+              "Tiefe %.1f" % g.ZAHN_TIEFE, hi1 + 2.2, g.ZAHN_TIEFE / 2, "start")
+    masslinie(lo1, -g.ZAHN_TIEFE, hi1, -g.ZAHN_TIEFE,
+              "Zahn %.1f" % g.ZAHN_BANDBREITE, (lo1 + hi1) / 2, -g.ZAHN_TIEFE - 2.1)
     masslinie(g.R_INNEN, -37.0, g.R_AUSSEN, -37.0,
               "Wand %.1f" % g.WANDSTAERKE, (g.R_INNEN + g.R_AUSSEN) / 2, -39.2)
     masslinie(g.R_INNEN, 21.0, g.R_KLOTZ, 21.0,
-              "Klotz %.1f dick" % (g.R_KLOTZ - g.R_INNEN),
+              "Stossflaeche %.1f dick" % (g.R_KLOTZ - g.R_INNEN),
               (g.R_INNEN + g.R_KLOTZ) / 2, 21.9)
+    masslinie(g.R_INNEN, 16.0, g.R_ZONE_INNEN, 16.0,
+              "Randzone %.1f" % g.ZAHN_RANDZONE,
+              (g.R_INNEN + g.R_ZONE_INNEN) / 2, 16.9, "end")
 
-    label(x0 + 1.0, 30.0, "Ringmitte", "start")
+    label(x0 + 1.0, 30.0, "zum Tischfuss", "start")
     label(x1 - 1.0, 30.0, "aussen", "end")
-    label(x0 + 1.0, -14.0, "Segment mit", "start")
-    label(x0 + 1.0, -16.5, "Zapfen", "start")
-    label(x0 + 1.0, 8.0, "Segment mit", "start")
-    label(x0 + 1.0, 5.5, "Nut", "start")
+    label(x0 + 1.0, -15.0, "Haelfte A", "start")
+    label(x0 + 1.0, 6.5, "Haelfte B", "start")
 
     z.append('<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="1.7" '
              'text-anchor="middle" fill="#555">'
-             '%.2f mm Spiel je Flanke - der Zapfen wird von oben eingeschoben</text>'
+             '%.2f mm Klebespalt je Flanke</text>'
              % ((x0 + x1) / 2.0, -y0 + 3.8, g.SPIEL))
     z.append('</svg>')
 
@@ -214,32 +215,29 @@ def main():
     blau = (58, 110, 178)
     gruen = (66, 150, 92)
 
-    # 1) Einteiliger Ring -- die Hauptvariante
-    d_einteilig = 335.0
-    bild(os.path.join(ziel, "ansicht_ring_einteilig.svg"),
-         [(g.ring_mesh(d_einteilig), blau)],
-         drehung=math.radians(35), skala=1.55,
-         titel="Einteiliger Ring, %.0f mm aussen" % d_einteilig,
-         untertitel="innen %.0f mm - Wand %.0f mm - Hoehe %.0f mm - "
-                    "Oberkante R%.1f verrundet"
-                    % (d_einteilig - 2 * g.WANDSTAERKE, g.WANDSTAERKE,
-                       g.HOEHE, g.VERRUNDUNG))
-
-    # 2) Rueckfallvariante: geteilter Ring, falls der Tischfuss zu breit ist
     seg = g.segment_mesh(2)
-    ring = [(drehen_z(seg, 0.0), blau),
-            (drehen_z(seg, math.pi), gruen)]
-    bild(os.path.join(ziel, "ansicht_ring_2teilig.svg"), ring,
-         drehung=math.radians(35), skala=1.45,
-         titel="Rueckfallvariante: 2 Halbschalen, %.0f mm aussen"
-               % g.AUSSEN_DURCHMESSER,
-         untertitel="nur noetig, wenn der Tischfuss mehr als %.0f mm braucht"
-                    % (d_einteilig - 2 * g.WANDSTAERKE))
 
-    detail_steckverbindung(os.path.join(ziel, "ansicht_steckverbindung.svg"))
+    # 1) Der fertig verklebte Ring
+    bild(os.path.join(ziel, "ansicht_ring_2teilig.svg"),
+         [(drehen_z(seg, 0.0), blau), (drehen_z(seg, math.pi), gruen)],
+         drehung=math.radians(35), skala=1.40,
+         titel="Verklebter Ring aus 2 Haelften",
+         untertitel="innen %.0f mm (Tischfuss %.0f mm + %.0f mm Luft je Seite) - "
+                    "aussen %.0f mm - Hoehe %.0f mm"
+                    % (g.INNEN_DURCHMESSER, g.FUSS_DURCHMESSER, g.LUFT,
+                       g.AUSSEN_DURCHMESSER, g.HOEHE))
 
-    for name in ("ansicht_ring_einteilig.svg", "ansicht_ring_2teilig.svg",
-                 "ansicht_steckverbindung.svg"):
+    # 2) Eine Haelfte, so wie sie gedruckt wird
+    bild(os.path.join(ziel, "ansicht_haelfte.svg"), [(seg, blau)],
+         drehung=math.radians(35), skala=1.40,
+         titel="Eine Haelfte (2x drucken, identisch)",
+         untertitel="an beiden Enden die gerade Verzahnung, "
+                    "Oberkante R%.1f verrundet" % g.VERRUNDUNG)
+
+    detail_steckverbindung(os.path.join(ziel, "ansicht_verzahnung.svg"))
+
+    for name in ("ansicht_ring_2teilig.svg", "ansicht_haelfte.svg",
+                 "ansicht_verzahnung.svg"):
         p = os.path.join(ziel, name)
         print("%-32s %6.0f kB" % (name, os.path.getsize(p) / 1024.0))
 

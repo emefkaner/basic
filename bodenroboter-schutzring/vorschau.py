@@ -214,25 +214,31 @@ def main():
     blau = (58, 110, 178)
     gruen = (66, 150, 92)
 
-    # 1) Zusammengesteckter Ring aus zwei Halbschalen
+    # 1) Einteiliger Ring -- die Hauptvariante
+    d_einteilig = 335.0
+    bild(os.path.join(ziel, "ansicht_ring_einteilig.svg"),
+         [(g.ring_mesh(d_einteilig), blau)],
+         drehung=math.radians(35), skala=1.55,
+         titel="Einteiliger Ring, %.0f mm aussen" % d_einteilig,
+         untertitel="innen %.0f mm - Wand %.0f mm - Hoehe %.0f mm - "
+                    "Oberkante R%.1f verrundet"
+                    % (d_einteilig - 2 * g.WANDSTAERKE, g.WANDSTAERKE,
+                       g.HOEHE, g.VERRUNDUNG))
+
+    # 2) Rueckfallvariante: geteilter Ring, falls der Tischfuss zu breit ist
     seg = g.segment_mesh(2)
     ring = [(drehen_z(seg, 0.0), blau),
             (drehen_z(seg, math.pi), gruen)]
     bild(os.path.join(ziel, "ansicht_ring_2teilig.svg"), ring,
          drehung=math.radians(35), skala=1.45,
-         titel="Zusammengesteckt: 2 Halbschalen",
-         untertitel="Aussen %.0f mm - Hoehe %.0f mm - Oberkante R%.1f verrundet"
-                    % (g.AUSSEN_DURCHMESSER, g.HOEHE, g.VERRUNDUNG))
-
-    # 2) Einzelnes Segment, wie es auf dem Druckbett liegt
-    bild(os.path.join(ziel, "ansicht_segment_2teilig.svg"), [(seg, blau)],
-         drehung=math.radians(35), skala=1.45,
-         titel="Ein Segment (2x drucken)",
-         untertitel="links Schwalbenschwanz-Nut, rechts Zapfen")
+         titel="Rueckfallvariante: 2 Halbschalen, %.0f mm aussen"
+               % g.AUSSEN_DURCHMESSER,
+         untertitel="nur noetig, wenn der Tischfuss mehr als %.0f mm braucht"
+                    % (d_einteilig - 2 * g.WANDSTAERKE))
 
     detail_steckverbindung(os.path.join(ziel, "ansicht_steckverbindung.svg"))
 
-    for name in ("ansicht_ring_2teilig.svg", "ansicht_segment_2teilig.svg",
+    for name in ("ansicht_ring_einteilig.svg", "ansicht_ring_2teilig.svg",
                  "ansicht_steckverbindung.svg"):
         p = os.path.join(ziel, name)
         print("%-32s %6.0f kB" % (name, os.path.getsize(p) / 1024.0))

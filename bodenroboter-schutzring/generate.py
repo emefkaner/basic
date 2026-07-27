@@ -59,6 +59,16 @@ VERRUNDUNG_STUFEN  = 8       # Aufloesung der Kantenverrundung in der Hoehe
 
 DRUCKBETT = (350.0, 350.0)   # angenommener nutzbarer Bauraum X/Y
 
+# Einteilige Ringe. Ein Kreis braucht seinen Durchmesser in BEIDEN Achsen --
+# der massgebliche Wert ist also immer die kuerzere Bettkante. 365 mm passen
+# auf kein Bett dieser Groessenordnung, deshalb zusaetzlich die groessten
+# Durchmesser, die auf die beiden plausiblen H2S-Bauraeume passen:
+#   350 mm Kante - 2 x 7.5 mm Sicherheitsabstand -> 335 mm
+#   320 mm Kante - 2 x 7.5 mm Sicherheitsabstand -> 305 mm
+# Wer zusaetzlich einen Brim fahren will, rechnet dessen Breite (~5 mm)
+# nochmal je Seite ab und geht 10 mm kleiner.
+EINTEILIG_DURCHMESSER = (365.0, 335.0, 305.0)
+
 
 # ---------------------------------------------------------------------------
 # 2D-Hilfsfunktionen
@@ -236,11 +246,18 @@ def segment_profil(anzahl_segmente, einzug=0.0, zapfen_fase=0.0):
     return p
 
 
-def ring_profil(einzug=0.0):
-    """Querschnitt des ungeteilten Rings: Aussen- und Innenkreis."""
+def ring_profil(d_aussen, einzug=0.0):
+    """Querschnitt des ungeteilten Rings: Aussen- und Innenkreis.
+
+    Der einteilige Ring braucht keine Verbindungsklotze, ist also ein
+    schlichter Kreisring. Der Durchmesser wird hier explizit uebergeben,
+    weil der einteilige Ring auf den Bauraum heruntergerechnet werden muss.
+    """
+    r_a = d_aussen / 2.0
+    r_i = r_a - WANDSTAERKE
     n = int(round(360.0 / BOGEN_SCHRITT_GRAD))
-    aussen = [pol(2 * math.pi * i / n, R_AUSSEN - einzug) for i in range(n)]
-    innen = [pol(2 * math.pi * i / n, R_INNEN + einzug) for i in range(n)]
+    aussen = [pol(2 * math.pi * i / n, r_a - einzug) for i in range(n)]
+    innen = [pol(2 * math.pi * i / n, r_i + einzug) for i in range(n)]
     return aussen, innen
 
 
@@ -326,7 +343,7 @@ def segment_mesh(anzahl_segmente):
     return loften(profile, hoehen)
 
 
-def ring_mesh():
+def ring_mesh(d_aussen):
     """Ungeteilter Ring mit derselben Oberkanten-Verrundung."""
     stufen = [(z, e, f) for (z, e, f) in hoehen_stufen() if f == 0.0]
     # doppelte Hoehen (aus der Fasen-Stufe) entfernen
@@ -337,7 +354,7 @@ def ring_mesh():
     entpackt[0] = (0.0, 0.0, 0.0)
 
     dreiecke = []
-    profile = [ring_profil(e) for (_, e, _) in entpackt]
+    profile = [ring_profil(d_aussen, e) for (_, e, _) in entpackt]
     hoehen = [z for (z, _, _) in entpackt]
     n = len(profile[0][0])
 
@@ -518,16 +535,18 @@ def main():
               % (name, len(d), volumen(d) / 1000.0, n, n * volumen(d) / 1000.0,
                  bx, by, winkel, rand, "passt" if passt else "PASST NICHT", offen))
 
-    d = ring_mesh()
-    offen = offene_kanten(d)
-    fehler += offen
-    name = "schutzring_einteilig_komplett.stl"
-    stl_schreiben(os.path.join(ziel, name), d, name)
-    passt, bx, by, winkel, rand = bester_bauraum(d)
-    print("%-34s %5d Dr. | %6.1f cm3 gesamt%17s | "
-          "%5.1f x %5.1f mm @ %5.1f Grad, Rand %+6.1f mm -> %-11s | offene Kanten %d"
-          % (name, len(d), volumen(d) / 1000.0, "",
-             bx, by, winkel, rand, "passt" if passt else "PASST NICHT", offen))
+    print()
+    for d_aussen in EINTEILIG_DURCHMESSER:
+        d = ring_mesh(d_aussen)
+        offen = offene_kanten(d)
+        fehler += offen
+        name = "schutzring_einteilig_%.0fmm.stl" % d_aussen
+        stl_schreiben(os.path.join(ziel, name), d, name)
+        passt, bx, by, winkel, rand = bester_bauraum(d)
+        print("%-34s %5d Dr. | %6.1f cm3 gesamt, innen %5.1f mm  | "
+              "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | offene Kanten %d"
+              % (name, len(d), volumen(d) / 1000.0, d_aussen - 2 * WANDSTAERKE,
+                 bx, by, rand, "passt" if passt else "PASST NICHT", offen))
 
     svg_schreiben(os.path.join(ziel, "vorschau.svg"), [2, 3])
     print("\nvorschau.svg geschrieben")

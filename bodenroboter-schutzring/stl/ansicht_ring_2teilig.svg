@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="557" height="384" viewBox="0 0 557.1 384.2">
 <rect width="100%%" height="100%%" fill="#fbfbfa"/>
-<text x="278.6" y="23" font-family="sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#1a1a1a">Zusammengesteckt: 2 Halbschalen</text>
+<text x="278.6" y="23" font-family="sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#1a1a1a">Rueckfallvariante: 2 Halbschalen, 365 mm aussen</text>
 <g transform="translate(0,34.0)" shape-rendering="crispEdges">
 <polygon points="267.42,81.46 280.69,81.36 280.69,80.87" fill="#2a5083"/>
 <polygon points="280.69,81.36 293.96,81.07 280.69,80.87" fill="#2b5285"/>
@@ -3027,5 +3027,5 @@
 <polygon points="276.39,246.53 290.00,245.30 276.39,245.41" fill="#3c8853"/>
 <polygon points="276.39,247.62 290.03,246.42 276.39,246.53" fill="#357a4a"/>
 </g>
-<text x="278.6" y="375.2" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#555">Aussen 365 mm - Hoehe 50 mm - Oberkante R2.0 verrundet</text>
+<text x="278.6" y="375.2" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#555">nur noetig, wenn der Tischfuss mehr als 325 mm braucht</text>
 </svg>

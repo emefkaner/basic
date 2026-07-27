@@ -3,10 +3,11 @@
 Auffahrschutz-Ring fuer Saug-/Wischroboter um ein Tischbein.
 
 Der Ring liegt auf dem Boden aussen um den Tischfuss herum. Er ist in
-identische Kreissegmente geteilt, die an den Stossstellen eine gerade
-Verzahnung (Kammprofil) tragen: satt Klebeflaeche, exakte Ausrichtung,
-und weil bei zwei Haelften beide Stossflaechen in derselben Ebene liegen,
-laesst sich das Ganze geradlinig zusammenschieben statt einzufaedeln.
+identische Kreissegmente geteilt, die an den Stossstellen eine
+hinterschnittene Verzahnung tragen. Die haelt ohne Kleber formschluessig:
+je Fuge greifen zwei gegenlaeufige Halb-Schwalbenschwaenze ineinander.
+Zusammengebaut wird senkrecht von oben -- das Profil ist ein senkrechtes
+Prisma, in dieser Richtung ist die Fuge bewusst offen.
 
 Aufbau des Meshes
 -----------------
@@ -48,27 +49,30 @@ VERRUNDUNG         = 2.0     # Radius der Rundung an der Oberkante
 # Verbindungsklotz an den Stossstellen. Er baut ausschliesslich nach AUSSEN
 # auf, damit die Innenflaeche des Rings ein sauberer Zylinder bleibt und die
 # volle lichte Weite fuer den Tischfuss erhalten bleibt.
-KLOTZ_AUSSEN       = 12.0    # zusaetzliches Material nach aussen
+KLOTZ_AUSSEN       = 15.0    # zusaetzliches Material nach aussen
 KLOTZ_LAENGE       = 18.0    # volle Klotzbreite ab Stossfuge (Bogenlaenge)
 KLOTZ_AUSLAUF      = 14.0    # Laenge der Schraege, mit der der Klotz auslaeuft
 
-# Gerade Verzahnung (Kammprofil) an der Stossfuge.
-#
-# Bei genau zwei Haelften liegen beide Stossflaechen in DERSELBEN Ebene --
-# die Haelften lassen sich also geradlinig zusammenschieben. Deshalb gerade
-# Zaehne statt Schwalbenschwanz: der Schwalbenschwanz muesste ueber die
-# volle Hoehe senkrecht eingefaedelt werden und wuerde den Kleber abstreifen.
+# Hinterschnittene Verzahnung an der Stossfuge.
 #
 # Die Stossflaeche wird radial in ZAHN_BAENDER gleich breite Baender geteilt,
 # die abwechselnd vorstehen und zurueckspringen. Am einen Ende stehen die
 # geraden Baender vor, am anderen die ungeraden -- dadurch passen zwei
 # identische Teile zusammen. Aussen und innen bleibt je eine solide Randzone
 # stehen, damit die Kantenverrundung oben nicht in die Verzahnung schneidet.
+# Die Zaehne sind hinterschnitten, damit die Fuge ohne Kleber formschluessig
+# haelt. Der innerste Zahn spreizt zur Ringmitte hin, der aeusserste nach
+# aussen -- die beiden Hinterschnitte laufen also gegeneinander. Ein
+# tangentiales Auseinanderziehen muesste den einen Zahn radial nach aussen
+# und gleichzeitig den anderen nach innen bewegen, was sich gegenseitig
+# sperrt. Senkrecht eingeschoben wird trotzdem, weil das ganze Profil ein
+# senkrechtes Prisma bleibt.
 ZAHN_BAENDER       = 2       # Anzahl der Baender in der Verzahnungszone
 ZAHN_TIEFE         = 12.0    # wie weit ein Zahn ueber die Fuge ragt
-ZAHN_RANDZONE      = 3.5     # solide Randzone der Stossflaeche, je Seite
+ZAHN_HINTERSCHNITT = 1.2     # radiale Spreizung des Zahns zum Ende hin
+ZAHN_RANDZONE      = 5.0     # solide Randzone der Stossflaeche, je Seite
 ZAHN_GRUNDLUFT     = 0.4     # Luft am Grund der Aussparung
-SPIEL              = 0.15    # Klebespalt je Flanke
+SPIEL              = 0.12    # Passungsspiel je Flanke (Schiebesitz)
 
 BOGEN_SCHRITT_GRAD = 1.0     # Aufloesung der Rundungen in der Draufsicht
 VERRUNDUNG_STUFEN  = 8       # Aufloesung der Kantenverrundung in der Hoehe
@@ -187,6 +191,41 @@ def _band(k):
             R_ZONE_INNEN + (k + 1) * ZAHN_BANDBREITE)
 
 
+def _hinterschnitt(k):
+    """Richtung, in die sich Band k zum Zahnende hin aufweitet.
+
+    -1 = zur Ringmitte, +1 = nach aussen, 0 = gerade. Nur die beiden
+    aeusseren Baender werden hinterschnitten; sie weiten sich in die
+    solide Randzone hinein auf, nicht in das Nachbarband. Andernfalls
+    wuerde die Aussparung des einen Bandes den Zahnfuss des anderen
+    wegschneiden.
+    """
+    if k == 0:
+        return -1.0
+    if k == ZAHN_BAENDER - 1:
+        return 1.0
+    return 0.0
+
+
+def _zahn_radien(k):
+    """(Fuss innen, Fuss aussen, Ende innen, Ende aussen) eines Zahns."""
+    lo, hi = _band(k)
+    ri = _hinterschnitt(k)
+    fuss_lo, fuss_hi = lo + SPIEL, hi - SPIEL
+    ende_lo = fuss_lo - (ZAHN_HINTERSCHNITT if ri < 0 else 0.0)
+    ende_hi = fuss_hi + (ZAHN_HINTERSCHNITT if ri > 0 else 0.0)
+    return fuss_lo, fuss_hi, ende_lo, ende_hi
+
+
+def _nut_radien(k):
+    """(Mund innen, Mund aussen, Grund innen, Grund aussen) einer Aussparung."""
+    lo, hi = _band(k)
+    ri = _hinterschnitt(k)
+    grund_lo = lo - (ZAHN_HINTERSCHNITT if ri < 0 else 0.0)
+    grund_hi = hi + (ZAHN_HINTERSCHNITT if ri > 0 else 0.0)
+    return lo, hi, grund_lo, grund_hi
+
+
 def _bogen_schritte(w_spanne):
     return max(1, int(math.ceil(abs(w_spanne) / math.radians(BOGEN_SCHRITT_GRAD))))
 
@@ -235,14 +274,16 @@ def segment_profil(anzahl_segmente, einzug=0.0):
     for k in range(ZAHN_BAENDER - 1, -1, -1):
         lo, hi = _band(k)
         if k % 2 == 0:                                    # Zahn
-            p.append(pol(phi, hi - SPIEL))
-            p.append(pol(phi + a_zahn, hi - SPIEL))
-            p.append(pol(phi + a_zahn, lo + SPIEL))
-            p.append(pol(phi, lo + SPIEL))
+            fuss_lo, fuss_hi, ende_lo, ende_hi = _zahn_radien(k)
+            p.append(pol(phi, fuss_hi))
+            p.append(pol(phi + a_zahn, ende_hi))
+            p.append(pol(phi + a_zahn, ende_lo))
+            p.append(pol(phi, fuss_lo))
             p.append(pol(phi, lo))
         else:                                             # Aussparung
-            p.append(pol(phi - a_nut, hi))
-            p.append(pol(phi - a_nut, lo))
+            _, _, grund_lo, grund_hi = _nut_radien(k)
+            p.append(pol(phi - a_nut, grund_hi))
+            p.append(pol(phi - a_nut, grund_lo))
             p.append(pol(phi, lo))
     p.append(pol(phi, r_innen))                           # solide Randzone
 
@@ -259,14 +300,16 @@ def segment_profil(anzahl_segmente, einzug=0.0):
     for k in range(ZAHN_BAENDER):
         lo, hi = _band(k)
         if k % 2 == 1:                                    # Zahn
-            p.append(pol(0.0, lo + SPIEL))
-            p.append(pol(-a_zahn, lo + SPIEL))
-            p.append(pol(-a_zahn, hi - SPIEL))
-            p.append(pol(0.0, hi - SPIEL))
+            fuss_lo, fuss_hi, ende_lo, ende_hi = _zahn_radien(k)
+            p.append(pol(0.0, fuss_lo))
+            p.append(pol(-a_zahn, ende_lo))
+            p.append(pol(-a_zahn, ende_hi))
+            p.append(pol(0.0, fuss_hi))
             p.append(pol(0.0, hi))
         else:                                             # Aussparung
-            p.append(pol(a_nut, lo))
-            p.append(pol(a_nut, hi))
+            _, _, grund_lo, grund_hi = _nut_radien(k)
+            p.append(pol(a_nut, grund_lo))
+            p.append(pol(a_nut, grund_hi))
             p.append(pol(0.0, hi))
     # Der Umlauf schliesst sich ueber p[0] = (0, r_klotz). Dieser Punkt darf
     # hier nicht erneut angehaengt werden, sonst entsteht eine Kante der
@@ -518,6 +561,43 @@ def passung_pruefen(anzahl_segmente, toleranz=0.01):
     return treffer, tiefste
 
 
+def formschluss_pruefen(anzahl_segmente, max_bogen=25.0, schritt=0.1):
+    """Prueft, ob die Fuge ohne Kleber formschluessig ist.
+
+    Die Verzahnung ist in Polarkoordinaten aufgebaut, ihre Freigabe-
+    bewegung in der Ebene ist deshalb eine DREHUNG um die Ringmitte, keine
+    Geradfahrt. Der Test dreht ein Segment aus der Fuge heraus und schaut,
+    ob und wann es anschlaegt.
+
+    Gerade Zaehne loesen sich dabei vollstaendig -- sie sperren nur radial
+    und braeuchten Kleber. Hinterschnittene Zaehne fangen sich nach kurzem
+    Weg, weil die beiden gegenlaeufigen Hinterschnitte sich blockieren.
+
+    Senkrecht laesst sich ein Segment in jedem Fall herausziehen; das ist
+    die Montagerichtung und bleibt bewusst offen.
+
+    Rueckgabe: (formschluessig, weg_bis_zum_anschlag_mm)
+    """
+    phi = 2.0 * math.pi / anzahl_segmente
+    a = segment_profil(anzahl_segmente)
+
+    def gedreht(poly, w):
+        cw, sw = math.cos(w), math.sin(w)
+        return [(x * cw - y * sw, x * sw + y * cw) for x, y in poly]
+
+    b = gedreht(a, phi)
+    bogen = schritt
+    while bogen <= max_bogen:
+        verdreht = gedreht(b, bogen / R_BOGEN)
+        for quelle, ziel in ((a, verdreht), (verdreht, a)):
+            for punkt in quelle:
+                if (_punkt_in_polygon(punkt, ziel)
+                        and _abstand_zu_rand(punkt, ziel) > 0.01):
+                    return True, bogen
+        bogen += schritt
+    return False, max_bogen
+
+
 def bester_bauraum(dreiecke):
     """Guenstigste Platzierung auf dem Druckbett.
 
@@ -608,13 +688,15 @@ def main():
         passt, bx, by, winkel, rand = bester_bauraum(d)
         kollisionen, tiefe = passung_pruefen(n)
         fehler += kollisionen
+        haelt, weg = formschluss_pruefen(n)
         print("%-36s %5d Dr. | %6.1f cm3 je Segment (%dx = %6.1f cm3) | "
-              "%5.1f x %5.1f mm @ %5.1f Grad, Rand %+6.1f mm -> %-11s | "
-              "offene Kanten %d | Passung %s"
+              "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | Kanten %s | "
+              "Passung %s | Formschluss %s"
               % (name, len(d), volumen(d) / 1000.0, n, n * volumen(d) / 1000.0,
-                 bx, by, winkel, rand, "passt" if passt else "PASST NICHT", offen,
-                 "ok" if kollisionen == 0
-                 else "KOLLISION %.2f mm" % tiefe))
+                 bx, by, rand, "passt" if passt else "PASST NICHT",
+                 "dicht" if offen == 0 else "OFFEN(%d)" % offen,
+                 "ok" if kollisionen == 0 else "KOLLISION %.2f mm" % tiefe,
+                 "sperrt nach %.1f mm" % weg if haelt else "FEHLT"))
 
     print()
     for d_aussen in EINTEILIG_DURCHMESSER:

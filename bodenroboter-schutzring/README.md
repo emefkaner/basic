@@ -15,104 +15,102 @@ und kann sich damit nicht mehr daraufsetzen.
 | Oberkante | innen und außen mit R2 verrundet |
 | Unterkante | scharfkantig, damit der Ring plan aufliegt |
 
-Ausgeführt als **zwei identische Hälften**, die an den Stoßstellen ineinander
-verzahnt und verklebt werden. Verklebt ist der Ring ein geschlossener Hoop und
-damit in sich steif — der Hebel ist der ganze Durchmesser als Standbreite gegen
-~40 mm Anstoßhöhe, da kippt nichts weg.
+Die Segmente werden **nur gesteckt, nicht geklebt**. Die Verzahnung ist
+hinterschnitten und hält formschlüssig.
 
-## Dateien
+## Welche Datei?
 
-| Datei | Stück | Grundfläche je Teil |
-|---|---|---|
-| `schutzring_2teilig_385mm_segment.stl` | **2 × drucken** | 341,2 × 341,3 mm bei 135,8° gedreht |
-| `schutzring_3teilig_385mm_segment.stl` | 3 × drucken | 265 × 265 mm |
-| `schutzring_4teilig_385mm_segment.stl` | 4 × drucken | 217 × 217 mm |
-| `schutzring_einteilig_385mm.stl` | — | 385 × 385 mm, braucht ein Bett ≥ 400 mm |
+**`schutzring_3teilig_385mm_segment.stl`, 3 × drucken.** Alle Segmente sind
+identisch — an einem Ende steht das innere Zahnband vor, am anderen das äußere,
+dadurch passt jedes auf jedes.
 
-Alle Teile eines Rings sind identisch — an einem Ende stehen die geraden Bänder
-der Verzahnung vor, am anderen die ungeraden, dadurch passt jedes Teil auf jedes.
-
-### Achtung beim Bauraum
-
-Die zweiteilige Variante braucht **350 × 350 mm** und lässt dann nur 8,7 mm Rand.
-Das reicht für einen Skirt, aber nicht für einen Brim.
-
-Wenn der nutzbare Bereich der H2S in einer Achse nur 320 mm ist — laut
-Spezifikation ist der Bauraum 350 × 320 × 325 mm — dann geht die zweiteilige
-Variante **nicht**. Eine Halbschale dieses Durchmessers passt in kein Quadrat
-unter ~329 mm, das ist eine harte geometrische Grenze. In dem Fall die
-dreiteilige Datei nehmen, die passt mit 85 mm Rand.
-
-Am schnellsten geklärt: die STL in Bambu Studio laden und schauen, ob die Platte
-meckert.
+| Datei | Stück | Grundfläche je Teil | Bett |
+|---|---|---|---|
+| `schutzring_3teilig_385mm_segment.stl` | 3 × | 268,4 × 268,8 mm | 81 mm Rand |
+| `schutzring_2teilig_385mm_segment.stl` | 2 × | 342,8 × 342,9 mm | braucht echte 350 × 350 |
+| `schutzring_4teilig_385mm_segment.stl` | 4 × | 220,0 × 220,3 mm | 130 mm Rand |
+| `schutzring_einteilig_385mm.stl` | — | 385 × 385 mm | braucht ein Bett ≥ 400 mm |
 
 ## Verzahnung
 
-Bei genau zwei Hälften liegen beide Stoßflächen in **derselben** Ebene. Die
-Hälften lassen sich deshalb geradlinig zusammenschieben, beide Fugen schließen
-gleichzeitig. Darum gerade Zähne und bewusst *kein* Schwalbenschwanz: den
-müsstest du über die vollen 50 mm senkrecht einfädeln und würdest dabei den
-Kleber abstreifen.
-
-Die Stoßfläche ist an der Fuge auf 17 mm verdickt — nur nach **außen**, damit
+Die Stoßfläche ist an der Fuge auf 20 mm verdickt — nur nach **außen**, damit
 innen die vollen 375 mm für den Fuß frei bleiben. Sie ist radial aufgeteilt in:
 
-- 3,5 mm solide Randzone innen
-- zwei Bänder à 5 mm, die abwechselnd 12 mm vorstehen bzw. zurückspringen
-- 3,5 mm solide Randzone außen
+- 5 mm solide Randzone innen
+- zwei Zahnbänder à 5 mm, die abwechselnd 12 mm vorstehen bzw. zurückspringen
+- 5 mm solide Randzone außen
+
+Beide Zähne sind **hinterschnitten**, also am Ende 1,2 mm breiter als am Fuß:
+der innere spreizt zur Ringmitte, der äußere nach außen. Die beiden
+Hinterschnitte laufen damit gegeneinander — ein Auseinanderziehen müsste den
+einen Zahn nach außen und gleichzeitig den anderen nach innen bewegen, was sich
+gegenseitig sperrt. Spiel 0,12 mm je Flanke (Schiebesitz).
 
 Die Randzonen stehen da, damit die Kantenverrundung oben nicht in die Verzahnung
-schneidet. Klebespalt 0,15 mm je Flanke.
+schneidet, und damit der Hinterschnitt sich in massives Material aufweiten kann.
 
-Klebefläche pro Stoßstelle: rund 3250 mm². Eine glatte Stoßfuge auf der 5-mm-Wand
-hätte 250 mm² — also gut das Dreizehnfache.
+Örtlich ist der Ring an den Stoßstellen außen 415 mm statt 385 mm. Innen bleibt
+es überall bei 375 mm.
 
-Örtlich ist der Ring an den beiden Stoßstellen außen 409 mm statt 385 mm. Innen
-bleibt es überall bei 375 mm.
+### Was der Formschluss leistet — und was nicht
+
+In der Ebene ist die Fuge dicht: gedreht sperrt sie nach 0,7 mm, radial sperren
+die Zähne sofort. **Senkrecht ist sie bewusst offen** — genau darüber wird
+montiert, und ein Segment lässt sich entsprechend auch wieder nach oben
+herausziehen. Im Betrieb passiert das nicht, der Ring liegt auf dem Boden und
+wird nur waagerecht angestupst.
+
+Die 0,7 mm Weg bis zum Anschlag bedeuten etwas Spiel je Fuge. Der Ring ist also
+nicht bretthart, sondern atmet minimal. Für einen Bodenring ohne Belang — wenn
+der Roboter dagegenfährt, geht die Fuge auf Druck und schließt sich ohnehin.
+
+Wenn du es doch bombenfest willst: die Verzahnung hat rund 3800 mm² Fläche je
+Stoß, ein Tropfen 2K-Epoxid auf die Zahnflanken macht es unlösbar.
 
 ## Drucken
 
 - **Material:** PETG. Ein Wischroboter bringt Feuchtigkeit mit, und PETG ist
-  zäher gegen die dauernden Stöße. PLA geht auch, ist aber spröder.
+  zäher gegen die dauernden Stöße. PLA geht auch, ist aber spröder — und beim
+  Hinterschnitt willst du eher Zähigkeit als Härte.
 - **Lage:** so wie in der STL, also stehend (Z = Wandhöhe). Keine Stützen nötig,
   es gibt keine Überhänge — das ganze Teil ist ein senkrechtes Prisma, bis oben
-  die Verrundung einsetzt.
-- **Haftung:** Skirt. Für einen Brim ist bei der zweiteiligen Variante kein
-  Platz (siehe oben).
-- **Wände/Infill:** 3 Wandlinien und 15–20 % Infill reichen. Wer es massiv will,
-  stellt bei 0,4er Düse 6 Wandlinien und 0 % Infill ein — dann besteht die
-  5-mm-Wand komplett aus Perimetern.
-- **Schichthöhe:** 0,2–0,28 mm, das Teil hat keine feinen Details.
-- **Materialbedarf:** massiv gerechnet 357 cm³ für den ganzen Ring. Mit den
-  empfohlenen Einstellungen landet man grob bei 190–220 g.
+  die Verrundung einsetzt. Auch der Hinterschnitt ist senkrecht ausgeführt und
+  damit unkritisch.
+- **Haftung:** Brim, bei der dreiteiligen Variante ist reichlich Platz.
+- **Wände/Infill:** 3 Wandlinien und 15–20 % Infill reichen.
+- **Maßhaltigkeit:** die Zähne entscheiden über die Passung. Wenn dein Drucker
+  bekanntermaßen Löcher zu eng druckt, lieber `SPIEL` auf 0,15 setzen und neu
+  erzeugen, statt hinterher zu schleifen.
+- **Materialbedarf:** massiv gerechnet 412 cm³ für den ganzen Ring. Mit den
+  empfohlenen Einstellungen grob 210–240 g.
 
 ## Zusammenbau
 
-1. Beide Hälften trocken zusammenstecken und prüfen, ob die Verzahnung
-   spielfrei aufeinandergeht. Falls sie klemmt: die Zahnflanken kurz mit
-   Schleifpapier brechen.
-2. Kleber auf die Zahnflanken und die Randzonen beider Stoßflächen.
-   **Zweikomponenten-Epoxid** ist hier richtig — der Klebespalt beträgt 0,15 mm
-   je Flanke, und Epoxid füllt Spalte, während Sekundenkleber einen Pressitz
-   bräuchte. Falls es Sekundenkleber sein soll, dann Gel.
-3. Beide Hälften auf dem Boden um den Fuß legen und geradlinig
-   zusammenschieben. Beide Fugen schließen gleichzeitig.
-4. Auf einer ebenen Fläche aushärten lassen, damit der Ring plan bleibt.
+Wegen des Hinterschnitts geht nur noch **senkrecht von oben** — seitliches
+Zusammenschieben ist jetzt gesperrt, das ist ja der Sinn der Sache.
+
+1. Erstes Segment um den Fuß legen.
+2. Zweites Segment von oben absenken, bis es plan aufliegt.
+3. Drittes Segment von oben in beide Nachbarn gleichzeitig absenken. Das geht,
+   weil beide Fugen senkrecht sind.
+4. Fertig. Du brauchst etwa 10 cm freie Höhe über dem Boden.
+
+Falls ein Segment klemmt: die Zahnflanken kurz mit Schleifpapier brechen. Nicht
+mit Gewalt drücken, der Zahn ist am Fuß am schmalsten.
 
 ## Ansichten
 
 Im Ordner `stl/`:
 
-- `ansicht_ring_2teilig.svg` — der fertig verklebte Ring
-- `ansicht_haelfte.svg` — eine Hälfte, wie sie gedruckt wird
+- `ansicht_ring_2teilig.svg` — zusammengesteckter Ring
+- `ansicht_haelfte.svg` — ein Segment, wie es gedruckt wird
 - `ansicht_verzahnung.svg` — maßstäbliche Detailzeichnung der Stoßfuge
 - `vorschau.svg` — Querschnitt der Varianten
 
 ## Maße ändern
 
 Alle Maße stehen als Konstanten oben in `generate.py`. Der Ring wird aus
-`FUSS_DURCHMESSER` und `LUFT` abgeleitet — wenn der Fuß doch anders gemessen
-wird, reicht es, diese eine Zahl zu ändern:
+`FUSS_DURCHMESSER` und `LUFT` abgeleitet:
 
 ```bash
 python3 generate.py     # schreibt die STL-Dateien nach stl/
@@ -125,14 +123,19 @@ Die Bauteile entstehen als Stapel waagerechter Querschnitte mit identischer
 Punktreihenfolge, die zu einem Mesh verbunden werden — keine Boolean-Operationen,
 daher keine typischen STL-Fehler.
 
-`generate.py` prüft nach dem Erzeugen zweierlei und bricht bei Verstoß ab:
+`generate.py` prüft nach dem Erzeugen drei Dinge:
 
-- **Dichtheit:** jede Kante muss genau zweimal vorkommen.
+- **Dichtheit:** jede Kante muss genau zweimal vorkommen. Bricht bei Verstoß ab.
 - **Passung:** die Querschnitte zweier benachbarter Segmente werden in Einbaulage
   gegeneinander gelegt und auf Überdeckung geprüft. Ein falsch herum laufendes
-  Zahnmuster oder ein zu klein gewähltes `SPIEL` fällt damit sofort auf und
-  nicht erst nach Stunden Druckzeit.
+  Zahnmuster oder ein zu klein gewähltes `SPIEL` fällt damit sofort auf und nicht
+  erst nach Stunden Druckzeit. Bricht bei Verstoß ab.
+- **Formschluss:** ein Segment wird aus der Fuge herausgedreht und geprüft, ob es
+  anschlägt. Die Verzahnung ist in Polarkoordinaten aufgebaut, ihre
+  Freigabebewegung in der Ebene ist deshalb eine Drehung um die Ringmitte, keine
+  Geradfahrt. Mit `ZAHN_HINTERSCHNITT = 0` meldet der Test korrekt „FEHLT" —
+  das ist dann die Variante zum Verkleben.
 
-Wird `KLOTZ_AUSSEN` verkleinert oder `VERRUNDUNG` vergrößert, muss `ZAHN_RANDZONE`
-größer bleiben als `VERRUNDUNG`, sonst schneidet die Kantenverrundung oben in die
-Verzahnung.
+Wird `KLOTZ_AUSSEN` verkleinert oder `VERRUNDUNG` vergrößert, muss
+`ZAHN_RANDZONE` größer bleiben als `VERRUNDUNG + ZAHN_HINTERSCHNITT`, sonst
+schneidet die Kantenverrundung oben in die Verzahnung.

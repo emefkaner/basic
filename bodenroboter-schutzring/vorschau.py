@@ -196,8 +196,8 @@ def detail_steckverbindung(pfad, anzahl_segmente=3):
 
     z.append('<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="1.7" '
              'text-anchor="middle" fill="#555">'
-             '%.2f mm Klebespalt je Flanke</text>'
-             % ((x0 + x1) / 2.0, -y0 + 3.8, g.SPIEL))
+             '%.2f mm Spiel je Flanke - Hinterschnitt %.1f mm</text>'
+             % ((x0 + x1) / 2.0, -y0 + 3.8, g.SPIEL, g.ZAHN_HINTERSCHNITT))
     z.append('</svg>')
 
     with open(pfad, "w") as f:
@@ -221,7 +221,7 @@ def main():
     bild(os.path.join(ziel, "ansicht_ring_2teilig.svg"),
          [(drehen_z(seg, 0.0), blau), (drehen_z(seg, math.pi), gruen)],
          drehung=math.radians(35), skala=1.40,
-         titel="Verklebter Ring aus 2 Haelften",
+         titel="Zusammengesteckter Ring aus 2 Haelften",
          untertitel="innen %.0f mm (Tischfuss %.0f mm + %.0f mm Luft je Seite) - "
                     "aussen %.0f mm - Hoehe %.0f mm"
                     % (g.INNEN_DURCHMESSER, g.FUSS_DURCHMESSER, g.LUFT,
@@ -231,7 +231,7 @@ def main():
     bild(os.path.join(ziel, "ansicht_haelfte.svg"), [(seg, blau)],
          drehung=math.radians(35), skala=1.40,
          titel="Eine Haelfte (2x drucken, identisch)",
-         untertitel="an beiden Enden die gerade Verzahnung, "
+         untertitel="an beiden Enden die hinterschnittene Verzahnung, "
                     "Oberkante R%.1f verrundet" % g.VERRUNDUNG)
 
     detail_steckverbindung(os.path.join(ziel, "ansicht_verzahnung.svg"))

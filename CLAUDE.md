@@ -53,6 +53,82 @@ Fix: solve the perspective once as a still, save it as its own element, and tag 
 - Match generation duration to the source plate. Longer means the model invents gestures
   and speech past the end of the reference, and drifts within the usable part too.
 
+## Reference elements carry identity, not photography
+
+Seedance takes images in the role `image_references`. A reference transmits **what a
+thing is** — green carriage, iron steps, gold lining. It does **not** transmit how it
+was photographed: distance, framing and depth of field are properties of the *shot*,
+not of the *object*. That is why a deliberately blurred, close-up element still came
+back sharp and ten metres away, no matter how the text was phrased.
+
+The fix is not more wording about blur. It is to stop calling the reference a *subject*
+and start calling it a *photograph*:
+
+> `@X` is an already-finished background plate, shot on set. Use it as it is, as a flat
+> backdrop layer behind the man. Do not re-photograph its subject, do not re-render it,
+> do not move the camera around it, do not sharpen it.
+
+Every instruction that follows is then a verb of post-production, not of image creation.
+(`start_image` is the other lever: it is the literal first frame, so composition and
+focus are non-negotiable there. Use it if the reference route fails.)
+
+## Working template — plate compositing (verified on IRON CLOUD)
+
+This exact structure worked. Keep the block order and the proportions: the KEEP block
+must stay long and emphatic relative to the background description.
+
+```
+TASK
+This is a compositing edit on existing footage. Take and keep everything filmed in it.
+Place the finished background photograph @BG behind the man, and harmonise him to its
+light. Nothing else changes.
+
+BACKGROUND — @BG is a photograph, not a subject
+@BG is an already-finished background plate, shot on set. Use it as it is, as a flat
+backdrop layer behind the man. Do not re-photograph its subject, do not re-render it,
+do not move the camera around it, do not pull back, do not reveal more of it, and do
+not sharpen it. Its scale and its heavy defocus are already correct and are preserved
+exactly as they appear in the photograph — the blur in particular stays precisely as
+strong as it is there, in every frame.
+[Permitted adjustments, phrased as camera moves with a checkable result — e.g. push in
+ten to fifteen percent; tilt up ten percent so the ground shrinks to a thin edge.]
+
+ATMOSPHERE — bring the still photograph to life
+The backdrop itself stays fixed: nothing in it drifts, slides, rocks or changes size.
+What moves is the air in front of it. Steam seeps upward and drifts slowly across in
+soft blurred veils. Fine dust hangs and turns lazily in the sunlight. Heat shimmer
+ripples over the surface. The air is in constant slow motion, so the shot never reads
+as a frozen still, while the photograph behind it never moves.
+
+KEEP — the plate is untouchable
+The man filmed in the plate stays in the shot in every single frame, exactly as filmed:
+same position, stance, pose, face, hair, hat, clothing, gestures, performance, speech
+and lip movement, same timing. His movement and his spoken words are never altered,
+re-timed, re-animated or re-rendered — not by a single frame. The only thing that
+changes about him is his lighting, colour and edges. If the man is missing, or if his
+motion or speech differs from the plate in any way, the shot is wrong.
+The framing, lens character and duration are unchanged, and the image is never flipped
+or mirrored.
+
+INTEGRATION — light only
+Relight and regrade him to match @BG: [key direction and hardness], with a small tight
+contact shadow beneath his boots. [Bounce colours from ground and from the backdrop.]
+A soft warm light wrap bleeds around his outline where it meets the brighter parts of
+the backdrop, softening hat brim, shoulders, hair and coat seams into the light. His
+edges are slightly soft and diffused, never hard or cut out. No green remains anywhere
+— no edges, no fringing, no spill on hair, hat brim, skin or clothing. Grade him into
+the backdrop's palette and match grain, lens character and motion blur so both read as
+one photograph.
+
+FOCUS
+Only the man is sharp. The backdrop stays exactly as defocused as @BG and never
+sharpens at any point.
+```
+
+Two details that carry the whole thing: **"a photograph, not a subject"** in the
+background header, and the closing sentence of INTEGRATION that scopes the change to
+lighting, colour and edges — so "harmonise" is never read as permission to re-animate.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

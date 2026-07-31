@@ -52,6 +52,11 @@ Fix: solve the perspective once as a still, save it as its own element, and tag 
   moving" alone yields a frozen still when nothing crosses the frame.
 - Match generation duration to the source plate. Longer means the model invents gestures
   and speech past the end of the reference, and drifts within the usable part too.
+- **Over-the-shoulder plates need their own KEEP paragraph.** A figure cropped by the
+  frame edge is read as a defect: the model either erases it or "repairs" it into a whole
+  person. State that it is partially in frame *by design*, and that it is never removed,
+  never completed into a fuller figure, never turned around and never given a face.
+  Verified working on IRON CLOUD.
 
 ## Reference elements carry identity, not photography
 

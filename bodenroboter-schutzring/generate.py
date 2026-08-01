@@ -33,16 +33,16 @@ import os
 # Parameter
 # ---------------------------------------------------------------------------
 
-# Der Ring liegt auf dem Boden AUSSEN UM den Tischfuss herum -- der Roboter
+# Der Ring liegt auf dem Boden AUSSEN UM den Moebelfuss herum -- der Roboter
 # stoesst also an die Ringwand, bevor er den Fuss ueberhaupt erreicht.
 # Massgeblich ist damit der Innendurchmesser: er muss ueber den Fuss passen.
-FUSS_DURCHMESSER   = 365.0   # gemessener Durchmesser des Tischfusses
+#
+# Der Fussdurchmesser kommt per Kommandozeile (--fuss), Standard ist der
+# Tischfuss. Alle abgeleiteten Radien setzt konfigurieren() weiter unten.
+FUSS_DURCHMESSER   = 365.0   # gemessener Durchmesser des Fusses
 LUFT               = 5.0     # Spiel zwischen Fuss und Ring, je Seite
 WANDSTAERKE        = 5.0     # Dicke der Wand
 HOEHE              = 50.0    # Hoehe der Wand
-
-INNEN_DURCHMESSER  = FUSS_DURCHMESSER + 2 * LUFT
-AUSSEN_DURCHMESSER = INNEN_DURCHMESSER + 2 * WANDSTAERKE
 
 VERRUNDUNG         = 2.0     # Radius der Rundung an der Oberkante
 
@@ -78,11 +78,6 @@ BOGEN_SCHRITT_GRAD = 1.0     # Aufloesung der Rundungen in der Draufsicht
 VERRUNDUNG_STUFEN  = 8       # Aufloesung der Kantenverrundung in der Hoehe
 
 DRUCKBETT = (350.0, 350.0)   # angenommener nutzbarer Bauraum X/Y
-
-# Einteiliger Ring -- nur als Referenz fuer einen groesseren Drucker. Ein
-# Kreis braucht seinen Durchmesser in BEIDEN Achsen, massgeblich ist also
-# immer die kuerzere Bettkante. Bei diesem Ring waeren das gut 400 mm.
-EINTEILIG_DURCHMESSER = (AUSSEN_DURCHMESSER,)
 
 
 # ---------------------------------------------------------------------------
@@ -172,17 +167,40 @@ def triangulieren(poly):
 # Querschnitt eines Segments
 # ---------------------------------------------------------------------------
 
-R_AUSSEN = AUSSEN_DURCHMESSER / 2.0
-R_INNEN = R_AUSSEN - WANDSTAERKE
-R_KLOTZ = R_AUSSEN + KLOTZ_AUSSEN
-R_BOGEN = (R_AUSSEN + R_INNEN) / 2.0            # Referenz fuer Bogenlaengen
+def konfigurieren(fuss=None, luft=None):
+    """Setzt den Fussdurchmesser und rechnet alle abgeleiteten Radien neu.
 
-# Grenzen der Verzahnungszone. Bewusst als feste Radien berechnet und NICHT
-# vom Einzug der Kantenverrundung abgeleitet: die Verzahnung muss ueber die
-# ganze Hoehe identisch bleiben, sonst passen die Haelften oben nicht mehr.
-R_ZONE_INNEN = R_INNEN + ZAHN_RANDZONE
-R_ZONE_AUSSEN = R_KLOTZ - ZAHN_RANDZONE
-ZAHN_BANDBREITE = (R_ZONE_AUSSEN - R_ZONE_INNEN) / ZAHN_BAENDER
+    Beim Import laeuft das einmal mit den Standardwerten; main() ruft es
+    erneut auf, wenn --fuss/--luft uebergeben wurden. Alle Profilfunktionen
+    lesen die Modul-Globals zur Laufzeit, deshalb genuegt das Umsetzen hier.
+
+    Die Grenzen der Verzahnungszone sind bewusst feste Radien und NICHT vom
+    Einzug der Kantenverrundung abgeleitet: die Verzahnung muss ueber die
+    ganze Hoehe identisch bleiben, sonst passen die Segmente oben nicht mehr.
+    """
+    global FUSS_DURCHMESSER, LUFT, INNEN_DURCHMESSER, AUSSEN_DURCHMESSER
+    global R_AUSSEN, R_INNEN, R_KLOTZ, R_BOGEN
+    global R_ZONE_INNEN, R_ZONE_AUSSEN, ZAHN_BANDBREITE
+
+    if fuss is not None:
+        FUSS_DURCHMESSER = float(fuss)
+    if luft is not None:
+        LUFT = float(luft)
+
+    INNEN_DURCHMESSER = FUSS_DURCHMESSER + 2 * LUFT
+    AUSSEN_DURCHMESSER = INNEN_DURCHMESSER + 2 * WANDSTAERKE
+
+    R_AUSSEN = AUSSEN_DURCHMESSER / 2.0
+    R_INNEN = R_AUSSEN - WANDSTAERKE
+    R_KLOTZ = R_AUSSEN + KLOTZ_AUSSEN
+    R_BOGEN = (R_AUSSEN + R_INNEN) / 2.0        # Referenz fuer Bogenlaengen
+
+    R_ZONE_INNEN = R_INNEN + ZAHN_RANDZONE
+    R_ZONE_AUSSEN = R_KLOTZ - ZAHN_RANDZONE
+    ZAHN_BANDBREITE = (R_ZONE_AUSSEN - R_ZONE_INNEN) / ZAHN_BAENDER
+
+
+konfigurieren()
 
 
 def _band(k):
@@ -667,19 +685,62 @@ def svg_schreiben(pfad, varianten):
 
 # ---------------------------------------------------------------------------
 
+def segmentzahlen_waehlen():
+    """Sinnvolle Segmentzahlen fuer den aktuellen Ring bestimmen.
+
+    Gesucht wird das kleinste n, dessen Segment auf das Druckbett passt
+    (weniger Fugen = steifer und weniger Montage), dazu die naechsten
+    beiden als Alternativen. Der Fit wird billig ueber die Sehnenlaenge
+    des Klotzkreises vorabgeschaetzt und dann exakt ueber das Mesh
+    verifiziert -- die teure Drehwinkelsuche laeuft so nur fuer
+    Kandidaten, nicht fuer offensichtlich zu grosse Segmente.
+    """
+    diagonale = math.hypot(*DRUCKBETT)
+    kandidaten = []
+    n = 2
+    while len(kandidaten) < 3 and n <= 12:
+        sehne = 2.0 * R_KLOTZ * math.sin(math.pi / n)
+        if sehne < diagonale:                    # grobe Vorauswahl
+            passt, _, _, _, _ = bester_bauraum(segment_mesh(n))
+            if passt:
+                kandidaten.append(n)
+        n += 1
+    return kandidaten
+
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="STL-Generator fuer den Auffahrschutz-Ring")
+    parser.add_argument("--fuss", type=float, default=None,
+                        help="Durchmesser des Moebelfusses in mm "
+                             "(Standard: %.0f)" % FUSS_DURCHMESSER)
+    parser.add_argument("--luft", type=float, default=None,
+                        help="Spiel zwischen Fuss und Ring je Seite in mm "
+                             "(Standard: %.0f)" % LUFT)
+    parser.add_argument("--segmente", type=str, default=None,
+                        help="Kommagetrennte Segmentzahlen, z.B. 5,6,7 "
+                             "(Standard: automatisch)")
+    args = parser.parse_args()
+    konfigurieren(fuss=args.fuss, luft=args.luft)
+
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
     os.makedirs(ziel, exist_ok=True)
 
-    print("Tischfuss %.1f mm + %.1f mm Luft je Seite"
+    print("Moebelfuss %.1f mm + %.1f mm Luft je Seite"
           % (FUSS_DURCHMESSER, LUFT))
     print("Ring: innen %.1f / aussen %.1f / Wand %.1f / Hoehe %.1f mm, "
           "Oberkante R%.1f verrundet"
           % (INNEN_DURCHMESSER, AUSSEN_DURCHMESSER, WANDSTAERKE, HOEHE, VERRUNDUNG))
     print("Angenommener Bauraum: %.0f x %.0f mm\n" % DRUCKBETT)
 
+    if args.segmente:
+        zahlen = [int(t) for t in args.segmente.split(",")]
+    else:
+        zahlen = segmentzahlen_waehlen()
+
     fehler = 0
-    for n in (2, 3, 4):
+    for n in zahlen:
         d = segment_mesh(n)
         offen = offene_kanten(d)
         fehler += offen
@@ -698,21 +759,25 @@ def main():
                  "ok" if kollisionen == 0 else "KOLLISION %.2f mm" % tiefe,
                  "sperrt nach %.1f mm" % weg if haelt else "FEHLT"))
 
+    # Einteiliger Ring als Referenz fuer einen groesseren Drucker. Ein Kreis
+    # braucht seinen Durchmesser in BEIDEN Achsen, massgeblich ist also
+    # immer die kuerzere Bettkante.
     print()
-    for d_aussen in EINTEILIG_DURCHMESSER:
-        d = ring_mesh(d_aussen)
-        offen = offene_kanten(d)
-        fehler += offen
-        name = "schutzring_einteilig_%.0fmm.stl" % d_aussen
-        stl_schreiben(os.path.join(ziel, name), d, name)
-        passt, bx, by, winkel, rand = bester_bauraum(d)
-        print("%-34s %5d Dr. | %6.1f cm3 gesamt, innen %5.1f mm  | "
-              "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | offene Kanten %d"
-              % (name, len(d), volumen(d) / 1000.0, d_aussen - 2 * WANDSTAERKE,
-                 bx, by, rand, "passt" if passt else "PASST NICHT", offen))
+    d_aussen = AUSSEN_DURCHMESSER
+    d = ring_mesh(d_aussen)
+    offen = offene_kanten(d)
+    fehler += offen
+    name = "schutzring_einteilig_%.0fmm.stl" % d_aussen
+    stl_schreiben(os.path.join(ziel, name), d, name)
+    passt, bx, by, winkel, rand = bester_bauraum(d)
+    print("%-34s %5d Dr. | %6.1f cm3 gesamt, innen %5.1f mm  | "
+          "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | offene Kanten %d"
+          % (name, len(d), volumen(d) / 1000.0, d_aussen - 2 * WANDSTAERKE,
+             bx, by, rand, "passt" if passt else "PASST NICHT", offen))
 
-    svg_schreiben(os.path.join(ziel, "vorschau.svg"), [2, 3])
-    print("\nvorschau.svg geschrieben")
+    svg_schreiben(os.path.join(ziel, "vorschau_%.0fmm.svg" % AUSSEN_DURCHMESSER),
+                  zahlen[:2])
+    print("\nvorschau_%.0fmm.svg geschrieben" % AUSSEN_DURCHMESSER)
 
     if fehler:
         raise SystemExit("FEHLER: %d offene Kanten -- Mesh nicht dicht" % fehler)

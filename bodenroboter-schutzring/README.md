@@ -1,28 +1,31 @@
-# Auffahrschutz-Ring fürs Tischbein
+# Auffahrschutz-Ringe für Möbelfüße
 
-Runder Schutzwall, der auf dem Boden **außen um den Tischfuß** liegt. Der
+Runde Schutzwälle, die auf dem Boden **außen um einen Möbelfuß** liegen. Der
 Saug-/Wischroboter stößt an die Ringwand, bevor er den Fuß überhaupt erreicht,
 und kann sich damit nicht mehr daraufsetzen.
 
-| Maß | Wert |
-|---|---|
-| Tischfuß (gemessen) | 365 mm |
-| Luft zum Fuß | 5 mm je Seite |
-| **Innendurchmesser** | **375 mm** |
-| Außendurchmesser | 385 mm |
-| Wandstärke | 5 mm |
-| Höhe | 50 mm |
-| Oberkante | innen und außen mit R2 verrundet |
-| Unterkante | scharfkantig, damit der Ring plan aufliegt |
+Zwei Größen sind fertig generiert:
+
+| | Tisch | Relaxstuhl |
+|---|---|---|
+| Fuß (gemessen) | 365 mm | 635 mm |
+| Luft zum Fuß | 5 mm je Seite | 5 mm je Seite |
+| **Innendurchmesser** | **375 mm** | **645 mm** |
+| Außendurchmesser | 385 mm | 655 mm |
+| Segmente (empfohlen) | 3 | 5 |
+
+Gemeinsam: Wand 5 mm, Höhe 50 mm, Oberkante innen und außen mit R2 verrundet,
+Unterkante scharfkantig, damit der Ring plan aufliegt.
 
 Die Segmente werden **nur gesteckt, nicht geklebt**. Die Verzahnung ist
 hinterschnitten und hält formschlüssig.
 
 ## Welche Datei?
 
-**`schutzring_3teilig_385mm_segment.stl`, 3 × drucken.** Alle Segmente sind
-identisch — an einem Ende steht das innere Zahnband vor, am anderen das äußere,
-dadurch passt jedes auf jedes.
+Alle Segmente eines Rings sind identisch — an einem Ende steht das innere
+Zahnband vor, am anderen das äußere, dadurch passt jedes auf jedes.
+
+**Tisch: `schutzring_3teilig_385mm_segment.stl`, 3 × drucken.**
 
 | Datei | Stück | Grundfläche je Teil | Bett |
 |---|---|---|---|
@@ -31,10 +34,25 @@ dadurch passt jedes auf jedes.
 | `schutzring_4teilig_385mm_segment.stl` | 4 × | 220,0 × 220,3 mm | 130 mm Rand |
 | `schutzring_einteilig_385mm.stl` | — | 385 × 385 mm | braucht ein Bett ≥ 400 mm |
 
+**Relaxstuhl: `schutzring_5teilig_655mm_segment.stl`, 5 × drucken.**
+
+| Datei | Stück | Grundfläche je Teil | Bett |
+|---|---|---|---|
+| `schutzring_5teilig_655mm_segment.stl` | 5 × | 298,7 × 298,9 mm | 51 mm Rand |
+| `schutzring_6teilig_655mm_segment.stl` | 6 × | 257,2 × 257,5 mm | 93 mm Rand |
+| `schutzring_7teilig_655mm_segment.stl` | 7 × | 226,1 × 226,1 mm | 124 mm Rand |
+| `schutzring_einteilig_655mm.stl` | — | 655 × 655 mm | braucht ein Bett ≥ 670 mm |
+
+Weniger Segmente heißt weniger Fugen und weniger Montage. 4 Segmente gehen beim
+655er nicht: die Sehne eines 90°-Bogens ist 484 mm und passt auch diagonal auf
+kein 350er Bett — der Generator prüft das und wählt automatisch das kleinste
+passende n.
+
 ## Verzahnung
 
 Die Stoßfläche ist an der Fuge auf 20 mm verdickt — nur nach **außen**, damit
-innen die vollen 375 mm für den Fuß frei bleiben. Sie ist radial aufgeteilt in:
+innen die volle lichte Weite für den Fuß frei bleibt. Sie ist radial
+aufgeteilt in:
 
 - 5 mm solide Randzone innen
 - zwei Zahnbänder à 5 mm, die abwechselnd 12 mm vorstehen bzw. zurückspringen
@@ -49,8 +67,8 @@ gegenseitig sperrt. Spiel 0,12 mm je Flanke (Schiebesitz).
 Die Randzonen stehen da, damit die Kantenverrundung oben nicht in die Verzahnung
 schneidet, und damit der Hinterschnitt sich in massives Material aufweiten kann.
 
-Örtlich ist der Ring an den Stoßstellen außen 415 mm statt 385 mm. Innen bleibt
-es überall bei 375 mm.
+Örtlich ist der Ring an den Stoßstellen außen 30 mm größer als der
+Nenndurchmesser. Innen bleibt es überall bei der vollen lichten Weite.
 
 ### Was der Formschluss leistet — und was nicht
 
@@ -81,8 +99,9 @@ Stoß, ein Tropfen 2K-Epoxid auf die Zahnflanken macht es unlösbar.
 - **Maßhaltigkeit:** die Zähne entscheiden über die Passung. Wenn dein Drucker
   bekanntermaßen Löcher zu eng druckt, lieber `SPIEL` auf 0,15 setzen und neu
   erzeugen, statt hinterher zu schleifen.
-- **Materialbedarf:** massiv gerechnet 412 cm³ für den ganzen Ring. Mit den
-  empfohlenen Einstellungen grob 210–240 g.
+- **Materialbedarf** (massiv gerechnet / grob real mit den empfohlenen
+  Einstellungen): Tisch 3-teilig 412 cm³ / 210–240 g, Relaxstuhl 5-teilig
+  696 cm³ / 350–400 g.
 
 ## Zusammenbau
 
@@ -90,9 +109,9 @@ Wegen des Hinterschnitts geht nur noch **senkrecht von oben** — seitliches
 Zusammenschieben ist jetzt gesperrt, das ist ja der Sinn der Sache.
 
 1. Erstes Segment um den Fuß legen.
-2. Zweites Segment von oben absenken, bis es plan aufliegt.
-3. Drittes Segment von oben in beide Nachbarn gleichzeitig absenken. Das geht,
-   weil beide Fugen senkrecht sind.
+2. Weitere Segmente nacheinander von oben absenken, bis sie plan aufliegen.
+3. Das letzte Segment von oben in beide Nachbarn gleichzeitig absenken. Das
+   geht, weil alle Fugen senkrecht sind.
 4. Fertig. Du brauchst etwa 10 cm freie Höhe über dem Boden.
 
 Falls ein Segment klemmt: die Zahnflanken kurz mit Schleifpapier brechen. Nicht
@@ -100,21 +119,24 @@ mit Gewalt drücken, der Zahn ist am Fuß am schmalsten.
 
 ## Ansichten
 
-Im Ordner `stl/`:
+Im Ordner `stl/`, je Größe:
 
-- `ansicht_ring_2teilig.svg` — zusammengesteckter Ring
-- `ansicht_haelfte.svg` — ein Segment, wie es gedruckt wird
-- `ansicht_verzahnung.svg` — maßstäbliche Detailzeichnung der Stoßfuge
-- `vorschau.svg` — Querschnitt der Varianten
+- `ansicht_ring_<aussen>mm_<n>teilig.svg` — zusammengesteckter Ring
+- `ansicht_segment_<aussen>mm_<n>teilig.svg` — ein Segment, wie es gedruckt wird
+- `ansicht_verzahnung_<aussen>mm.svg` — maßstäbliche Detailzeichnung der Stoßfuge
+- `vorschau_<aussen>mm.svg` — Querschnitt der Varianten
 
-## Maße ändern
+## Andere Größe erzeugen
 
-Alle Maße stehen als Konstanten oben in `generate.py`. Der Ring wird aus
-`FUSS_DURCHMESSER` und `LUFT` abgeleitet:
+Der Fußdurchmesser kommt per Kommandozeile, alles andere rechnet sich daraus.
+Der Generator wählt die Segmentzahlen automatisch (kleinste passende plus zwei
+Alternativen) und benennt die Dateien nach dem Außendurchmesser:
 
 ```bash
-python3 generate.py     # schreibt die STL-Dateien nach stl/
-python3 vorschau.py     # schreibt die Ansichten nach stl/
+python3 generate.py                    # Tisch (Standard: Fuss 365 mm)
+python3 generate.py --fuss 635         # Relaxstuhl
+python3 generate.py --fuss 500 --luft 8 --segmente 4,5
+python3 vorschau.py --fuss 635 --teile 5   # Ansichten dazu
 ```
 
 Beides läuft mit reinem Python 3, ohne Abhängigkeiten und ohne installiertes CAD.

@@ -205,6 +205,19 @@ def detail_steckverbindung(pfad, anzahl_segmente=3):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="SVG-Ansichten fuer den Auffahrschutz-Ring")
+    parser.add_argument("--fuss", type=float, default=None,
+                        help="Durchmesser des Moebelfusses in mm")
+    parser.add_argument("--luft", type=float, default=None,
+                        help="Spiel je Seite in mm")
+    parser.add_argument("--teile", type=int, default=2,
+                        help="Anzahl der Segmente in den Ansichten (Standard 2)")
+    args = parser.parse_args()
+    g.konfigurieren(fuss=args.fuss, luft=args.luft)
+    n = args.teile
+
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
     os.makedirs(ziel, exist_ok=True)
 
@@ -212,34 +225,39 @@ def main():
     g.BOGEN_SCHRITT_GRAD = 3.0
     g.VERRUNDUNG_STUFEN = 4
 
-    blau = (58, 110, 178)
-    gruen = (66, 150, 92)
+    farben = [(58, 110, 178), (66, 150, 92), (196, 106, 31),
+              (138, 79, 191), (181, 63, 92), (79, 154, 168)]
+    blau = farben[0]
 
-    seg = g.segment_mesh(2)
+    seg = g.segment_mesh(n)
+    phi = 2.0 * math.pi / n
+    kennung = "%.0fmm_%dteilig" % (g.AUSSEN_DURCHMESSER, n)
 
-    # 1) Der fertig verklebte Ring
-    bild(os.path.join(ziel, "ansicht_ring_2teilig.svg"),
-         [(drehen_z(seg, 0.0), blau), (drehen_z(seg, math.pi), gruen)],
+    # 1) Der fertig zusammengesteckte Ring
+    ring_name = "ansicht_ring_%s.svg" % kennung
+    bild(os.path.join(ziel, ring_name),
+         [(drehen_z(seg, k * phi), farben[k % len(farben)]) for k in range(n)],
          drehung=math.radians(35), skala=1.40,
-         titel="Zusammengesteckter Ring aus 2 Haelften",
-         untertitel="innen %.0f mm (Tischfuss %.0f mm + %.0f mm Luft je Seite) - "
+         titel="Zusammengesteckter Ring aus %d Segmenten" % n,
+         untertitel="innen %.0f mm (Fuss %.0f mm + %.0f mm Luft je Seite) - "
                     "aussen %.0f mm - Hoehe %.0f mm"
                     % (g.INNEN_DURCHMESSER, g.FUSS_DURCHMESSER, g.LUFT,
                        g.AUSSEN_DURCHMESSER, g.HOEHE))
 
-    # 2) Eine Haelfte, so wie sie gedruckt wird
-    bild(os.path.join(ziel, "ansicht_haelfte.svg"), [(seg, blau)],
+    # 2) Ein Segment, so wie es gedruckt wird
+    seg_name = "ansicht_segment_%s.svg" % kennung
+    bild(os.path.join(ziel, seg_name), [(seg, blau)],
          drehung=math.radians(35), skala=1.40,
-         titel="Eine Haelfte (2x drucken, identisch)",
+         titel="Ein Segment (%dx drucken, identisch)" % n,
          untertitel="an beiden Enden die hinterschnittene Verzahnung, "
                     "Oberkante R%.1f verrundet" % g.VERRUNDUNG)
 
-    detail_steckverbindung(os.path.join(ziel, "ansicht_verzahnung.svg"))
+    fuge_name = "ansicht_verzahnung_%.0fmm.svg" % g.AUSSEN_DURCHMESSER
+    detail_steckverbindung(os.path.join(ziel, fuge_name), anzahl_segmente=n)
 
-    for name in ("ansicht_ring_2teilig.svg", "ansicht_haelfte.svg",
-                 "ansicht_verzahnung.svg"):
+    for name in (ring_name, seg_name, fuge_name):
         p = os.path.join(ziel, name)
-        print("%-32s %6.0f kB" % (name, os.path.getsize(p) / 1024.0))
+        print("%-40s %6.0f kB" % (name, os.path.getsize(p) / 1024.0))
 
 
 if __name__ == "__main__":

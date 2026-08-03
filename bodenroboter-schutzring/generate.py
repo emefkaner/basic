@@ -685,15 +685,21 @@ def svg_schreiben(pfad, varianten):
 
 # ---------------------------------------------------------------------------
 
+MIN_RAND = 20.0   # geforderter Randabstand auf dem Bett (Platz fuer Brim)
+
+
 def segmentzahlen_waehlen():
     """Sinnvolle Segmentzahlen fuer den aktuellen Ring bestimmen.
 
-    Gesucht wird das kleinste n, dessen Segment auf das Druckbett passt
-    (weniger Fugen = steifer und weniger Montage), dazu die naechsten
-    beiden als Alternativen. Der Fit wird billig ueber die Sehnenlaenge
-    des Klotzkreises vorabgeschaetzt und dann exakt ueber das Mesh
-    verifiziert -- die teure Drehwinkelsuche laeuft so nur fuer
-    Kandidaten, nicht fuer offensichtlich zu grosse Segmente.
+    Gesucht wird das kleinste n, dessen Segment mit mindestens MIN_RAND
+    Randabstand auf das Druckbett passt (weniger Fugen = steifer und
+    weniger Montage; der Mindestrand laesst Platz fuer einen Brim und
+    fuer Betten, deren nutzbarer Bereich etwas kleiner ist als das
+    Nennmass). Dazu die naechsten beiden als Alternativen. Der Fit wird
+    billig ueber die Sehnenlaenge des Klotzkreises vorabgeschaetzt und
+    dann exakt ueber das Mesh verifiziert -- die teure Drehwinkelsuche
+    laeuft so nur fuer Kandidaten, nicht fuer offensichtlich zu grosse
+    Segmente.
     """
     diagonale = math.hypot(*DRUCKBETT)
     kandidaten = []
@@ -701,8 +707,8 @@ def segmentzahlen_waehlen():
     while len(kandidaten) < 3 and n <= 12:
         sehne = 2.0 * R_KLOTZ * math.sin(math.pi / n)
         if sehne < diagonale:                    # grobe Vorauswahl
-            passt, _, _, _, _ = bester_bauraum(segment_mesh(n))
-            if passt:
+            passt, _, _, _, rand = bester_bauraum(segment_mesh(n))
+            if passt and rand >= MIN_RAND:
                 kandidaten.append(n)
         n += 1
     return kandidaten
@@ -719,8 +725,11 @@ def main():
                         help="Spiel zwischen Fuss und Ring je Seite in mm "
                              "(Standard: %.0f)" % LUFT)
     parser.add_argument("--segmente", type=str, default=None,
-                        help="Kommagetrennte Segmentzahlen, z.B. 5,6,7 "
-                             "(Standard: automatisch)")
+                        help="Kommagetrennte Segmentzahlen, z.B. 5,6 "
+                             "(Standard: nur die beste)")
+    parser.add_argument("--einteilig", action="store_true",
+                        help="zusaetzlich den ungeteilten Ring schreiben "
+                             "(Referenz fuer groessere Drucker)")
     args = parser.parse_args()
     konfigurieren(fuss=args.fuss, luft=args.luft)
 
@@ -734,17 +743,22 @@ def main():
           % (INNEN_DURCHMESSER, AUSSEN_DURCHMESSER, WANDSTAERKE, HOEHE, VERRUNDUNG))
     print("Angenommener Bauraum: %.0f x %.0f mm\n" % DRUCKBETT)
 
+    # Standard: genau EINE Datei, die beste. Wer die 6-teilige Alternative
+    # neben der 5-teiligen liegen hat, erwischt im Slicer irgendwann die
+    # falsche und druckt ein Segment zu viel -- genau das ist passiert.
+    # Alternativen gibt es nur noch auf ausdrueckliche Anforderung.
     if args.segmente:
         zahlen = [int(t) for t in args.segmente.split(",")]
     else:
-        zahlen = segmentzahlen_waehlen()
+        zahlen = segmentzahlen_waehlen()[:1]
 
     fehler = 0
     for n in zahlen:
         d = segment_mesh(n)
         offen = offene_kanten(d)
         fehler += offen
-        name = "schutzring_%dteilig_%.0fmm_segment.stl" % (n, AUSSEN_DURCHMESSER)
+        name = ("schutzring_%.0fmm_1_segment_%dx_drucken.stl"
+                % (AUSSEN_DURCHMESSER, n))
         stl_schreiben(os.path.join(ziel, name), d, name)
         passt, bx, by, winkel, rand = bester_bauraum(d)
         kollisionen, tiefe = passung_pruefen(n)
@@ -759,25 +773,28 @@ def main():
                  "ok" if kollisionen == 0 else "KOLLISION %.2f mm" % tiefe,
                  "sperrt nach %.1f mm" % weg if haelt else "FEHLT"))
 
-    # Einteiliger Ring als Referenz fuer einen groesseren Drucker. Ein Kreis
-    # braucht seinen Durchmesser in BEIDEN Achsen, massgeblich ist also
-    # immer die kuerzere Bettkante.
-    print()
-    d_aussen = AUSSEN_DURCHMESSER
-    d = ring_mesh(d_aussen)
-    offen = offene_kanten(d)
-    fehler += offen
-    name = "schutzring_einteilig_%.0fmm.stl" % d_aussen
-    stl_schreiben(os.path.join(ziel, name), d, name)
-    passt, bx, by, winkel, rand = bester_bauraum(d)
-    print("%-34s %5d Dr. | %6.1f cm3 gesamt, innen %5.1f mm  | "
-          "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | offene Kanten %d"
-          % (name, len(d), volumen(d) / 1000.0, d_aussen - 2 * WANDSTAERKE,
-             bx, by, rand, "passt" if passt else "PASST NICHT", offen))
+    # Einteiliger Ring nur auf Wunsch -- er passt auf uebliche Betten ohnehin
+    # nicht (ein Kreis braucht seinen Durchmesser in BEIDEN Achsen) und liegt
+    # sonst nur als Verwechslungskandidat neben der richtigen Datei.
+    if args.einteilig:
+        print()
+        d_aussen = AUSSEN_DURCHMESSER
+        d = ring_mesh(d_aussen)
+        offen = offene_kanten(d)
+        fehler += offen
+        name = "schutzring_einteilig_%.0fmm.stl" % d_aussen
+        stl_schreiben(os.path.join(ziel, name), d, name)
+        passt, bx, by, winkel, rand = bester_bauraum(d)
+        print("%-34s %5d Dr. | %6.1f cm3 gesamt, innen %5.1f mm  | "
+              "%5.1f x %5.1f mm, Rand %+6.1f mm -> %-11s | offene Kanten %d"
+              % (name, len(d), volumen(d) / 1000.0, d_aussen - 2 * WANDSTAERKE,
+                 bx, by, rand, "passt" if passt else "PASST NICHT", offen))
 
     svg_schreiben(os.path.join(ziel, "vorschau_%.0fmm.svg" % AUSSEN_DURCHMESSER),
                   zahlen[:2])
     print("\nvorschau_%.0fmm.svg geschrieben" % AUSSEN_DURCHMESSER)
+    print("WICHTIG: 1 Datei = 1 Segment. Genau %s drucken, nicht mehr."
+          % " bzw. ".join("%dx" % n for n in zahlen))
 
     if fehler:
         raise SystemExit("FEHLER: %d offene Kanten -- Mesh nicht dicht" % fehler)

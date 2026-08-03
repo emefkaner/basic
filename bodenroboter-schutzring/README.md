@@ -22,31 +22,25 @@ hinterschnitten und hält formschlüssig.
 
 ## Welche Datei?
 
-Alle Segmente eines Rings sind identisch — an einem Ende steht das innere
-Zahnband vor, am anderen das äußere, dadurch passt jedes auf jedes.
+**Eine Datei pro Größe, der Dateiname sagt, wie oft gedruckt wird:**
 
-**Tisch: `schutzring_3teilig_385mm_segment.stl`, 3 × drucken.**
+| Ring | Datei | Drucken |
+|---|---|---|
+| Tisch | `schutzring_385mm_1_segment_3x_drucken.stl` | **genau 3 ×** |
+| Relaxstuhl | `schutzring_655mm_1_segment_5x_drucken.stl` | **genau 5 ×** |
 
-| Datei | Stück | Grundfläche je Teil | Bett |
-|---|---|---|---|
-| `schutzring_3teilig_385mm_segment.stl` | 3 × | 268,4 × 268,8 mm | 81 mm Rand |
-| `schutzring_2teilig_385mm_segment.stl` | 2 × | 342,8 × 342,9 mm | braucht echte 350 × 350 |
-| `schutzring_4teilig_385mm_segment.stl` | 4 × | 220,0 × 220,3 mm | 130 mm Rand |
-| `schutzring_einteilig_385mm.stl` | — | 385 × 385 mm | braucht ein Bett ≥ 400 mm |
+Jede Datei enthält **ein** Segment. Die angegebene Stückzahl ergibt exakt 360° —
+ein Segment mehr ist Ausschuss, eins weniger schließt den Ring nicht. Alle
+Segmente eines Rings sind identisch — an einem Ende steht das innere Zahnband
+vor, am anderen das äußere, dadurch passt jedes auf jedes.
 
-**Relaxstuhl: `schutzring_5teilig_655mm_segment.stl`, 5 × drucken.**
-
-| Datei | Stück | Grundfläche je Teil | Bett |
-|---|---|---|---|
-| `schutzring_5teilig_655mm_segment.stl` | 5 × | 298,7 × 298,9 mm | 51 mm Rand |
-| `schutzring_6teilig_655mm_segment.stl` | 6 × | 257,2 × 257,5 mm | 93 mm Rand |
-| `schutzring_7teilig_655mm_segment.stl` | 7 × | 226,1 × 226,1 mm | 124 mm Rand |
-| `schutzring_einteilig_655mm.stl` | — | 655 × 655 mm | braucht ein Bett ≥ 670 mm |
-
-Weniger Segmente heißt weniger Fugen und weniger Montage. 4 Segmente gehen beim
-655er nicht: die Sehne eines 90°-Bogens ist 484 mm und passt auch diagonal auf
-kein 350er Bett — der Generator prüft das und wählt automatisch das kleinste
-passende n.
+Der Generator schreibt bewusst nur noch diese eine empfohlene Datei je Größe.
+Früher lagen hier auch 2-/4-/6-/7-teilige Alternativen — wer davon im Slicer
+die falsche erwischte, druckte zwangsläufig die falsche Stückzahl. Alternativen
+gibt es weiterhin über `--segmente`, den ungeteilten Referenzring über
+`--einteilig`; beide landen dann mit ihrer eigenen Stückzahl im Dateinamen.
+Die Segmentzahl wählt der Generator als kleinstes n, dessen Segment mit
+mindestens 20 mm Rand (Platz für Brim) aufs Bett passt.
 
 ## Verzahnung
 
@@ -129,15 +123,22 @@ Im Ordner `stl/`, je Größe:
 ## Andere Größe erzeugen
 
 Der Fußdurchmesser kommt per Kommandozeile, alles andere rechnet sich daraus.
-Der Generator wählt die Segmentzahlen automatisch (kleinste passende plus zwei
-Alternativen) und benennt die Dateien nach dem Außendurchmesser:
+Der Generator wählt die Segmentzahl automatisch und schreibt genau eine Datei,
+benannt nach Außendurchmesser und Stückzahl:
 
 ```bash
 python3 generate.py                    # Tisch (Standard: Fuss 365 mm)
 python3 generate.py --fuss 635         # Relaxstuhl
-python3 generate.py --fuss 500 --luft 8 --segmente 4,5
+python3 generate.py --fuss 500 --luft 8
 python3 vorschau.py --fuss 635 --teile 5   # Ansichten dazu
 ```
+
+**Vor dem Generieren richtig messen:** bei gewölbten Tellerfüßen misst ein
+über die Wölbung gelegtes Maßband die Bogenlänge, nicht den Durchmesser —
+das Ergebnis ist dann 2–3 cm zu groß. Entweder mit zwei Anschlägen (Bücher
+links und rechts an den Teller, Abstand messen) oder, wenn schon ein Ring
+gedruckt ist: Ring an den Fuß anschieben, Restspalt messen, echter Fuß =
+Innendurchmesser − Spalt.
 
 Beides läuft mit reinem Python 3, ohne Abhängigkeiten und ohne installiertes CAD.
 

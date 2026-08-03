@@ -6,7 +6,11 @@ services:
   - type: web
     name: podcast-studio
     runtime: docker
-    plan: starter          # mit R2 reicht ein kleiner Plan; ggf. auf "free" ändern
+    # Mit R2 liegen alle Daten ausserhalb des Servers, daher reicht der Gratis-Plan.
+    # Hinweis: Der Gratis-Plan schlaeft bei Inaktivitaet ein (erster Aufruf danach
+    # ~30 Sek.) und hat wenig Arbeitsspeicher – falls der Anchor-Push (echter Browser)
+    # daran scheitert, im Dashboard auf "starter" hochstufen.
+    plan: free
     healthCheckPath: /healthz
     envVars:
       - key: DATA_DIR

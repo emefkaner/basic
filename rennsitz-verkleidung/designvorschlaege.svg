@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="760" viewBox="0 0 960 760">
+  <rect width="960" height="760" fill="#16161a"/>
+  <text x="480" y="42" font-family="sans-serif" font-size="24" font-weight="700"
+        text-anchor="middle" fill="#f2f2f2">Rennsitz-Verkleidung: 4 Designrichtungen</text>
+  <text x="480" y="66" font-family="sans-serif" font-size="13"
+        text-anchor="middle" fill="#999">Querschnitte, schematisch - der Roboter kommt jeweils von links</text>
+
+  <!-- ============ Kachel A: GT-Sideskirt ============ -->
+  <g transform="translate(20,90)">
+    <rect width="440" height="300" rx="10" fill="#1f1f24" stroke="#333" stroke-width="1"/>
+    <text x="20" y="34" font-family="sans-serif" font-size="17" font-weight="700" fill="#e33e3e">A - GT-Sideskirt</text>
+    <!-- Boden -->
+    <line x1="20" y1="220" x2="420" y2="220" stroke="#666" stroke-width="2"/>
+    <!-- Roboter-Pfeil -->
+    <line x1="35" y1="200" x2="95" y2="200" stroke="#5aa2e0" stroke-width="3"/>
+    <path d="M 95 200 l -12 -7 v 14 z" fill="#5aa2e0"/>
+    <text x="35" y="185" font-family="sans-serif" font-size="12" fill="#5aa2e0">Roboter</text>
+    <!-- Profil: steile Front, Schulterkante, lange Schraege nach hinten -->
+    <path d="M 150 220 L 150 130 Q 150 118 162 116 L 185 112 L 330 175 L 330 220 Z"
+          fill="#c02828" stroke="#f2f2f2" stroke-width="2"/>
+    <!-- Zierlinie -->
+    <path d="M 158 214 L 158 138" stroke="#ffffff" stroke-width="2" opacity="0.5"/>
+    <text x="140" y="250" font-family="sans-serif" font-size="12" fill="#ccc">senkrechte Anfahrkante</text>
+    <text x="240" y="160" font-family="sans-serif" font-size="12" fill="#ccc" transform="rotate(23 240 160)">Schweller-Schraege</text>
+    <text x="20" y="284" font-family="sans-serif" font-size="12.5" fill="#aaa">Seitenschweller-Optik: steile Front, oben Kante,</text>
+    <text x="20" y="299" font-family="sans-serif" font-size="12.5" fill="#aaa">faellt nach hinten zum Sitz ab. Dezent-sportlich.</text>
+  </g>
+
+  <!-- ============ Kachel B: Diffusor-Finnen ============ -->
+  <g transform="translate(500,90)">
+    <rect width="440" height="300" rx="10" fill="#1f1f24" stroke="#333" stroke-width="1"/>
+    <text x="20" y="34" font-family="sans-serif" font-size="17" font-weight="700" fill="#e33e3e">B - Diffusor</text>
+    <text x="150" y="34" font-family="sans-serif" font-size="12" fill="#888">(Frontansicht)</text>
+    <line x1="20" y1="220" x2="420" y2="220" stroke="#666" stroke-width="2"/>
+    <!-- Grundwand -->
+    <rect x="90" y="150" width="260" height="70" fill="#2a2a30" stroke="#f2f2f2" stroke-width="2"/>
+    <!-- Finnen -->
+    <g fill="#c02828" stroke="#f2f2f2" stroke-width="1.5">
+      <path d="M 110 220 L 110 132 L 122 132 L 122 220 Z"/>
+      <path d="M 162 220 L 162 124 L 174 124 L 174 220 Z"/>
+      <path d="M 214 220 L 214 120 L 226 120 L 226 220 Z"/>
+      <path d="M 266 220 L 266 124 L 278 124 L 278 220 Z"/>
+      <path d="M 318 220 L 318 132 L 330 132 L 330 220 Z"/>
+    </g>
+    <text x="20" y="284" font-family="sans-serif" font-size="12.5" fill="#aaa">Senkrechte Finnen vor der Wand wie am F1-Heck.</text>
+    <text x="20" y="299" font-family="sans-serif" font-size="12.5" fill="#aaa">Viel Tiefenwirkung, der Bumper trifft die Finnenkanten.</text>
+  </g>
+
+  <!-- ============ Kachel C: Louvre / Vents ============ -->
+  <g transform="translate(20,410)">
+    <rect width="440" height="300" rx="10" fill="#1f1f24" stroke="#333" stroke-width="1"/>
+    <text x="20" y="34" font-family="sans-serif" font-size="17" font-weight="700" fill="#e33e3e">C - Louvre-Vents</text>
+    <line x1="20" y1="220" x2="420" y2="220" stroke="#666" stroke-width="2"/>
+    <line x1="35" y1="200" x2="95" y2="200" stroke="#5aa2e0" stroke-width="3"/>
+    <path d="M 95 200 l -12 -7 v 14 z" fill="#5aa2e0"/>
+    <!-- Wand -->
+    <path d="M 150 220 L 150 120 Q 150 112 158 112 L 180 112 L 180 220 Z"
+          fill="#c02828" stroke="#f2f2f2" stroke-width="2"/>
+    <!-- Lamellen angedeutet (eingepraegt) -->
+    <g stroke="#701717" stroke-width="4" stroke-linecap="round">
+      <line x1="156" y1="138" x2="174" y2="130"/>
+      <line x1="156" y1="158" x2="174" y2="150"/>
+      <line x1="156" y1="178" x2="174" y2="170"/>
+    </g>
+    <text x="195" y="150" font-family="sans-serif" font-size="12" fill="#ccc">schraege Lamellen,</text>
+    <text x="195" y="165" font-family="sans-serif" font-size="12" fill="#ccc">nur eingepraegt (kein Durchbruch,</text>
+    <text x="195" y="180" font-family="sans-serif" font-size="12" fill="#ccc">nichts zum Verhaken)</text>
+    <text x="20" y="284" font-family="sans-serif" font-size="12.5" fill="#aaa">Schlanke Wand mit Kuehlschlitz-Optik wie an einer</text>
+    <text x="20" y="299" font-family="sans-serif" font-size="12.5" fill="#aaa">Motorhaube. Wenig Material, schneller Druck.</text>
+  </g>
+
+  <!-- ============ Kachel D: Splitter-Keil ============ -->
+  <g transform="translate(500,410)">
+    <rect width="440" height="300" rx="10" fill="#1f1f24" stroke="#333" stroke-width="1"/>
+    <text x="20" y="34" font-family="sans-serif" font-size="17" font-weight="700" fill="#e33e3e">D - Splitter-Keil</text>
+    <line x1="20" y1="220" x2="420" y2="220" stroke="#666" stroke-width="2"/>
+    <line x1="35" y1="200" x2="95" y2="200" stroke="#5aa2e0" stroke-width="3"/>
+    <path d="M 95 200 l -12 -7 v 14 z" fill="#5aa2e0"/>
+    <!-- Keil: Front senkrecht + Lippe, flacher Ruecken -->
+    <path d="M 150 220 L 150 205 L 138 205 L 138 192 L 152 190 L 152 150 Q 152 142 160 141 L 340 190 L 340 220 Z"
+          fill="#c02828" stroke="#f2f2f2" stroke-width="2"/>
+    <text x="118" y="250" font-family="sans-serif" font-size="12" fill="#ccc">Splitter-Lippe vorn</text>
+    <text x="235" y="172" font-family="sans-serif" font-size="12" fill="#ccc" transform="rotate(15 235 172)">flacher Ruecken</text>
+    <text x="20" y="284" font-family="sans-serif" font-size="12.5" fill="#aaa">Frontsplitter-Optik: vorspringende Bodenlippe, dahinter</text>
+    <text x="20" y="299" font-family="sans-serif" font-size="12.5" fill="#aaa">flach ansteigender Keil. Wirkt am breitesten und tiefsten.</text>
+  </g>
+
+  <text x="480" y="740" font-family="sans-serif" font-size="12.5" text-anchor="middle" fill="#777">
+    Allen gemeinsam: Anfahrseite steil (nie als Rampe!), Hoehe an der Front &#8805; 40 mm, Oberkanten verrundet, Unterkante plan.</text>
+</svg>

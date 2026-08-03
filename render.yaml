@@ -19,10 +19,12 @@ services:
         sync: false          # im Render-Dashboard eintragen (geheim)
       - key: SESSION_SECRET
         generateValue: true  # Render erzeugt einen sicheren Zufallswert
+      - key: GEMINI_API_KEY
+        sync: false          # Transkription + Infotext (empfohlen, kostenlos)
       - key: OPENAI_API_KEY
-        sync: false          # Transkription (Whisper)
+        sync: false          # optionale Alternative zur Transkription (Whisper)
       - key: ANTHROPIC_API_KEY
-        sync: false          # KI-Infotext (Claude), optional
+        sync: false          # optionale Alternative für den Infotext (Claude)
       # ---- Cloudflare R2 (empfohlen) ----
       - key: R2_ACCOUNT_ID
         sync: false

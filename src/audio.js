@@ -106,6 +106,24 @@ export function buildEpisode({ intro, main, outro, outFile, enhance }) {
   });
 }
 
+// Erzeugt eine schlanke MP3-Fassung für die Transkription: mono, 16 kHz, 32 kbit/s.
+// Gründe: Sprache braucht nicht mehr, die Datei wird dadurch ~10x kleiner (schnellerer
+// Upload) und liegt in einem Format vor, das die KI-Dienste sicher verstehen –
+// anders als das webm/opus, das Handy-Browser aufnehmen.
+export function toTranscriptionAudio(input, outFile) {
+  return new Promise((resolve, reject) => {
+    ffmpeg(input)
+      .audioCodec('libmp3lame')
+      .audioChannels(1)
+      .audioFrequency(16000)
+      .audioBitrate('32k')
+      .format('mp3')
+      .on('error', reject)
+      .on('end', () => resolve(outFile))
+      .save(outFile);
+  });
+}
+
 // Formatiert Sekunden als HH:MM:SS (für den <itunes:duration>-Tag).
 export function formatDuration(totalSeconds) {
   const s = Math.max(0, Math.floor(totalSeconds));

@@ -6,8 +6,8 @@ aufnehmen oder eine Audiodatei hochladen kannst. Die App:
 1. nimmt deine Aufnahme entgegen (Handy-Mikrofon **oder** Datei-Upload),
 2. **optimiert die Sprache per KI/DSP** gegen Hintergrundgeräusche (an/aus + Stärke-Regler),
 3. fügt automatisch **Intro + Aufnahme + Outro** zusammen,
-4. **transkribiert** die Aufnahme (OpenAI Whisper),
-5. erstellt einen **Infotext-Vorschlag** (Claude) – den du prüfen/ändern kannst,
+4. **transkribiert** die Aufnahme (Google Gemini – kostenlos, stark bei Deutsch),
+5. erstellt einen **Infotext-Vorschlag** – den du prüfen/ändern kannst,
 6. und veröffentlicht die Folge **nach deiner Bestätigung** in deinen eigenen
    **RSS-Feed**, den Spotify automatisch abholt.
 
@@ -37,8 +37,9 @@ Auf dem Handy braucht die Mikrofon-Aufnahme **HTTPS** (lokal geht `localhost`).
 | `APP_PASSWORD`      | Login-Passwort (nur du kommst rein)                         |
 | `SESSION_SECRET`    | langer Zufallswert zum Signieren der Login-Cookies          |
 | `PUBLIC_URL`        | öffentliche Adresse der App, z. B. `https://…onrender.com`  |
-| `OPENAI_API_KEY`    | Transkription (Whisper) – für den KI-Infotext aus Audio     |
-| `ANTHROPIC_API_KEY` | KI-Infotext (Claude), optional – ohne Key einfacher Fallback|
+| `GEMINI_API_KEY`    | **Empfohlen:** Transkription **und** Infotext ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) |
+| `OPENAI_API_KEY`    | optionale Alternative zur Transkription (Whisper)           |
+| `ANTHROPIC_API_KEY` | optionale Alternative für den Infotext (Claude)             |
 | `DATA_DIR`          | Lokaler Zwischenspeicher / Fallback (Render: `/data`)       |
 | `R2_*`              | Cloudflare R2 (empfohlen, siehe unten) – dauerhafter Speicher|
 | `PORT`              | Server-Port (Standard 3000)                                 |

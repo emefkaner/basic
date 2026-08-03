@@ -24,6 +24,9 @@ export const config = {
   password: process.env.APP_PASSWORD || '',
   sessionSecret: process.env.SESSION_SECRET || 'unsicheres-standard-secret-bitte-aendern',
   publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
+  // Gemini: Standard für Transkription + Infotext (kostenloser Kontingentbereich).
+  geminiKey: process.env.GEMINI_API_KEY || '',
+  // Optionale Alternativen.
   openaiKey: process.env.OPENAI_API_KEY || '',
   anthropicKey: process.env.ANTHROPIC_API_KEY || '',
   // Spotify for Podcasters (Anchor) – für den direkten Push per Browser-Automation.

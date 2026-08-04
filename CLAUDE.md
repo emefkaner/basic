@@ -39,6 +39,17 @@ Fix: solve the perspective once as a still, save it as its own element, and tag 
   Rendering the blur *into the asset* makes defocus a property to copy rather than an
   instruction to interpret.
 
+## One owner for appearance
+
+Appearance must have exactly one source of truth. When reference images define a
+design, the prompt text must NOT re-describe its details ("gold lettering on the
+front cap") — any drift between text and image makes the model pick the coherent
+*story* and drop the pictures entirely. After swapping reference images, strip every
+design detail from the prompt that the new images no longer show. Text describes
+**motion and behaviour**; images describe **what things look like**. The rule is
+symmetric with "the image beats the text": whichever channel owns appearance must
+be the only one speaking about it.
+
 ## Plate / compositing shots
 
 - **Never tag a character who is already in the plate.** The tag makes the model

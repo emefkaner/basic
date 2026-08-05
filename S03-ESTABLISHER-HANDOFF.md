@@ -25,12 +25,22 @@ lesen** (dort stehen alle hart erarbeiteten Prompting-Regeln), dann diese Datei.
 `show_reference_elements` (action `list`) abfragen — kostenlos, und die Namen dort
 sind die Wahrheit. Stand 2026-08-05:
 
-Figuren: `@EISENSTEIN` · `@PINKERTON` (Allan Pinkerton – Detective) · `@PINKERTON2` ·
-`@OHarris` · `@VILLAIN` · `@VILLAIN-NOHOOD` · `@Young` · `@Schmitzkowsky` (Hero) ·
-`@SchmitzkowskyGoggle` · `@CHRIS` · `@JOHN`
+Figuren: `@EISENSTEIN` · `@PINKERTON` (Allan Pinkerton, **mit Hut und Mantel**) ·
+`@PINKERTON2` (**mit Hut, ohne Mantel**) · `@OHarris` · `@VILLAIN` (**mit Kapuze** —
+das ist die Standardvariante) · `@VILLAIN-NOHOOD` · `@Young` · `@Schmitzkowsky` (Hero) ·
+`@SchmitzkowskyGoggle` · `@CHRIS` und `@JOHN` (**die beiden Heizer auf der
+Führerkanzel** — in den meisten Shots vernachlässigbar)
+
+Die fünf Wartenden des S03-Establishers sind damit durch Ausschluss festgelegt:
+`@EISENSTEIN`, `@Young`, `@VILLAIN`, `@PINKERTON`, `@OHarris`.
 
 Zug & Requisiten: `@IRON-CLOUD-Normal` · `@IRON-CLOUD-Inflated` ·
-`@IRON-CLOUD-Airborne` · `@LOK-FRONT` · `@LOK-LEFT` · `@LOK-BACK` · `@VILLAINs-Eye`
+`@IRON-CLOUD-Airborne` · `@VILLAINs-Eye`
+
+`@LOK-FRONT`, `@LOK-LEFT` und `@LOK-BACK` sind **Innenaufnahmen der Führerkanzel**
+(Blick nach vorn, nach links, nach achtern) — nicht die Lok von außen. Für jede
+Außeneinstellung der stehenden Lok in Nähe gibt es noch kein Element; das wäre neu
+zu bauen.
 
 Locations: `@TRAIN-STATION-NORTH-HIGH` · `@TRAIN-STATION-NORTH-LOW` ·
 `@TRAIN-STATION-SOUTH-2` · `@TRAIN-STATION-SOUTH-LOW` · `@IRON-CLOUD-STAIRS` ·

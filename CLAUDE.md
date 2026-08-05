@@ -2,6 +2,16 @@
 
 Hard-won rules from working on this film. Apply these before writing any new prompt.
 
+## Delivery format — every prompt, every time
+
+- **Always deliver the complete prompt**, top to bottom, ready to paste — never just
+  the changed blocks, even when the fix touches a single paragraph.
+- **Always ask before writing** when anything is unclear (viewing direction, focal
+  length, distance, time of day, which plate/reference is meant).
+- **Always close with an asset list**: state explicitly which assets the user must
+  attach to the prompt in Higgsfield (source plate video, @-tagged reference
+  elements, @image1/@image2 slots) — and which must NOT be attached.
+
 ## Iterative camera moves beat absolute descriptions
 
 When a generated image has the right subject but the wrong distance, angle or framing,

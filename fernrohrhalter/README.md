@@ -27,22 +27,36 @@ stehen, weil es an seinem Schwerpunkt gelagert wird.
   die Lagerböcke gepresst. Die Bohrung im Arm ist der Drehsitz — das ist
   das Neigen hoch/runter.
 
-## Balance einstellen (wichtig!)
+## Fürs ausfahrbare Piraten-Spyglass
 
-1. Fernrohr quer auf einen Stift oder Besenstiel legen und verschieben, bis
-   es waagerecht balanciert. Diese Stelle markieren — das ist der Schwerpunkt.
-2. Die Schelle genau dort aufschnappen.
-3. Erst dann die Achsstifte einpressen.
+Das Fernrohr ist das Print-in-Place-Spyglass von MakerWorld (Modell
+2856680). Zwei Eigenheiten sind eingeplant:
 
-Sitzt die Schelle am Schwerpunkt, bleibt das Fernrohr in jeder Neigung
-stehen, ohne festgeklemmt zu werden — ein Kind kann es mit einem Finger
-bewegen und es kippt nicht weg.
+- **Es ist ausfahrbar**, der Schwerpunkt wandert also beim Ausziehen. Reine
+  Balance kann nicht beide Zustände halten — deshalb hat die Armbohrung
+  bewusst nur 0,1 mm Spiel zum Achsstift (leichte Reibung). Balance auf
+  **halb ausgezogen** einstellen, die Reibung fängt den Rest ab.
+- **Es soll oft raus und rein** (mitnehmen, Pirat spielen). Die C-Öffnung
+  ist deshalb 140° weit mit Einführlippen: Spyglass von oben in die Schelle
+  drücken bis es schnappt, zum Entnehmen einfach herausziehen. Die Schelle
+  selbst bleibt fest im Halter. Geklemmt wird am **dicksten Rohrsegment**.
+
+## Balance einstellen
+
+1. Spyglass **halb ausziehen** und quer auf einen Stift oder Besenstiel
+   legen; verschieben, bis es waagerecht balanciert. Stelle markieren.
+2. Diese Stelle gehört in die Mitte der Schelle.
+3. Reibung testen: eingefahren und ausgefahren soll es die Neigung halten,
+   sich aber mit einem Finger bewegen lassen. Zu stramm → Achsstift mit
+   feinem Schleifpapier dünner schleifen; zu locker → einen Streifen
+   Klebeband um den Stift.
 
 ## Maß nehmen und generieren
 
-Der einzige kritische Wert ist der **Rohrdurchmesser an der Klemmstelle**
-(= am Schwerpunkt). Mit Messschieber messen, sonst: Schnur einmal
-herumwickeln, Länge messen, durch 3,14 teilen.
+Der einzige kritische Wert ist der **Durchmesser des dicksten
+Rohrsegments**. Am einfachsten: das Spyglass in Bambu Studio öffnen und
+das dickste Segment messen (Messwerkzeug), oder am fertigen Druck mit dem
+Messschieber. Notfalls Schnur herumwickeln, Umfang durch 3,14 teilen.
 
 ```bash
 python3 generate.py --rohr 50      # Durchmesser in mm einsetzen

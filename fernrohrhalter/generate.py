@@ -42,12 +42,14 @@ ROHR_SPIEL      = 0.4     # Luft der Schelle zum Rohr (Klemmung kommt vom C)
 
 SCHELLE_WAND    = 4.0     # Wandstaerke der C-Schelle
 SCHELLE_LAENGE  = 40.0    # Laenge der Schelle entlang des Rohrs
-SCHELLE_OEFFNUNG = 100.0  # Oeffnungswinkel des C in Grad (zum Aufschnappen)
+SCHELLE_OEFFNUNG = 140.0  # Oeffnungswinkel des C in Grad
+LIPPE_GRAD      = 9.0     # Einfuehrlippen an den C-Enden (Trichter)
+LIPPE_HUB       = 2.5     # wie weit die Lippenspitze radial nach aussen steht
 
 BOSS_BREITE     = 22.0    # Lagerbock: Raute ueber Eck gemessen
 BOSS_LAENGE     = 8.0     # Lagerbock: Laenge entlang der Achse
 LOCH_BOSS       = 9.5     # Bohrung im Lagerbock (Presssitz fuer den Stift)
-LOCH_ARM        = 9.9     # Bohrung im Gabelarm (Drehsitz)
+LOCH_ARM        = 9.8     # Bohrung im Gabelarm (Drehsitz mit leichter Reibung)
 ACHSE_D         = 9.7     # Achsstift-Durchmesser
 ACHSE_KOPF_D    = 16.0    # Kopf des Achsstifts
 ACHSE_KOPF_H    = 4.0
@@ -362,10 +364,19 @@ def c_schelle_kontur(g):
     wird von oben eingeschnappt."""
     ri, ra = g["schelle_innen_r"], g["schelle_aussen_r"]
     halb = math.radians(SCHELLE_OEFFNUNG / 2.0)
+    lip = math.radians(LIPPE_GRAD)
     w0, w1 = halb, 2 * math.pi - halb
     n = SEGMENTE
     pts = [pol(w0 + (w1 - w0) * i / n, ra) for i in range(n + 1)]
+    # Einfuehrlippe am w1-Ende: Wandende biegt nach aussen -> Trichter.
+    # Die Lippenspitzen verengen die Oeffnung leicht (Schnappkante), fuehren
+    # das Rohr aber ueber die schraege Innenflaeche in die Schelle.
+    pts.append(pol(w1 + lip * 0.8, ra + 0.5))
+    pts.append(pol(w1 + lip, ri + LIPPE_HUB))
     pts += [pol(w1 - (w1 - w0) * i / n, ri) for i in range(n + 1)]
+    # Einfuehrlippe am w0-Ende (symmetrisch)
+    pts.append(pol(w0 - lip, ri + LIPPE_HUB))
+    pts.append(pol(w0 - lip * 0.8, ra + 0.5))
     return pts
 
 

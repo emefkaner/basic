@@ -145,6 +145,33 @@ Two details that carry the whole thing: **"a photograph, not a subject"** in the
 background header, and the closing sentence of INTEGRATION that scopes the change to
 lighting, colour and edges — so "harmonise" is never read as permission to re-animate.
 
+## Look the assets up — never ask what is already in the account
+
+Before writing or patching any prompt, list the reference elements in Higgsfield
+(`show_reference_elements`, action `list`). It is a read-only call and costs no credits.
+Do not ask the user which assets exist, what they are called or what they show — the
+registry below drifts, the account does not.
+
+What the listing gives you, and what it does not:
+
+- **Exact names.** Tags must be spelled exactly as the element is named. The names in
+  this file have been wrong before (`TRAIN-STATION-NORD` vs the real
+  `TRAIN-STATION-NORTH-HIGH`). The account wins.
+- **The description field.** Many elements carry a written spec — camera height, which
+  side of frame the track runs, look direction, what is in shot. Read it. It is the
+  cheapest way to catch a blocking conflict before generating.
+- **Near-duplicates.** `PINKERTON` / `PINKERTON2`, `VILLAIN` / `VILLAIN-NOHOOD`,
+  `Schmitzkowsky` / `SchmitzkowskyGoggle`. Which variant is current is a genuine
+  question for the user — that one is worth asking.
+- **Not the pixels.** The CDN host is blocked by this environment's network policy, so
+  the images themselves cannot be opened. Reason from names and descriptions, and say
+  plainly that the picture itself was not seen. Never describe an image as if it had been.
+
+**Check the element description against the blocking before generating.** An environment
+element fixes look direction and which side of frame the track sits on. If the prompt
+puts the camera on the other side, the shot comes back mirrored and no amount of
+no-mirroring wording fixes it — the element is the one telling the truth.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

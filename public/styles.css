@@ -117,7 +117,24 @@ header.topbar h1 {
   color: transparent;
 }
 header.topbar .logo { font-size: 1.9rem; }
-.topbar-left { display: flex; align-items: center; gap: 11px; min-width: 0; }
+/* Marke ist zugleich der Weg zurück zur Startseite. */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  margin-left: -6px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background .15s;
+}
+.topbar-left:hover { background: var(--surface); }
+.topbar-left:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
 .brand { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .brand .tagline {
   font-size: .68rem;

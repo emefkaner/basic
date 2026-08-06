@@ -81,6 +81,14 @@ function render() {
   return renderHome();
 }
 
+// Marke oben führt zurück zur Startseite. Läuft gerade eine Aufbereitung im
+// Browser, wird vorher gefragt – sonst wäre die Arbeit weg.
+$('#homeBtn')?.addEventListener('click', () => {
+  if (location.pathname === '/') return;
+  if (arbeitetGerade && !confirm('Die Aufbereitung läuft noch. Trotzdem zurück zur Startseite?')) return;
+  go('/');
+});
+
 // ---------- Menü ----------
 const menu = $('#menu'), menuBtn = $('#menuBtn');
 

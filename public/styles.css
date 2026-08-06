@@ -286,6 +286,14 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 0 0 3px var(--purple-soft);
 }
 textarea { min-height: 130px; resize: vertical; line-height: 1.55; }
+
+/* Kurz aufleuchten, wenn ein Feld von außen neu befüllt wurde – etwa nach
+   „↻ Text". Sonst bleibt unklar, ob überhaupt etwas passiert ist. */
+.blitz { animation: blitz 1.2s ease-out; }
+@keyframes blitz {
+  0%   { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(255,45,143,.35); }
+  100% { border-color: var(--border); box-shadow: 0 0 0 0 rgba(255,45,143,0); }
+}
 input[type="file"] { color: var(--muted); font-size: .9rem; }
 input[type="file"]::file-selector-button {
   background: var(--surface-2);

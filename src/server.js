@@ -69,6 +69,15 @@ app.get(['/', '/settings', '/episode/:id'], (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
+// Die ffmpeg-WebAssembly-Bausteine (31 MB) lange zwischenspeichern lassen:
+// Ohne Cache-Header holt jeder Browser sie immer wieder neu — auf dem
+// Hobby-Plan mit 5 GB Bandbreite je Monat war das ein spürbarer Posten.
+// Achtung bei einem ffmpeg-Update: Dateinamen ändern (z. B. Unterordner mit
+// Versionsnummer), sonst hängen Browser bis zu 30 Tage auf dem alten Stand.
+app.use('/vendor', express.static(path.join(publicDir, 'vendor'), { maxAge: '30d', immutable: true }));
+// Auch das RNNoise-Modell (300 KB) ändert sich praktisch nie.
+app.use('/assets', express.static(path.join(publicDir, 'assets'), { maxAge: '30d' }));
+
 // Übrige statische Dateien (JS/CSS/Manifest/Service-Worker).
 app.use(express.static(publicDir));
 

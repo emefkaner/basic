@@ -46,6 +46,17 @@ router.put('/', (req, res) => {
   res.json(saveSettings(patch));
 });
 
+// Dateiname mit Zeitstempel.
+//
+// Früher hieß jedes Cover schlicht `cover.png`. Ein neues Bild landete damit
+// unter DERSELBEN Adresse – und Browser, CDN und vor allem Podcast-Apps zeigten
+// weiter ihr zwischengespeichertes altes Bild. Ein Anhängsel wie `?v=123` hilft
+// im Browser, aber Apples Cover-Abruf ignoriert Fragezeichen-Anhängsel gern.
+// Deshalb ändert sich der Dateiname selbst; die alte Datei wird gelöscht.
+function assetName(kind, ext) {
+  return `${kind}-${Date.now()}${ext}`;
+}
+
 // Intro/Outro/Cover hochladen.
 router.post(
   '/assets',
@@ -70,7 +81,7 @@ router.post(
     for (const kind of hochgeladen) {
       const f = req.files[kind][0];
       const ext = path.extname(f.originalname) || (kind === 'cover' ? '.jpg' : '.mp3');
-      const filename = `${kind}${ext}`;
+      const filename = assetName(kind, ext);
       const contentType = kind === 'cover' ? (f.mimetype || 'image/jpeg') : (f.mimetype || 'audio/mpeg');
       try {
         // Alte Datei mit abweichender Endung aufräumen.
@@ -119,7 +130,7 @@ router.post('/cover-from-url', async (req, res) => {
     fs.writeFileSync(tmp, daten);
 
     const ext = typ === 'image/png' ? '.png' : typ === 'image/webp' ? '.webp' : '.jpg';
-    const filename = `cover${ext}`;
+    const filename = assetName('cover', ext);
     const current = getSettings();
     if (current.cover && current.cover !== filename) await deleteKey(`assets/${current.cover}`);
 

@@ -138,6 +138,23 @@ try {
   const bb = coverUrlOf(saveSettings({ cover: 'cover.jpg', coverStand: '2026-08-07T12:00:00.000Z' }));
   pruefe('Cover-Adresse ändert sich beim Austausch', a !== bb && a.includes('?v=') && bb.includes('?v='),
     `vorher ${a} / nachher ${bb}`);
+
+  // Zweimal dasselbe Bild hochladen muss zwei verschiedene Dateinamen ergeben —
+  // sonst zeigen Podcast-Apps ewig das alte Cover. Ein Fragezeichen-Anhängsel
+  // allein reicht dafür nicht, Apple ignoriert es gern.
+  const bild = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64');
+  const namen = [];
+  for (let i = 0; i < 2; i++) {
+    const r = await page.request.post(`${BASE}/api/settings/assets`, {
+      multipart: { cover: { name: 'c.png', mimeType: 'image/png', buffer: bild } },
+    });
+    namen.push(r.ok() ? (await r.json()).cover : `HTTP ${r.status()}`);
+    await page.waitForTimeout(1100); // Zeitstempel hat Sekundenauflösung im Namen
+  }
+  pruefe('Neues Cover bekommt einen neuen Dateinamen', namen[0] !== namen[1],
+    namen.join(' -> '));
   pruefe('Cover-Generator-Karte ist entfernt', !einstellungen.includes('Cover-Generator'));
 
   // ---- Feed ----

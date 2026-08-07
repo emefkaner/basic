@@ -67,8 +67,14 @@ const STATUS_LABEL = { processing: 'Wird verarbeitet', draft: 'Entwurf', publish
 // „Geplant" ist kein eigener Status im Datenbestand, sondern eine veröffentlichte
 // Folge, deren Zeitpunkt noch vorn liegt — bis dahin steht sie nicht im Feed.
 // Beide Ansichten müssen das gleich beurteilen, deshalb hier einmal zentral.
+// Muss zu istEingeplant() in src/rss.js passen: Nur ein LESBARES Datum in der
+// Zukunft heißt „geplant". Bei einem unlesbaren Datum ergäbe der Vergleich NaN
+// und damit false — die Folge stünde hier als „Veröffentlicht", wäre aber
+// früher aus dem Feed gefallen. Genau diese Lücke gab es.
 function istGeplant(ep) {
-  return ep.status === 'published' && new Date(ep.publishedAt).getTime() > Date.now();
+  if (ep.status !== 'published' || !ep.publishedAt) return false;
+  const t = new Date(ep.publishedAt).getTime();
+  return !isNaN(t) && t > Date.now();
 }
 
 // Beschriftung und CSS-Klasse für die Status-Plakette.
@@ -1638,6 +1644,9 @@ async function loadStatus() {
           ${p.ohneAudio ? `<div class="error">⚠️ ${p.ohneAudio} Folge(n) ohne Audiodatei</div>` : ''}
           <div>🖼️ Mit eigenem Folgenbild: <b>${p.mitFolgenbild}</b></div>
           ${p.ohneText ? `<div class="error">⚠️ ${p.ohneText} Folge(n) ohne Text</div>` : '<div>✍️ Alle Folgen haben einen Text</div>'}
+          <div style="margin-top:6px;">📡 Im RSS-Feed: <b>${p.folgenImFeed}</b>${p.davonEingeplant ? ` <span class="muted">(${p.davonEingeplant} noch eingeplant)</span>` : ''}</div>
+          ${p.imFeedOhneAudio?.length ? `<div class="error">⚠️ Im Feed, aber ohne Audiodatei: ${escapeHtml(p.imFeedOhneAudio.join(', '))}</div>` : ''}
+          ${p.mitErsatzdatum?.length ? `<div class="muted">🗓️ Ersatzdatum verwendet (eigenes Datum fehlte oder war unlesbar): ${escapeHtml(p.mitErsatzdatum.join(' · '))}</div>` : ''}
           <div class="muted" style="font-size:.82rem;">Belegter Speicher: ca. ${p.gesamtgroesseMB} MB von 10 000 MB</div>
         </div>` : ''}
       </div>`;

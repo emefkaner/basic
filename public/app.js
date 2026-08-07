@@ -1076,6 +1076,37 @@ function klangStandText(ep) {
   return `${teile.join(', ')}${wann}`;
 }
 
+// Holt eine Originalaufnahme für die erneute Bearbeitung.
+//
+// Bevorzugt direkt beim Speicher (R2). Das ist nicht bloß schneller: Jede
+// Datei, die stattdessen durch die App läuft, zählt bei Render als ausgehende
+// Bandbreite – und davon gibt es nur 5 GB im Monat. Bei einer zweistündigen
+// Folge sind das je Versuch ein paar hundert MB.
+//
+// Der Direktweg braucht eine CORS-Regel am Bucket. Fehlt sie, wehrt der
+// Browser die Anfrage ab; dann wird still über die App geholt wie bisher.
+// Deshalb ist hier kein Schalter nötig — es findet sich von allein.
+async function teilHolen(id, teil, melde) {
+  const basis = `/api/episodes/${encodeURIComponent(id)}/parts/${encodeURIComponent(teil.id)}`;
+
+  try {
+    const quelle = await api(`${basis}/quelle`);
+    if (quelle?.direkt && quelle.url) {
+      const r = await fetch(quelle.url, { mode: 'cors' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.blob();
+    }
+  } catch (e) {
+    // Kein Beinbruch – nur teurer. Für die Fehlersuche festhalten.
+    console.warn('Direkt vom Speicher ging nicht, gehe über die App:', e.message);
+    melde?.('Direktweg gesperrt, wird über die App geholt …');
+  }
+
+  const r = await fetch(`${basis}/file`, { credentials: 'same-origin' });
+  if (!r.ok) throw new Error(`Aufnahme nicht abrufbar (HTTP ${r.status}).`);
+  return await r.blob();
+}
+
 // Liest die Regler im Kasten „Klang nachjustieren" aus. Beide Knöpfe – Gerät
 // und Server – brauchen genau dieselben Werte, deshalb an einer Stelle.
 function reEinstellungen() {
@@ -1152,14 +1183,13 @@ function wireNachjustieren(id, ep) {
     arbeitetGerade = true;
 
     try {
-      // Originale über die App holen (aus dem Speicher direkt darf der Browser nicht).
+      // Originale holen – wenn möglich direkt beim Speicher, sonst über die App.
       const originale = [];
       for (let i = 0; i < teile.length; i++) {
         setz(null, `Original ${i + 1} von ${teile.length} wird geholt …`);
-        const r = await fetch(`/api/episodes/${encodeURIComponent(id)}/parts/${encodeURIComponent(teile[i].id)}/file`,
-          { credentials: 'same-origin' });
-        if (!r.ok) throw new Error(`Aufnahme ${i + 1} nicht abrufbar (HTTP ${r.status}).`);
-        originale.push(new File([await r.blob()], teile[i].name || `teil${i}.mp3`));
+        const blob = await teilHolen(id, teile[i],
+          (text) => setz(null, `Original ${i + 1} von ${teile.length}: ${text}`));
+        originale.push(new File([blob], teile[i].name || `teil${i}.mp3`));
       }
 
       const bearbeitet = [];

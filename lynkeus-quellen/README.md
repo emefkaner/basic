@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **2.2**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.3**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -61,6 +61,8 @@ committen.
 - 2.2 — Lynkeus-Schriftzug = Original-Wortmarke aus dem Logo-SVG (Vektor,
   Lila-Verlauf); Monoton bleibt nur für den Untertitel (Teilmenge jetzt mit
   den „GEMINI-Fighter"-Buchstaben, 1,7 KB)
+- 2.3 — Untertitel in leichter, weit gesperrter Systemschrift (Gewicht 300);
+  keine eingebettete Schrift mehr — Monoton und die woff2-Teilmenge sind raus
 
 ## Dateien
 

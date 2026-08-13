@@ -22,9 +22,6 @@ const uri = (pfad) => 'data:image/png;base64,' + fs.readFileSync(pfad).toString(
 let html = fs.readFileSync(HIER + 'src/vorlage.html', 'utf8');
 html = html.split('__BG96__').join(uri(HIER + 'bg_96.png'));
 html = html.split('__BG48__').join(uri(HIER + 'bg_48.png'));
-// Schriftzug-Schrift: Cinzel Decorative (SIL OFL), auf „Lynkeus" verkleinert
-html = html.split('__SCHRIFT__').join(
-  'data:font/woff2;base64,' + fs.readFileSync(HIER + 'lynkeus-schrift.woff2').toString('base64'));
 // Favicon: das Logo als PNG (aus dem SVG gerendert; bei Logo-Änderungen neu
 // erzeugen — statisch im <head> als PNG ist die verlässlichste Variante)
 html = html.split('__FAVICON__').join(uri(HIER + 'favicon.png'));

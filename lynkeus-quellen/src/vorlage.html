@@ -5,18 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
 <link rel="icon" type="image/png" href="__FAVICON__">
-<!-- Version 2.2 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<!-- Version 2.3 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
-  /* Untertitel-Schrift: Monoton (SIL OFL, Neon-Linien-Retro), als winzige
-     Teilmenge nur mit den Buchstaben von „GEMINI-Fighter" (~1,7 KB).
-     Der Lynkeus-Schriftzug selbst ist die Original-Wortmarke aus dem
-     Logo-SVG des Nutzers (Vektor, kein Font). */
-  @font-face {
-    font-family: 'Lynkeus Schrift';
-    src: url('__SCHRIFT__') format('woff2');
-    font-weight: 400;
-    font-display: block;
-  }
+  /* Der Lynkeus-Schriftzug ist die Original-Wortmarke aus dem Logo-SVG des
+     Nutzers (Vektor); der Untertitel läuft bewusst in einer leichten,
+     weit gesperrten Systemschrift — keine eingebettete Schrift mehr nötig. */
   /* Farbwelt „Lynkeus": Nachthimmel-Blauschwarz + Bernstein-Gold eines
      Luchsauges (Lynkeus = „der Luchsäugige") — bewusst kein Gemini-Blau.
      Dazu: umlaufendes Regenbogenband um die Container und dezente 3D-Tiefe. */
@@ -60,10 +53,10 @@
   #wortmarke { display: block; filter: drop-shadow(0 3px 14px rgba(139, 92, 246, .4)); }
   .titelblock { display: flex; flex-direction: column; }
   .untertitel {
-    margin: 7px 0 0 2px; color: var(--lila);
-    font-family: 'Lynkeus Schrift', system-ui, sans-serif;
-    font-size: 15px; font-weight: 400; letter-spacing: 4px;
-    text-shadow: 0 0 12px rgba(177, 140, 255, .45);
+    margin: 6px 0 0 2px; color: var(--lila);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 13px; font-weight: 300; letter-spacing: 7px;
+    text-shadow: 0 0 10px rgba(177, 140, 255, .35);
   }
   .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
 
@@ -294,7 +287,7 @@
     </div>
   </div>
 
-  <p class="fuss"><strong>Lynkeus v2.2</strong> · Created by emefka<br>
+  <p class="fuss"><strong>Lynkeus v2.3</strong> · Created by emefka<br>
   🔒 <strong>100 % lokal:</strong> Prüfen und Umrechnen laufen vollständig in deinem Browser —
   Video und Foto verlassen dieses Gerät nie, nichts wird hochgeladen (die Seite kommt ohne
   einen einzigen Netzwerkzugriff aus).<br>

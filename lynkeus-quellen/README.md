@@ -27,7 +27,7 @@ etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
 
 ## Versionierung
 
-Aktuelle Version: **2.4** (steht in `src/struktur.html`, gilt für beide Varianten). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.5** (steht in `src/struktur.html`, gilt für beide Varianten). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/struktur.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, BEIDE fertigen Dateien mit
 committen.
@@ -76,6 +76,8 @@ committen.
 - 2.4 — Projekt auf zwei Designvarianten umgebaut: gemeinsame Struktur/Logik,
   Themes thema-lynkeus.css und thema-lidl.css, Bau erzeugt immer beide
   Dateien (lynkeus.html + lynkeus-lidl.html)
+- 2.5 — Lidl-Variante: umlaufendes drehendes Band um die Container in den
+  drei Lidl-Farben (statt statischem Streifen oben)
 
 ## Dateien
 

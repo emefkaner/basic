@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.2**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.3**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -29,6 +29,11 @@ committen.
   das Mittel mehrerer Einzelbilder; misst Position, Größe UND Deckkraft —
   falls Google Logo oder Position ändert); Regenbogenband dreht per Skript
   in jedem Browser
+- 1.3 — Schriftzug in Cinzel Decorative (SIL OFL, als woff2-Teilmenge nur mit
+  den Buchstaben des Namens eingebettet, ~1,3 KB) und in Lila; Knöpfe, Regler
+  und Umschalter im selben Lilaton neu gestaltet; FEHLERBEHEBUNG: Klicks auf
+  die Knöpfe gingen ins Leere, wenn die Karte per rotateX/preserve-3d gekippt
+  war (Chromium-Treffer-Prüfung) — Kipp-Effekt entfernt, nie wieder einbauen
 
 ## Dateien
 

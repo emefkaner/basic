@@ -28,8 +28,8 @@ etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
 ## Versionierung
 
 Aktuelle Version: **2.4** (steht in `src/struktur.html`, gilt für beide Varianten). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
-Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
-und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
+Die Nummer steht an zwei Stellen in `src/struktur.html` (Kommentar im `<head>`
+und im Footer) — beide nachziehen, neu bauen, BEIDE fertigen Dateien mit
 committen.
 
 - 1.0 — Erstfassung: Video-Konverter mit Vorschau/Feinreglern, Lynkeus-Look

@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.7**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.8**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -45,6 +45,10 @@ committen.
   machten den Text unlesbar); Favicon als PNG (`favicon.png`, aus dem
   Logo-SVG gerendert) statisch im <head> statt per Skript als SVG — bei
   Logo-Änderungen das PNG neu erzeugen
+- 1.8 — neues Logo nach Entwurf des Nutzers (Auge, dessen Strahlen den
+  Gemini-Stern zersplittern), von Hand als skalierbares SVG nachgebaut und
+  in die Lilatöne übersetzt; liegt auch einzeln als `logo.svg` hier; Favicon
+  daraus neu gerendert
 
 ## Dateien
 

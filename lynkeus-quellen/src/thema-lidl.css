@@ -15,9 +15,11 @@
   --rahmenOriginal: rgba(255, 240, 0, .95);
   --streifen: linear-gradient(90deg,
     var(--lidl-blau) 0 55%, var(--lidl-gelb) 55% 78%, var(--lidl-rot) 78% 100%);
-  /* umlaufendes Band in den drei Lidl-Farben; --winkel dreht per Skript */
+  /* umlaufendes Band in den drei Lidl-Farben; --winkel dreht per Skript.
+     HARTE Farbkanten (0/33/66 %) — bewusst keine Zwischenfarben, sonst
+     mischt der Verlauf Grün/Orange/Violett hinein. */
   --band: conic-gradient(from var(--winkel),
-    var(--lidl-blau), var(--lidl-gelb) 33%, var(--lidl-rot) 66%, var(--lidl-blau));
+    var(--lidl-blau) 0 33.33%, var(--lidl-gelb) 33.33% 66.66%, var(--lidl-rot) 66.66% 100%);
 }
 @keyframes schimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 * { box-sizing: border-box; }

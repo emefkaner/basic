@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
+<!-- Version 1.2 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<style>
+  /* Farbwelt „Lynkeus": Nachthimmel-Blauschwarz + Bernstein-Gold eines
+     Luchsauges (Lynkeus = „der Luchsäugige") — bewusst kein Gemini-Blau.
+     Dazu: umlaufendes Regenbogenband um die Container und dezente 3D-Tiefe. */
+  :root {
+    --bg: #0b0e15; --karte: #12161f; --rand: #29303f; --text: #ede8dd;
+    --grau: #99a1b2; --akzent: #f0b13e; --akzent2: #d99a26; --tinte: #201503;
+    --ok: #6fcf8f; --warn: #f4845f;
+    --band: conic-gradient(from var(--winkel),
+      #ff5e5e, #ffb648, #f8e16b, #59e08b, #52c5ff, #8a7bff, #e86bff, #ff5e5e);
+  }
+  @property --winkel { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  @keyframes bandlauf { to { --winkel: 360deg; } }
+  @keyframes schimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  @keyframes funkeln { 0%,100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(1.25) rotate(20deg); opacity: .75; } }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 24px 16px 64px; min-height: 100vh;
+  }
+  /* Nachthimmel: weiche Farbnebel + ein paar Sterne, fest hinter allem */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5), transparent 100%),
+      radial-gradient(1px 1px at 78% 8%, rgba(255,255,255,.4), transparent 100%),
+      radial-gradient(1.5px 1.5px at 62% 30%, rgba(255,255,255,.3), transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,.35), transparent 100%),
+      radial-gradient(1.5px 1.5px at 88% 55%, rgba(255,255,255,.3), transparent 100%),
+      radial-gradient(1px 1px at 45% 85%, rgba(255,255,255,.3), transparent 100%),
+      radial-gradient(700px 460px at 12% -5%, rgba(240,177,62,.12), transparent 65%),
+      radial-gradient(800px 560px at 95% 105%, rgba(130,110,255,.14), transparent 65%),
+      radial-gradient(600px 380px at 100% 0%, rgba(82,197,255,.09), transparent 65%);
+  }
+  main { max-width: 880px; margin: 0 auto; perspective: 1400px; }
+  .kopf { display: flex; align-items: center; gap: 13px; margin-bottom: 2px; }
+  #logo { flex: none; filter: drop-shadow(0 0 12px rgba(240, 177, 62, .35)); transition: transform .3s ease; }
+  .kopf:hover #logo { transform: scale(1.06) rotate(-3deg); }
+  h1 {
+    font-size: 30px; margin: 0; letter-spacing: .5px;
+    background: linear-gradient(90deg, #f6c65b, #fff3d6, #f0b13e, #f6c65b);
+    background-size: 250% 100%; -webkit-background-clip: text; background-clip: text;
+    color: transparent; animation: schimmer 7s ease-in-out infinite;
+  }
+  h1 .funkel {
+    display: inline-block; animation: funkeln 3.2s ease-in-out infinite;
+    /* eigene Farbe: der Textverlauf des h1 zeichnet nicht in transformierte Kinder */
+    color: var(--akzent); -webkit-text-fill-color: var(--akzent);
+    text-shadow: 0 0 14px rgba(240, 177, 62, .8);
+  }
+  .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
+
+  /* Umschalter Foto/Video */
+  .modus {
+    display: inline-flex; background: #141926; border: 1px solid var(--rand);
+    border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
+  }
+  .modus button {
+    background: transparent; box-shadow: none; color: var(--grau);
+    font-weight: 600; padding: 8px 22px; border-radius: 9px; transform: none;
+  }
+  .modus button:hover { filter: none; transform: none; box-shadow: none; color: var(--text); }
+  .modus button.aktivmodus {
+    background: linear-gradient(180deg, #f6c65b, var(--akzent2));
+    color: var(--tinte); box-shadow: 0 2px 0 #7d5a10;
+  }
+
+  /* Container: Karte mit umlaufendem Regenbogenband + weichem Farbschein */
+  .karte {
+    position: relative; background: var(--karte); border-radius: 14px;
+    padding: 18px; margin-bottom: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .4);
+    transform-style: preserve-3d;
+    transition: transform .35s ease, box-shadow .35s ease;
+  }
+  /* Die Drehung des Bands (--winkel) treibt ein kleines Skript über
+     requestAnimationFrame an — das läuft in jedem Browser und auch dann,
+     wenn CSS-Eigenschafts-Animationen nicht unterstützt werden. */
+  .karte::before {
+    content: ''; position: absolute; inset: 0; border-radius: 14px; padding: 1.5px;
+    background: var(--band);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
+  .karte::after {
+    content: ''; position: absolute; inset: -2px; border-radius: 16px; z-index: -1;
+    background: var(--band); filter: blur(20px); opacity: .16;
+    pointer-events: none;
+  }
+  .karte:hover { transform: translateY(-3px) rotateX(.6deg); box-shadow: 0 26px 54px rgba(0, 0, 0, .55), 0 3px 10px rgba(0, 0, 0, .4); }
+
+  #ablage { padding: 44px 18px; text-align: center; color: var(--grau); cursor: pointer; }
+  #ablage.aktiv, #ablage:hover { color: var(--text); }
+  #ablage.aktiv::before, #ablage:hover::before { padding: 2.5px; }
+  #ablage.aktiv::after, #ablage:hover::after { opacity: .3; }
+  #ablage strong { color: var(--text); font-size: 18px; }
+
+  .versteckt { display: none !important; }
+  .zeile { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .regler { display: grid; grid-template-columns: 130px 1fr 58px; gap: 10px; align-items: center; margin: 8px 0; }
+  .regler label { color: var(--grau); font-size: 14px; }
+  .regler output { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+  input[type=range] { width: 100%; accent-color: var(--akzent); }
+
+  /* Knöpfe mit 3D-Druckpunkt */
+  button {
+    background: linear-gradient(180deg, #f6c65b, var(--akzent2)); border: 0;
+    color: var(--tinte); font-weight: 600; border-radius: 10px;
+    padding: 10px 18px; font-size: 15.5px; cursor: pointer;
+    box-shadow: 0 4px 0 #7d5a10, 0 12px 24px rgba(240, 177, 62, .22);
+    transform: translateY(0); transition: transform .12s ease, box-shadow .12s ease, filter .12s;
+  }
+  button:hover { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 5px 0 #7d5a10, 0 14px 28px rgba(240, 177, 62, .28); }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 #7d5a10, 0 6px 14px rgba(240, 177, 62, .2); }
+  button:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 0 4px 0 #7d5a10; }
+  button.zweit {
+    background: linear-gradient(180deg, #2a3040, #222736); color: var(--text);
+    border: 1px solid var(--rand); font-weight: 400;
+    box-shadow: 0 4px 0 #10131c, 0 10px 20px rgba(0, 0, 0, .35);
+  }
+  button.zweit:hover { box-shadow: 0 5px 0 #10131c, 0 12px 22px rgba(0, 0, 0, .4); }
+  button.zweit:active { box-shadow: 0 1px 0 #10131c; }
+
+  /* Vorschau mit leichter 3D-Neigung beim Überfahren */
+  .leinwandhuelle { position: relative; margin: 10px 0; perspective: 1200px; }
+  #leinwand {
+    width: 100%; height: auto; display: block; border-radius: 10px; background: #000;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, .55);
+    transition: transform .35s ease;
+  }
+  .leinwandhuelle:hover #leinwand { transform: rotateX(1.1deg) scale(1.004); }
+
+  .hinweis { color: var(--grau); font-size: 13.5px; }
+  .fehler { color: #f87171; white-space: pre-wrap; }
+  .gut { color: var(--ok); }
+  .warnung { color: var(--warn); }
+  #balkenhuelle { background: #232837; border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; box-shadow: inset 0 2px 5px rgba(0,0,0,.5); }
+  #balken {
+    background: linear-gradient(90deg, #ff5e5e, #ffb648, #f8e16b, #59e08b, #52c5ff, #8a7bff, #e86bff);
+    background-size: 300% 100%; animation: schimmer 3s linear infinite;
+    height: 100%; width: 0%; transition: width .2s; border-radius: 8px;
+  }
+  video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
+  #ergebnisbild { width: 100%; border-radius: 10px; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
+  a.laden {
+    display: inline-block; background: linear-gradient(180deg, #86dda2, #4fb877); color: #082b17; font-weight: 600;
+    border-radius: 10px; padding: 10px 18px; text-decoration: none; margin-top: 10px;
+    box-shadow: 0 4px 0 #1e5c38, 0 12px 24px rgba(111, 207, 143, .22);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  a.laden:hover { transform: translateY(-1px); }
+  a.laden:active { transform: translateY(3px); box-shadow: 0 1px 0 #1e5c38; }
+  .fuss { color: var(--grau); font-size: 12.5px; margin-top: 28px; }
+  .fuss a { color: var(--grau); }
+  .abschnittstitel { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .knopfzeile { margin-top: 12px; }
+
+  /* Bei „Bewegung reduzieren": Schimmer/Puls aus — das Regenbogenband
+     dreht bewusst weiter, es ist Teil der Optik und flackert nicht. */
+  @media (prefers-reduced-motion: reduce) {
+    #balken, h1, h1 .funkel { animation: none; }
+    .karte, #leinwand, button, a.laden { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kopf">
+    <svg id="logo" viewBox="0 0 64 64" width="52" height="52" role="img" aria-label="Lynkeus-Logo">
+      <defs>
+        <radialGradient id="lgIris" cx="50%" cy="42%" r="62%">
+          <stop offset="0%" stop-color="#ffe9b0"/>
+          <stop offset="45%" stop-color="#f0b13e"/>
+          <stop offset="100%" stop-color="#7a4c0a"/>
+        </radialGradient>
+        <linearGradient id="lgLid" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#39415a"/>
+          <stop offset="100%" stop-color="#12161f"/>
+        </linearGradient>
+        <linearGradient id="lgRegen" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#ff5e5e"/><stop offset="20%" stop-color="#ffb648"/>
+          <stop offset="40%" stop-color="#59e08b"/><stop offset="60%" stop-color="#52c5ff"/>
+          <stop offset="80%" stop-color="#8a7bff"/><stop offset="100%" stop-color="#e86bff"/>
+        </linearGradient>
+        <filter id="lgGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="1.6" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Luchsauge mit Regenbogen-Umriss -->
+      <path d="M3 32 Q 19 11 32 11 Q 45 11 61 32 Q 45 53 32 53 Q 19 53 3 32 Z"
+            fill="url(#lgLid)" stroke="url(#lgRegen)" stroke-width="2.4" filter="url(#lgGlow)"/>
+      <circle cx="32" cy="32" r="15" fill="url(#lgIris)"/>
+      <!-- senkrechte Schlitzpupille -->
+      <ellipse cx="32" cy="32" rx="4.4" ry="12.6" fill="#0b0e15"/>
+      <!-- der eingefangene Gemini-Stern, gespiegelt in der Iris -->
+      <path d="M24.5 21.5 q1.1 3.9 5 5 q-3.9 1.1 -5 5 q-1.1 -3.9 -5 -5 q3.9 -1.1 5 -5 Z"
+            fill="#ffffff" filter="url(#lgGlow)">
+        <animate attributeName="opacity" values="0.95;0.35;0.95" dur="3.2s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+    <h1>Lynkeus</h1>
+  </div>
+  <p class="unter">Der luchsäugige Blick, dem kein Stern entgeht: Lynkeus rechnet das Gemini-Funkel-Wasserzeichen
+  unten rechts aus Videos und Fotos heraus —
+  pixelgenau gegengeblendet (umgekehrte Alpha-Mischung), nicht verwischt oder abgedeckt.
+  Alles passiert hier im Browser; die Datei verlässt dieses Gerät nicht.</p>
+
+  <div class="modus" role="tablist" aria-label="Foto oder Video">
+    <button id="modusVideo" class="aktivmodus" type="button">🎬 Video</button>
+    <button id="modusFoto" type="button">🖼️ Foto</button>
+  </div>
+
+  <div id="ablage" class="karte">
+    <strong id="ablagetitel">Video hierher ziehen</strong> <span>oder klicken zum Auswählen</span><br>
+    <span style="font-size:13.5px" id="ablagehinweis">MP4 aus der Gemini-App / Veo · Verarbeitung komplett lokal</span>
+    <input type="file" id="dateiwahl" accept="video/*" class="versteckt">
+  </div>
+
+  <div id="pruefkarte" class="karte versteckt">
+    <p class="abschnittstitel">1 · Prüfen und feinjustieren</p>
+    <p class="hinweis" id="videoinfo"></p>
+    <div class="leinwandhuelle"><canvas id="leinwand"></canvas></div>
+    <div class="regler" id="zeitzeile">
+      <label for="zeit">Vorschau-Zeitpunkt</label>
+      <input type="range" id="zeit" min="0" max="1" step="0.1" value="1">
+      <output id="zeitwert">1,0 s</output>
+    </div>
+    <hr style="border-color:var(--rand); border-style:solid; opacity:.4">
+    <div class="regler">
+      <label for="staerke">Stärke</label>
+      <input type="range" id="staerke" min="0" max="1.2" step="0.05" value="0.6">
+      <output id="staerkewert">0,60</output>
+    </div>
+    <div class="regler">
+      <label for="vx">Versatz waagrecht</label>
+      <input type="range" id="vx" min="-80" max="80" step="1" value="-24">
+      <output id="vxwert">−24</output>
+    </div>
+    <div class="regler">
+      <label for="vy">Versatz senkrecht</label>
+      <input type="range" id="vy" min="-80" max="80" step="1" value="-24">
+      <output id="vywert">−24</output>
+    </div>
+    <div class="regler">
+      <label for="groesse">Größe</label>
+      <input type="range" id="groesse" min="0.5" max="1.6" step="0.05" value="1">
+      <output id="groessewert">1,00</output>
+    </div>
+    <div class="zeile knopfzeile">
+      <button id="suchen" class="zweit" type="button">🔍 Stern automatisch suchen</button>
+      <button id="vergleich" class="zweit" type="button">Original zeigen (halten)</button>
+      <button id="standard" class="zweit" type="button">Zurück auf Standard</button>
+      <label class="hinweis" style="display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="rahmen" checked> Suchrahmen einblenden
+      </label>
+    </div>
+    <p class="hinweis" id="suchergebnis"></p>
+    <p class="hinweis" style="margin-bottom:0">Tipp: Zeitpunkt mit hellem Hintergrund wählen — dort sieht man den Stern
+    am besten. Ist er in der Vorschau restlos weg, passt es im ganzen Video, denn Position und Maske sind fest.</p>
+  </div>
+
+  <div id="wandelkarte" class="karte versteckt">
+    <p class="abschnittstitel">2 · Umwandeln</p>
+    <div class="zeile">
+      <button id="los" type="button">Wasserzeichen herausrechnen</button>
+      <span class="hinweis" id="wandelhinweis"></span>
+    </div>
+    <div id="balkenhuelle" class="versteckt"><div id="balken"></div></div>
+    <p id="status" class="hinweis"></p>
+    <div id="ergebnis" class="versteckt">
+      <p class="gut" id="fertigtext"></p>
+      <a id="herunterladen" class="laden" download>⬇︎ Speichern</a>
+      <video id="ergebnisvideo" controls playsinline></video>
+      <img id="ergebnisbild" class="versteckt" alt="Ergebnis ohne Wasserzeichen">
+    </div>
+  </div>
+
+  <p class="fuss"><strong>Lynkeus v1.2</strong> · Created by emefka<br>
+  Verfahren „Reverse Alpha Blending" und Funkel-Maske aus
+  <a href="https://github.com/dearabhin/gemini-watermark-remover" target="_blank" rel="noopener">dearabhin/gemini-watermark-remover</a> (MIT) ·
+  Video-Verarbeitung mit <a href="https://mediabunny.dev" target="_blank" rel="noopener">mediabunny</a> (MPL-2.0) ·
+  Läuft am besten in Chrome oder Edge am Rechner.</p>
+</main>
+<script>window.BG96_DATENURI = "__BG96__"; window.BG48_DATENURI = "__BG48__";</script>
+<script>__BUNDLE__</script>
+</body>
+</html>

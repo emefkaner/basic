@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.3**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.4**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -34,6 +34,8 @@ committen.
   und Umschalter im selben Lilaton neu gestaltet; FEHLERBEHEBUNG: Klicks auf
   die Knöpfe gingen ins Leere, wenn die Karte per rotateX/preserve-3d gekippt
   war (Chromium-Treffer-Prüfung) — Kipp-Effekt entfernt, nie wieder einbauen
+- 1.4 — Fußzeile nennt ausdrücklich die 100 % lokale Verarbeitung (belegt:
+  null Netzwerkzugriffe während Laden und kompletter Umwandlung)
 
 ## Dateien
 

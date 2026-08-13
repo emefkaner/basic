@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.4**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.5**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -36,6 +36,9 @@ committen.
   war (Chromium-Treffer-Prüfung) — Kipp-Effekt entfernt, nie wieder einbauen
 - 1.4 — Fußzeile nennt ausdrücklich die 100 % lokale Verarbeitung (belegt:
   null Netzwerkzugriffe während Laden und kompletter Umwandlung)
+- 1.5 — Knöpfe neu: schlichte Lila-Outline, beim Überfahren komplett gefüllt
+  mit einem wandernden Verlauf aus Lilatönen (dreht über --winkel, bewegt
+  sich also nur bei sichtbarem Hover)
 
 ## Dateien
 

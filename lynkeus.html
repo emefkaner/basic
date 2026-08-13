@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
-<!-- Version 1.4 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<!-- Version 1.5 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
   /* Schriftzug: Cinzel Decorative (SIL OFL), als winzige Teilmenge nur mit
      den Buchstaben von „Lynkeus" eingebettet (~1,3 KB). */
@@ -76,13 +76,18 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
   }
   .modus button {
-    background: transparent; border: 0; box-shadow: none; color: var(--grau);
-    font-weight: 600; padding: 8px 22px; border-radius: 9px; transform: none; text-shadow: none;
+    background: transparent; border: 1.5px solid transparent; box-shadow: none; color: var(--grau);
+    font-weight: 600; padding: 8px 22px; border-radius: 9px; transform: none;
   }
-  .modus button:hover { filter: none; transform: none; box-shadow: none; color: var(--text); }
-  .modus button.aktivmodus {
-    background: linear-gradient(180deg, var(--lila), var(--lila3));
-    color: #fff; box-shadow: 0 2px 0 var(--lilaDunkel), inset 0 1px 0 rgba(255, 255, 255, .3);
+  .modus button:hover:not(:disabled) {
+    transform: none; box-shadow: none; color: #fff;
+    background: linear-gradient(var(--winkel),
+      rgba(76, 29, 149, .55), rgba(139, 92, 246, .55), rgba(177, 140, 255, .55), rgba(76, 29, 149, .55));
+    border-color: transparent;
+  }
+  .modus button.aktivmodus, .modus button.aktivmodus:hover {
+    background: linear-gradient(180deg, var(--lila2), var(--lila3));
+    color: #fff; border-color: transparent; box-shadow: none; transform: none;
   }
 
   /* Container: Karte mit umlaufendem Regenbogenband + weichem Farbschein */
@@ -126,34 +131,33 @@
   .regler output { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
   input[type=range] { width: 100%; accent-color: var(--lila2); }
 
-  /* Knöpfe: Lila-Verlauf mit Glanzkante, Schein und 3D-Druckpunkt */
-  button {
-    background: linear-gradient(180deg, var(--lila) 0%, var(--lila2) 55%, var(--lila3) 100%);
-    border: 1px solid rgba(255, 255, 255, .14);
-    color: #fff; font-weight: 600; border-radius: 12px;
+  /* Knöpfe: schlichte Lila-Outline auf transparentem Grund. Erst beim
+     Überfahren füllt ein WANDERNDER Verlauf aus verschiedenen Lilatönen den
+     Knopf komplett — der Winkel (--winkel) dreht per Skript, genau wie beim
+     Regenbogenband um die Container; im Ruhezustand bewegt sich nichts. */
+  button, a.laden {
+    display: inline-block; background: transparent;
+    border: 1.5px solid var(--lila2);
+    color: #d9ccff; font-weight: 600; border-radius: 12px;
     padding: 10px 20px; font-size: 15.5px; cursor: pointer;
-    box-shadow: 0 4px 0 var(--lilaDunkel), 0 12px 28px rgba(139, 92, 246, .35),
-                inset 0 1px 0 rgba(255, 255, 255, .35);
-    text-shadow: 0 1px 2px rgba(40, 10, 90, .5);
-    transform: translateY(0); transition: transform .12s ease, box-shadow .12s ease, filter .12s;
+    text-decoration: none; text-shadow: none; box-shadow: none;
+    transition: background .18s ease, color .15s ease, border-color .15s ease,
+                box-shadow .2s ease, transform .12s ease, opacity .15s ease;
   }
-  button:hover {
-    filter: brightness(1.08); transform: translateY(-1px);
-    box-shadow: 0 5px 0 var(--lilaDunkel), 0 16px 34px rgba(139, 92, 246, .45),
-                inset 0 1px 0 rgba(255, 255, 255, .4);
+  button:hover:not(:disabled), a.laden:hover {
+    background: linear-gradient(var(--winkel),
+      var(--lilaDunkel), #7c3aed, var(--lila), #e2d1ff, var(--lila2), var(--lilaDunkel));
+    border-color: transparent; color: #fff;
+    box-shadow: 0 10px 28px rgba(139, 92, 246, .4);
+    transform: translateY(-1px);
   }
-  button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--lilaDunkel), 0 6px 14px rgba(139, 92, 246, .3); }
-  button:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 0 4px 0 var(--lilaDunkel); }
-  button.zweit {
-    background: linear-gradient(180deg, #241f38, #191527); color: #d7cbf7;
-    border: 1px solid #453768; font-weight: 500; text-shadow: none;
-    box-shadow: 0 4px 0 #120e1e, 0 10px 20px rgba(0, 0, 0, .35);
+  button:active:not(:disabled), a.laden:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, .3);
   }
-  button.zweit:hover {
-    filter: none; border-color: var(--lila2); color: #efe8ff;
-    box-shadow: 0 5px 0 #120e1e, 0 12px 24px rgba(139, 92, 246, .22);
-  }
-  button.zweit:active { box-shadow: 0 1px 0 #120e1e; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.zweit { font-weight: 500; }
+  a.laden { margin-top: 10px; }
 
   /* Vorschau mit leichter 3D-Neigung beim Überfahren */
   .leinwandhuelle { position: relative; margin: 10px 0; perspective: 1200px; }
@@ -176,18 +180,7 @@
   }
   video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
   #ergebnisbild { width: 100%; border-radius: 10px; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
-  a.laden {
-    display: inline-block; color: #fff; font-weight: 600;
-    background: linear-gradient(180deg, var(--lila) 0%, var(--lila2) 55%, var(--lila3) 100%);
-    border: 1px solid rgba(255, 255, 255, .14);
-    border-radius: 12px; padding: 10px 20px; text-decoration: none; margin-top: 10px;
-    box-shadow: 0 4px 0 var(--lilaDunkel), 0 12px 28px rgba(139, 92, 246, .35),
-                inset 0 1px 0 rgba(255, 255, 255, .35);
-    text-shadow: 0 1px 2px rgba(40, 10, 90, .5);
-    transition: transform .12s ease, box-shadow .12s ease;
-  }
-  a.laden:hover { transform: translateY(-1px); }
-  a.laden:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--lilaDunkel); }
+  /* (Der Speichern-Knopf a.laden teilt sich die Outline-Gestaltung oben.) */
   .fuss { color: var(--grau); font-size: 12.5px; margin-top: 28px; }
   .fuss a { color: var(--grau); }
   .abschnittstitel { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
@@ -314,7 +307,7 @@
     </div>
   </div>
 
-  <p class="fuss"><strong>Lynkeus v1.4</strong> · Created by emefka<br>
+  <p class="fuss"><strong>Lynkeus v1.5</strong> · Created by emefka<br>
   🔒 <strong>100 % lokal:</strong> Prüfen und Umrechnen laufen vollständig in deinem Browser —
   Video und Foto verlassen dieses Gerät nie, nichts wird hochgeladen (die Seite kommt ohne
   einen einzigen Netzwerkzugriff aus).<br>

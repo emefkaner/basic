@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.5**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.6**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -39,6 +39,8 @@ committen.
 - 1.5 — Knöpfe neu: schlichte Lila-Outline, beim Überfahren komplett gefüllt
   mit einem wandernden Verlauf aus Lilatönen (dreht über --winkel, bewegt
   sich also nur bei sichtbarem Hover)
+- 1.6 — auch der Foto/Video-Umschalter nutzt exakt diesen Knopf-Stil; nur der
+  gewählte Modus bleibt als Zustandsanzeige statisch gefüllt
 
 ## Dateien
 

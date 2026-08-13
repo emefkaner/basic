@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
-<!-- Version 1.5 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<!-- Version 1.6 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
   /* Schriftzug: Cinzel Decorative (SIL OFL), als winzige Teilmenge nur mit
      den Buchstaben von „Lynkeus" eingebettet (~1,3 KB). */
@@ -69,25 +69,13 @@
   }
   .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
 
-  /* Umschalter Foto/Video */
-  .modus {
-    display: inline-flex; background: #141926; border: 1px solid var(--rand);
-    border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
-  }
-  .modus button {
-    background: transparent; border: 1.5px solid transparent; box-shadow: none; color: var(--grau);
-    font-weight: 600; padding: 8px 22px; border-radius: 9px; transform: none;
-  }
-  .modus button:hover:not(:disabled) {
-    transform: none; box-shadow: none; color: #fff;
-    background: linear-gradient(var(--winkel),
-      rgba(76, 29, 149, .55), rgba(139, 92, 246, .55), rgba(177, 140, 255, .55), rgba(76, 29, 149, .55));
-    border-color: transparent;
-  }
-  .modus button.aktivmodus, .modus button.aktivmodus:hover {
+  /* Umschalter Foto/Video: exakt dieselben Knöpfe wie überall (Outline,
+     wandernder Verlauf beim Überfahren) — nur der GEWÄHLTE Modus bleibt als
+     Zustandsanzeige statisch gefüllt. */
+  .modus { display: inline-flex; gap: 10px; margin-bottom: 16px; }
+  .modus button.aktivmodus {
     background: linear-gradient(180deg, var(--lila2), var(--lila3));
-    color: #fff; border-color: transparent; box-shadow: none; transform: none;
+    color: #fff; border-color: transparent;
   }
 
   /* Container: Karte mit umlaufendem Regenbogenband + weichem Farbschein */
@@ -307,7 +295,7 @@
     </div>
   </div>
 
-  <p class="fuss"><strong>Lynkeus v1.5</strong> · Created by emefka<br>
+  <p class="fuss"><strong>Lynkeus v1.6</strong> · Created by emefka<br>
   🔒 <strong>100 % lokal:</strong> Prüfen und Umrechnen laufen vollständig in deinem Browser —
   Video und Foto verlassen dieses Gerät nie, nichts wird hochgeladen (die Seite kommt ohne
   einen einzigen Netzwerkzugriff aus).<br>

@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **2.1**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.2**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -58,6 +58,9 @@ committen.
   Cinzel; `lynkeus-schrift.woff2` ist jetzt die Monoton-Teilmenge (1,2 KB),
   ausgewählt aus zehn gerenderten Vorschlägen
 - 2.1 — Untertitel „GEMINI-Fighter" unter dem Schriftzug
+- 2.2 — Lynkeus-Schriftzug = Original-Wortmarke aus dem Logo-SVG (Vektor,
+  Lila-Verlauf); Monoton bleibt nur für den Untertitel (Teilmenge jetzt mit
+  den „GEMINI-Fighter"-Buchstaben, 1,7 KB)
 
 ## Dateien
 

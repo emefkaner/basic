@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.8**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.9**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -49,6 +49,11 @@ committen.
   Gemini-Stern zersplittern), von Hand als skalierbares SVG nachgebaut und
   in die Lilatöne übersetzt; liegt auch einzeln als `logo.svg` hier; Favicon
   daraus neu gerendert
+- 1.9 — Original-SVG des Nutzers übernommen (ersetzt den 1.8-Nachbau):
+  Bildmarke und LYNKEUS-Schriftzug per Lage getrennt (Schriftpfade liegen
+  unter y≈610), alles in Standardlila (#8b5cf6) umgefärbt. Kopf + Favicon =
+  Bildmarke; `logo.svg` = Komplettfassung; `logo-original.svg` = unverändertes
+  Original in Schwarz
 
 ## Dateien
 

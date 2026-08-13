@@ -27,7 +27,7 @@ etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
 
 ## Versionierung
 
-Aktuelle Version: **2.7** (Kommentar in `src/struktur.html` + Konstante VERSION in `bauen.mjs`; sichtbar nur im Footer des Nachtdesigns — die Lidl-Fußzeile nennt auf Wunsch stattdessen den Ersteller). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.8** (Kommentar in `src/struktur.html` + Konstante VERSION in `bauen.mjs`; sichtbar nur im Footer des Nachtdesigns — die Lidl-Fußzeile nennt auf Wunsch stattdessen den Ersteller). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/struktur.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, BEIDE fertigen Dateien mit
 committen.
@@ -85,6 +85,13 @@ committen.
   eigene Fußzeile „Lynkeus – GEMINI Fighter · Erstellt von Marc Ferdinand
   Körner – Team Kunde"; Kopf-rechts und Fußzeile sind jetzt
   Varianten-Bausteine in bauen.mjs
+- 2.8 — wählbare Zielauflösung für Videos (Original/Full HD/QHD/4K, nur echte
+  Vergrößerungen, Originalgröße sichtbar): GPU-Hochskalierung in
+  `src/skalierer.js` (WebGL2, Catmull-Rom + kontrastadaptive Nachschärfung
+  nach AMD-CAS). BEWUSST kein generatives KI-Modell: ESRGAN-Klasse wöge
+  20–60 MB und bräuchte Sekunden je Einzelbild — für eine Offline-Single-File
+  untauglich; dieses Verfahren läuft in Echtzeit und erhält Kanten/Details,
+  erfindet aber nichts dazu
 
 ## Dateien
 

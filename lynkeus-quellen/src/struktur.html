@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
 <link rel="icon" type="image/png" href="__FAVICON__">
-<!-- Version 2.7 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<!-- Version 2.8 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
 __THEMA__
 </style>
@@ -113,6 +113,11 @@ __THEMA__
 
   <div id="wandelkarte" class="karte versteckt">
     <p class="abschnittstitel">2 · Umwandeln</p>
+    <div class="zeile" id="aufloesungzeile" style="margin-bottom:12px">
+      <label for="aufloesung">Zielauflösung</label>
+      <select id="aufloesung"></select>
+      <span class="hinweis" id="originalgroesse"></span>
+    </div>
     <div class="zeile">
       <button id="los" type="button">Wasserzeichen herausrechnen</button>
       <span class="hinweis" id="wandelhinweis"></span>

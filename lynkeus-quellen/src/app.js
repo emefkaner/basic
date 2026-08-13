@@ -11,6 +11,7 @@ import {
   standardWerte, fotoStandardWerte, veoBox, fotoBox, boxAufloesen, ausschnitt,
   alphaBauen, wasserzeichenEntfernen, bildSaeubern, luminanzAus, sternSuchen,
 } from './engine.js';
+import { Hochskalierer, zielAufloesungen } from './skalierer.js';
 
 const $ = (id) => document.getElementById(id);
 const de = (zahl, stellen = 2) => zahl.toFixed(stellen).replace('.', ',').replace('-', '−');
@@ -27,6 +28,7 @@ let originalPx = null;     // ungesäubertes Vorschaubild (ImageData)
 let originalZeigen = false;
 let laeuft = false;
 let ergebnisUrl = null;
+let zielListe = [];        // wählbare Zielauflösungen fürs aktuelle Video
 
 // Grundgeometrie und Vorlage je Modus.
 const basisFn = () => (modus === 'foto' ? fotoBox : veoBox);
@@ -190,6 +192,22 @@ async function videoNehmen(f) {
 
     $('videoinfo').textContent = `${f.name} · ${breite}×${hoehe} Pixel · ${de(dauer, 1)} s`;
 
+    // Zielauflösungen anbieten (nur echte Vergrößerungen der Quelle)
+    zielListe = zielAufloesungen(breite, hoehe);
+    const wahl = $('aufloesung');
+    wahl.innerHTML = '';
+    zielListe.forEach((z, i) => {
+      const o = document.createElement('option');
+      o.value = i;
+      o.textContent = z.faktor === 1
+        ? `Original (${z.breite}×${z.hoehe})`
+        : `${z.name} · ${z.breite}×${z.hoehe} (×${de(z.faktor, z.faktor % 1 ? 2 : 0)})`;
+      wahl.appendChild(o);
+    });
+    wahl.value = '0';
+    $('originalgroesse').textContent = `Original: ${breite}×${hoehe}`;
+    $('aufloesungzeile').classList.remove('versteckt');
+
     const leinwand = $('leinwand');
     leinwand.width = breite;
     leinwand.height = hoehe;
@@ -224,6 +242,7 @@ async function fotoNehmen(f) {
     werte = fotoStandardWerte();
     reglerSetzen();
     $('zeitzeile').classList.add('versteckt');
+    $('aufloesungzeile').classList.add('versteckt');
 
     $('videoinfo').textContent =
       `${f.name} · ${breite}×${hoehe} Pixel · Sterngröße ${fotoBox(breite, hoehe).size} px (automatisch)`;
@@ -415,18 +434,29 @@ async function videoUmwandeln() {
 
   const hinweise = [];
 
-  // Ausgabeformat: H.264/MP4, sonst VP9/WebM als Ausweg.
+  // Gewählte Zielauflösung (Hochskalierung nur, wenn größer als Original)
+  const ziel = zielListe[parseInt($('aufloesung').value, 10) || 0] || zielListe[0]
+    || { breite, hoehe, faktor: 1 };
+  const ausB = ziel.breite, ausH = ziel.hoehe;
+
+  // Ausgabeformat: H.264/MP4, sonst VP9/WebM als Ausweg (geprüft in Zielgröße).
   let videoCodec = 'avc';
   let format = new Mp4OutputFormat();
   let endung = 'mp4', mime = 'video/mp4';
-  if (!(await canEncodeVideo('avc', { width: breite, height: hoehe }))) {
-    if (await canEncodeVideo('vp9', { width: breite, height: hoehe })) {
+  if (!(await canEncodeVideo('avc', { width: ausB, height: ausH }))) {
+    if (await canEncodeVideo('vp9', { width: ausB, height: ausH })) {
       videoCodec = 'vp9'; format = new WebMOutputFormat();
       endung = 'webm'; mime = 'video/webm';
       hinweise.push('Dieser Browser kodiert kein H.264 — Ausgabe als WebM (VP9).');
     } else {
-      throw new Error('Dieser Browser kann Videos nicht lokal kodieren. Bitte aktuelles Chrome oder Edge am Rechner verwenden.');
+      throw new Error(`Dieser Browser kann ${ausB}×${ausH} nicht lokal kodieren. Bitte eine kleinere Zielauflösung wählen oder aktuelles Chrome/Edge am Rechner verwenden.`);
     }
+  }
+
+  // Hochskalierer nur bei echter Vergrößerung aufsetzen
+  let skalierer = null;
+  if (ziel.faktor !== 1) {
+    skalierer = new Hochskalierer(breite, hoehe, ausB, ausH);
   }
 
   const quelle = new Input({ source: new BlobSource(datei), formats: ALL_FORMATS });
@@ -451,9 +481,9 @@ async function videoUmwandeln() {
       : Object.assign(document.createElement('canvas'), { width: breite, height: hoehe });
     const ctx = leinwand.getContext('2d', { willReadFrequently: true });
 
-    const ziel = new BufferTarget();
-    const ausgabe = new Output({ format, target: ziel });
-    const videoQuelle = new CanvasSource(leinwand, {
+    const zielPuffer = new BufferTarget();
+    const ausgabe = new Output({ format, target: zielPuffer });
+    const videoQuelle = new CanvasSource(skalierer ? skalierer.leinwand : leinwand, {
       codec: videoCodec,
       bitrate: QUALITY_HIGH,
       keyFrameInterval: 2,
@@ -499,6 +529,8 @@ async function videoUmwandeln() {
       wasserzeichenEntfernen(px, karte, { x: 0, y: 0, breite: roi.breite, hoehe: roi.hoehe });
       ctx.putImageData(px, roi.x, roi.y);
 
+      if (skalierer) skalierer.ziehe(leinwand);
+
       await videoQuelle.add(stempel, bilddauer);
       if (dauerJetzt) $('balken').style.width = Math.min(99, Math.round((stempel / dauerJetzt) * 100)) + '%';
     }
@@ -531,20 +563,24 @@ async function videoUmwandeln() {
     }
 
     await ausgabe.finalize();
-    if (!ziel.buffer) throw new Error('Die Umwandlung lieferte keine Daten.');
+    if (!zielPuffer.buffer) throw new Error('Die Umwandlung lieferte keine Daten.');
 
-    const blob = new Blob([ziel.buffer], { type: mime });
+    const blob = new Blob([zielPuffer.buffer], { type: mime });
     ergebnisUrl = URL.createObjectURL(blob);
     const basisname = datei.name.replace(/\.[^.]+$/, '') || 'video';
     const a = $('herunterladen');
     a.href = ergebnisUrl;
-    a.download = `${basisname} – ohne Wasserzeichen.${endung}`;
+    a.download = skalierer
+      ? `${basisname} – ohne Wasserzeichen – ${ziel.name}.${endung}`
+      : `${basisname} – ohne Wasserzeichen.${endung}`;
     $('ergebnisvideo').src = ergebnisUrl;
     $('ergebnisvideo').classList.remove('versteckt');
     $('ergebnisbild').classList.add('versteckt');
     $('ergebnisbild').removeAttribute('src');
     $('balken').style.width = '100%';
-    $('fertigtext').textContent = `Fertig — ${de(blob.size / (1024 * 1024), 1)} MB, ${breite}×${hoehe}.`;
+    $('fertigtext').textContent = skalierer
+      ? `Fertig — ${de(blob.size / (1024 * 1024), 1)} MB, ${ausB}×${ausH} (hochskaliert von ${breite}×${hoehe}, detailschärfend).`
+      : `Fertig — ${de(blob.size / (1024 * 1024), 1)} MB, ${breite}×${hoehe}.`;
     $('status').className = hinweise.length ? 'hinweis warnung' : 'hinweis';
     $('status').textContent = hinweise.join(' ');
     $('ergebnis').classList.remove('versteckt');

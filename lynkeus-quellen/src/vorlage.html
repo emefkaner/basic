@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
 <link rel="icon" type="image/png" href="__FAVICON__">
-<!-- Version 2.0 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
+<!-- Version 2.1 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
   /* Schriftzug: Monoton (SIL OFL, Neon-Linien-Retro), als winzige Teilmenge
      nur mit den Buchstaben von „Lynkeus" eingebettet (~1,2 KB). */
@@ -67,6 +67,12 @@
     /* eigene Farbe: der Textverlauf des h1 zeichnet nicht in transformierte Kinder */
     color: var(--akzent); -webkit-text-fill-color: var(--akzent);
     text-shadow: 0 0 14px rgba(240, 177, 62, .8);
+  }
+  .titelblock { display: flex; flex-direction: column; }
+  .untertitel {
+    margin: 3px 0 0 2px; color: var(--lila); font-size: 12.5px;
+    letter-spacing: 6px; font-weight: 600;
+    text-shadow: 0 0 12px rgba(177, 140, 255, .45);
   }
   .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
 
@@ -208,7 +214,10 @@
 <path fill="#8b5cf6" d="M755.797729,522.288086 C755.441895,518.713379 755.441895,518.713379 758.991150,516.821655 C760.935913,518.262573 760.751465,520.401489 759.994263,522.117493 C759.254578,523.793640 757.505310,523.257080 755.797729,522.288086 z"/>
 <path fill="#8b5cf6" d="M755.198853,377.965027 C755.961487,375.542145 757.576355,375.020142 759.383179,375.991516 C760.569397,376.629303 760.300720,378.113251 759.583374,379.001373 C757.892090,381.094788 756.540100,379.730621 755.198853,377.965027 z"/>
 </svg>
-    <h1>Lynkeus</h1>
+    <div class="titelblock">
+      <h1>Lynkeus</h1>
+      <p class="untertitel">GEMINI-Fighter</p>
+    </div>
   </div>
   <p class="unter">Der luchsäugige Blick, dem kein Stern entgeht: Lynkeus rechnet das Gemini-Funkel-Wasserzeichen
   unten rechts aus Videos und Fotos heraus —
@@ -285,7 +294,7 @@
     </div>
   </div>
 
-  <p class="fuss"><strong>Lynkeus v2.0</strong> · Created by emefka<br>
+  <p class="fuss"><strong>Lynkeus v2.1</strong> · Created by emefka<br>
   🔒 <strong>100 % lokal:</strong> Prüfen und Umrechnen laufen vollständig in deinem Browser —
   Video und Foto verlassen dieses Gerät nie, nichts wird hochgeladen (die Seite kommt ohne
   einen einzigen Netzwerkzugriff aus).<br>

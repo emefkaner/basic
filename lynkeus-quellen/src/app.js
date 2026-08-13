@@ -50,11 +50,7 @@ async function start() {
     bildLaden(window.BG48_DATENURI),
   ]);
 
-  // Das Logo ist zugleich das Favicon.
-  const link = document.createElement('link');
-  link.rel = 'icon';
-  link.href = 'data:image/svg+xml;utf8,' + encodeURIComponent($('logo').outerHTML);
-  document.head.appendChild(link);
+  // (Das Favicon steckt als PNG-Daten-URI fest im <head> — nichts zu tun.)
 
   // Das Regenbogenband dreht per Skript (ein voller Umlauf ≈ 5 s) — so
   // bewegt es sich in jedem Browser, unabhängig von CSS-Eigenheiten.

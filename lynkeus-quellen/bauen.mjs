@@ -25,6 +25,9 @@ html = html.split('__BG48__').join(uri(HIER + 'bg_48.png'));
 // Schriftzug-Schrift: Cinzel Decorative (SIL OFL), auf „Lynkeus" verkleinert
 html = html.split('__SCHRIFT__').join(
   'data:font/woff2;base64,' + fs.readFileSync(HIER + 'lynkeus-schrift.woff2').toString('base64'));
+// Favicon: das Logo als PNG (aus dem SVG gerendert; bei Logo-Änderungen neu
+// erzeugen — statisch im <head> als PNG ist die verlässlichste Variante)
+html = html.split('__FAVICON__').join(uri(HIER + 'favicon.png'));
 // split/join statt replace: das Bundle enthält $-Zeichen, die replace() deuten würde
 html = html.split('__BUNDLE__').join(bundle);
 

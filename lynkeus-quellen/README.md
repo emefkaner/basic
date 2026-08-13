@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.6**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **1.7**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -41,6 +41,10 @@ committen.
   sich also nur bei sichtbarem Hover)
 - 1.6 — auch der Foto/Video-Umschalter nutzt exakt diesen Knopf-Stil; nur der
   gewählte Modus bleibt als Zustandsanzeige statisch gefüllt
+- 1.7 — Hover-Füllung vollflächig im Standardlila statt Verlauf (helle Töne
+  machten den Text unlesbar); Favicon als PNG (`favicon.png`, aus dem
+  Logo-SVG gerendert) statisch im <head> statt per Skript als SVG — bei
+  Logo-Änderungen das PNG neu erzeugen
 
 ## Dateien
 

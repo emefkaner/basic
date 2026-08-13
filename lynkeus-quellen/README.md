@@ -17,7 +17,7 @@ Abhängigkeiten — sie funktioniert direkt über `file://`.
 
 ## Versionierung
 
-Aktuelle Version: **1.9**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.0**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -54,6 +54,9 @@ committen.
   unter y≈610), alles in Standardlila (#8b5cf6) umgefärbt. Kopf + Favicon =
   Bildmarke; `logo.svg` = Komplettfassung; `logo-original.svg` = unverändertes
   Original in Schwarz
+- 2.0 — Schriftzug auf Wunsch in Monoton (SIL OFL, Neon-Linien-Retro) statt
+  Cinzel; `lynkeus-schrift.woff2` ist jetzt die Monoton-Teilmenge (1,2 KB),
+  ausgewählt aus zehn gerenderten Vorschlägen
 
 ## Dateien
 

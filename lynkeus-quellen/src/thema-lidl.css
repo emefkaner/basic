@@ -1,0 +1,136 @@
+/* Designvariante „Lidl": helle Fläche, weiße Karten, Lidl-Blau/Gelb/Rot —
+   Designsprache übernommen aus den Projekten mconow und
+   instorecommunications (blauer Kopfbalken mit gelber Unterkante,
+   Dreifarben-Streifen als Kartenakzent, Radius 18, weiche blaue Schatten). */
+:root {
+  --lidl-blau: #0050aa; --lidl-blau-dunkel: #003c80; --lidl-blau-tief: #002b5c;
+  --lidl-rot: #e60a14; --lidl-gelb: #fff000;
+  --bg: #eef3fa; --karte: #ffffff; --rand: #e2e7ee;
+  --text: #10233f; --grau: #5b6675;
+  --ok: #1f8b4c; --warn: #b25b00;
+  /* Theme-Anschlüsse: Logo-/Wortmarken-Farben und Suchrahmen (liest app.js) */
+  --logoMarke: #ffffff;
+  --wm1: #ffffff; --wm2: #dbe9ff; --wm3: #ffffff;
+  --rahmenAktiv: rgba(230, 10, 20, .95);
+  --rahmenOriginal: rgba(255, 240, 0, .95);
+  --streifen: linear-gradient(90deg,
+    var(--lidl-blau) 0 55%, var(--lidl-gelb) 55% 78%, var(--lidl-rot) 78% 100%);
+}
+@keyframes schimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  padding: 24px 16px 64px; min-height: 100vh;
+}
+main { max-width: 880px; margin: 0 auto; }
+
+/* Kopf: blauer Lidl-Balken mit gelber Unterkante */
+.kopf {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(120deg, var(--lidl-blau-dunkel) 0%, var(--lidl-blau) 52%, #0060c8 100%);
+  border-bottom: 5px solid var(--lidl-gelb);
+  border-radius: 18px 18px 6px 6px; padding: 18px 22px; margin-bottom: 16px;
+  box-shadow: 0 14px 44px rgba(0, 43, 92, .13);
+}
+#logo { flex: none; filter: drop-shadow(0 2px 6px rgba(0, 43, 92, .35)); transition: transform .3s ease; }
+.kopf:hover #logo { transform: scale(1.05); }
+h1 { margin: 0; line-height: 0; }
+#wortmarke { display: block; }
+.titelblock { display: flex; flex-direction: column; }
+.untertitel {
+  margin: 6px 0 0 2px; color: var(--lidl-gelb);
+  font-family: inherit;
+  font-size: 13px; font-weight: 300; letter-spacing: 7px;
+}
+.unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
+
+/* Umschalter Foto/Video: dieselben Knöpfe wie überall; der gewählte Modus
+   bleibt als Zustandsanzeige statisch gefüllt. */
+.modus { display: inline-flex; gap: 10px; margin-bottom: 16px; }
+.modus button.aktivmodus {
+  background: var(--lidl-blau);
+  color: #fff; border-color: var(--lidl-blau);
+}
+
+/* Karten: weiß mit Lidl-Dreifarben-Streifen als Oberkante.
+   Wichtig: KEIN rotateX/preserve-3d — siehe v1.2-Fehler (Klicks gingen
+   bei gekippten Karten ins Leere). */
+.karte {
+  position: relative; background: var(--karte); border-radius: 18px;
+  border: 1px solid var(--rand);
+  padding: 20px; margin-bottom: 18px; overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0, 43, 92, .13);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.karte::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--streifen);
+  pointer-events: none;
+}
+.karte:hover { transform: translateY(-3px); box-shadow: 0 20px 54px rgba(0, 43, 92, .18); }
+
+#ablage { padding: 46px 18px; text-align: center; color: var(--grau); cursor: pointer; }
+#ablage.aktiv, #ablage:hover { background: #f0f6ff; color: var(--text); }
+#ablage.aktiv::before, #ablage:hover::before { height: 6px; }
+#ablage strong { color: var(--lidl-blau); font-size: 18px; }
+
+.versteckt { display: none !important; }
+.zeile { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.regler { display: grid; grid-template-columns: 130px 1fr 58px; gap: 10px; align-items: center; margin: 8px 0; }
+.regler label { color: var(--grau); font-size: 14px; }
+.regler output { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+input[type=range] { width: 100%; accent-color: var(--lidl-blau); }
+
+/* Knöpfe: Lidl-Blau als Outline, beim Überfahren vollflächig gefüllt */
+button, a.laden {
+  display: inline-block; background: transparent;
+  border: 1.5px solid var(--lidl-blau);
+  color: var(--lidl-blau); font-weight: 600; border-radius: 12px;
+  padding: 10px 20px; font-size: 15.5px; cursor: pointer;
+  text-decoration: none; text-shadow: none; box-shadow: none;
+  transition: background .18s ease, color .15s ease, border-color .15s ease,
+              box-shadow .2s ease, transform .12s ease, opacity .15s ease;
+}
+button:hover:not(:disabled), a.laden:hover {
+  background: var(--lidl-blau);
+  border-color: var(--lidl-blau); color: #fff;
+  box-shadow: 0 8px 22px rgba(0, 80, 170, .3);
+  transform: translateY(-1px);
+}
+button:active:not(:disabled), a.laden:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 14px rgba(0, 80, 170, .25);
+}
+button:disabled { opacity: .4; cursor: default; }
+button.zweit { font-weight: 500; }
+a.laden { margin-top: 10px; }
+
+.leinwandhuelle { position: relative; margin: 10px 0; }
+#leinwand {
+  width: 100%; height: auto; display: block; border-radius: 10px; background: #000;
+  box-shadow: 0 10px 28px rgba(0, 43, 92, .22);
+  transition: transform .35s ease;
+}
+
+.hinweis { color: var(--grau); font-size: 13.5px; }
+.fehler { color: var(--lidl-rot); white-space: pre-wrap; }
+.gut { color: var(--ok); }
+.warnung { color: var(--warn); }
+#balkenhuelle { background: var(--rand); border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; box-shadow: inset 0 2px 5px rgba(0, 43, 92, .12); }
+#balken {
+  background: var(--streifen);
+  background-size: 200% 100%; animation: schimmer 3s linear infinite;
+  height: 100%; width: 0%; transition: width .2s; border-radius: 8px;
+}
+video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; box-shadow: 0 10px 28px rgba(0, 43, 92, .22); }
+#ergebnisbild { width: 100%; border-radius: 10px; margin-top: 10px; box-shadow: 0 10px 28px rgba(0, 43, 92, .22); }
+.fuss { color: var(--grau); font-size: 12.5px; margin-top: 28px; }
+.fuss a { color: var(--lidl-blau); }
+.abschnittstitel { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--lidl-blau); }
+.knopfzeile { margin-top: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #balken { animation: none; }
+  .karte, #leinwand, button, a.laden { transition: none; }
+}

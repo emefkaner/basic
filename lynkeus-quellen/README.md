@@ -1,23 +1,33 @@
 # Lynkeus — Quelldateien
 
-Hieraus wird die Single-File-App **`../lynkeus.html`** gebaut (Gemini/Veo-Funkel-
-Wasserzeichen aus Videos und Fotos herausrechnen, alles lokal im Browser).
+Hieraus werden ZWEI Single-File-Varianten derselben App gebaut (Gemini/Veo-
+Funkel-Wasserzeichen aus Videos und Fotos herausrechnen, alles lokal):
+
+- **`../lynkeus.html`** — Nachtdesign (Lila, Regenbogenband)
+- **`../lynkeus-lidl.html`** — Lidl-Design (hell, Blau/Gelb/Rot; Designsprache
+  aus den Projekten mconow und instorecommunications)
 
 ## Bauen
 
 ```
 npm install mediabunny esbuild     # einmalig, in diesem Ordner
-node bauen.mjs ../lynkeus.html
+node bauen.mjs                     # baut IMMER beide Varianten
 ```
 
-`bauen.mjs` bündelt `src/app.js` (samt mediabunny) mit esbuild und bettet die
-beiden Funkel-Masken (`bg_48.png`, `bg_96.png`) als Daten-URIs in
-`src/vorlage.html` ein. Ergebnis ist eine einzige HTML-Datei ohne externe
-Abhängigkeiten — sie funktioniert direkt über `file://`.
+Gemeinsam sind `src/struktur.html` (Aufbau samt Logo/Wortmarke, deren Farben
+über CSS-Variablen laufen) und `src/app.js`/`src/engine.js` (Logik). Je
+Variante gibt es `src/thema-lynkeus.css` bzw. `src/thema-lidl.css` und ein
+Favicon (`favicon.png` lila, `favicon-lidl.png` blau).
+
+**REGEL: Jede Änderung gilt für BEIDE Varianten.** Struktur- und
+Logik-Änderungen landen automatisch in beiden; bei Design-Änderungen beide
+`thema-*.css` bedienen (bzw. bewusst entscheiden und dokumentieren, wenn
+etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
+`--rahmenAktiv`/`--rahmenOriginal` aus dem Theme.
 
 ## Versionierung
 
-Aktuelle Version: **2.3**. Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.4** (steht in `src/struktur.html`, gilt für beide Varianten). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/vorlage.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, fertige `lynkeus.html` mit
 committen.
@@ -63,6 +73,9 @@ committen.
   den „GEMINI-Fighter"-Buchstaben, 1,7 KB)
 - 2.3 — Untertitel in leichter, weit gesperrter Systemschrift (Gewicht 300);
   keine eingebettete Schrift mehr — Monoton und die woff2-Teilmenge sind raus
+- 2.4 — Projekt auf zwei Designvarianten umgebaut: gemeinsame Struktur/Logik,
+  Themes thema-lynkeus.css und thema-lidl.css, Bau erzeugt immer beide
+  Dateien (lynkeus.html + lynkeus-lidl.html)
 
 ## Dateien
 
@@ -74,7 +87,9 @@ committen.
 - `src/app.js` — Oberfläche und Video-Pipeline (mediabunny/WebCodecs:
   dekodieren → Sternbereich säubern → H.264/MP4 kodieren, Ausweg VP9/WebM;
   Tonspur wird unverändert durchgereicht).
-- `src/vorlage.html` — Aufbau, Styles (Regenbogenband, 3D-Effekte), Logo-SVG.
+- `src/struktur.html` — gemeinsamer Aufbau inkl. Logo/Wortmarke (Farben über
+  CSS-Variablen `--logoMarke`, `--wm1..3`).
+- `src/thema-lynkeus.css` / `src/thema-lidl.css` — die beiden Designs.
 - `bg_48.png`, `bg_96.png` — Alphamasken des Gemini-Funkelsterns.
 
 ## Prüfen

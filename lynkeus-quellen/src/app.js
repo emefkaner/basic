@@ -270,7 +270,11 @@ function vorschauZeichnen() {
   if (!originalZeigen) ({ box } = bildSaeubern(aktuelleVorlage(), kopie, werte, basisFn()));
   ctx.putImageData(kopie, 0, 0);
   if ($('rahmen').checked) {
-    ctx.strokeStyle = originalZeigen ? 'rgba(150,170,200,.9)' : 'rgba(240,177,62,.95)';
+    // Rahmenfarben kommen aus dem jeweiligen Design (Lynkeus/Lidl)
+    const stil = getComputedStyle(document.documentElement);
+    ctx.strokeStyle = originalZeigen
+      ? (stil.getPropertyValue('--rahmenOriginal').trim() || 'rgba(150,170,200,.9)')
+      : (stil.getPropertyValue('--rahmenAktiv').trim() || 'rgba(240,177,62,.95)');
     ctx.lineWidth = Math.max(1, Math.round(breite / 640));
     ctx.strokeRect(box.x + .5, box.y + .5, box.size, box.size);
   }

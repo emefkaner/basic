@@ -4,176 +4,146 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lynkeus — Gemini-Wasserzeichen aus Videos und Fotos herausrechnen</title>
-<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
 <!-- Version 2.4 — Regel: bei jeder Änderung um 0,1 erhöhen (auch unten im Footer und im README nachziehen). -->
 <style>
-  /* Der Lynkeus-Schriftzug ist die Original-Wortmarke aus dem Logo-SVG des
-     Nutzers (Vektor); der Untertitel läuft bewusst in einer leichten,
-     weit gesperrten Systemschrift — keine eingebettete Schrift mehr nötig. */
-  /* Farbwelt „Lynkeus": Nachthimmel-Blauschwarz + Bernstein-Gold eines
-     Luchsauges (Lynkeus = „der Luchsäugige") — bewusst kein Gemini-Blau.
-     Dazu: umlaufendes Regenbogenband um die Container und dezente 3D-Tiefe. */
-  :root {
-    --bg: #0b0e15; --karte: #12161f; --rand: #29303f; --text: #ede8dd;
-    --grau: #99a1b2; --akzent: #f0b13e; --akzent2: #d99a26; --tinte: #201503;
-    --lila: #b18cff; --lila2: #8b5cf6; --lila3: #6d28d9; --lilaDunkel: #4c1d95;
-    --ok: #6fcf8f; --warn: #f4845f;
-    /* Theme-Anschlüsse: Logo-/Wortmarken-Farben und Suchrahmen (liest app.js) */
-    --logoMarke: var(--lila2);
-    --wm1: #b18cff; --wm2: #efe6ff; --wm3: #8b5cf6;
-    --rahmenAktiv: rgba(240, 177, 62, .95);
-    --rahmenOriginal: rgba(150, 170, 200, .9);
-    --band: conic-gradient(from var(--winkel),
-      #ff5e5e, #ffb648, #f8e16b, #59e08b, #52c5ff, #8a7bff, #e86bff, #ff5e5e);
-  }
-  @property --winkel { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-  @keyframes bandlauf { to { --winkel: 360deg; } }
-  @keyframes schimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-  @keyframes funkeln { 0%,100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(1.25) rotate(20deg); opacity: .75; } }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-    padding: 24px 16px 64px; min-height: 100vh;
-  }
-  /* Nachthimmel: weiche Farbnebel + ein paar Sterne, fest hinter allem */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-      radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.5), transparent 100%),
-      radial-gradient(1px 1px at 78% 8%, rgba(255,255,255,.4), transparent 100%),
-      radial-gradient(1.5px 1.5px at 62% 30%, rgba(255,255,255,.3), transparent 100%),
-      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,.35), transparent 100%),
-      radial-gradient(1.5px 1.5px at 88% 55%, rgba(255,255,255,.3), transparent 100%),
-      radial-gradient(1px 1px at 45% 85%, rgba(255,255,255,.3), transparent 100%),
-      radial-gradient(700px 460px at 12% -5%, rgba(240,177,62,.12), transparent 65%),
-      radial-gradient(800px 560px at 95% 105%, rgba(130,110,255,.14), transparent 65%),
-      radial-gradient(600px 380px at 100% 0%, rgba(82,197,255,.09), transparent 65%);
-  }
-  main { max-width: 880px; margin: 0 auto; perspective: 1400px; }
-  .kopf { display: flex; align-items: center; gap: 13px; margin-bottom: 2px; }
-  #logo { flex: none; filter: drop-shadow(0 0 12px rgba(139, 92, 246, .4)); transition: transform .3s ease; }
-  .kopf:hover #logo { transform: scale(1.05); }
-  h1 { margin: 0; line-height: 0; }
-  #wortmarke { display: block; filter: drop-shadow(0 3px 14px rgba(139, 92, 246, .4)); }
-  .titelblock { display: flex; flex-direction: column; }
-  .untertitel {
-    margin: 6px 0 0 2px; color: var(--lila);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-size: 13px; font-weight: 300; letter-spacing: 7px;
-    text-shadow: 0 0 10px rgba(177, 140, 255, .35);
-  }
-  .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
+/* Designvariante „Lidl": helle Fläche, weiße Karten, Lidl-Blau/Gelb/Rot —
+   Designsprache übernommen aus den Projekten mconow und
+   instorecommunications (blauer Kopfbalken mit gelber Unterkante,
+   Dreifarben-Streifen als Kartenakzent, Radius 18, weiche blaue Schatten). */
+:root {
+  --lidl-blau: #0050aa; --lidl-blau-dunkel: #003c80; --lidl-blau-tief: #002b5c;
+  --lidl-rot: #e60a14; --lidl-gelb: #fff000;
+  --bg: #eef3fa; --karte: #ffffff; --rand: #e2e7ee;
+  --text: #10233f; --grau: #5b6675;
+  --ok: #1f8b4c; --warn: #b25b00;
+  /* Theme-Anschlüsse: Logo-/Wortmarken-Farben und Suchrahmen (liest app.js) */
+  --logoMarke: #ffffff;
+  --wm1: #ffffff; --wm2: #dbe9ff; --wm3: #ffffff;
+  --rahmenAktiv: rgba(230, 10, 20, .95);
+  --rahmenOriginal: rgba(255, 240, 0, .95);
+  --streifen: linear-gradient(90deg,
+    var(--lidl-blau) 0 55%, var(--lidl-gelb) 55% 78%, var(--lidl-rot) 78% 100%);
+}
+@keyframes schimmer { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  padding: 24px 16px 64px; min-height: 100vh;
+}
+main { max-width: 880px; margin: 0 auto; }
 
-  /* Umschalter Foto/Video: exakt dieselben Knöpfe wie überall (Outline,
-     wandernder Verlauf beim Überfahren) — nur der GEWÄHLTE Modus bleibt als
-     Zustandsanzeige statisch gefüllt. */
-  .modus { display: inline-flex; gap: 10px; margin-bottom: 16px; }
-  .modus button.aktivmodus {
-    background: var(--lila2);
-    color: #fff; border-color: var(--lila2);
-  }
+/* Kopf: blauer Lidl-Balken mit gelber Unterkante */
+.kopf {
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(120deg, var(--lidl-blau-dunkel) 0%, var(--lidl-blau) 52%, #0060c8 100%);
+  border-bottom: 5px solid var(--lidl-gelb);
+  border-radius: 18px 18px 6px 6px; padding: 18px 22px; margin-bottom: 16px;
+  box-shadow: 0 14px 44px rgba(0, 43, 92, .13);
+}
+#logo { flex: none; filter: drop-shadow(0 2px 6px rgba(0, 43, 92, .35)); transition: transform .3s ease; }
+.kopf:hover #logo { transform: scale(1.05); }
+h1 { margin: 0; line-height: 0; }
+#wortmarke { display: block; }
+.titelblock { display: flex; flex-direction: column; }
+.untertitel {
+  margin: 6px 0 0 2px; color: var(--lidl-gelb);
+  font-family: inherit;
+  font-size: 13px; font-weight: 300; letter-spacing: 7px;
+}
+.unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
 
-  /* Container: Karte mit umlaufendem Regenbogenband + weichem Farbschein */
-  /* Wichtig: KEIN rotateX/preserve-3d auf den Karten — gekippte Karten
-     brachten Chromiums Treffer-Prüfung durcheinander, Klicks auf die
-     Knöpfe gingen dann ins Leere (v1.2-Fehler). */
-  .karte {
-    position: relative; background: var(--karte); border-radius: 14px;
-    padding: 18px; margin-bottom: 18px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .4);
-    transition: transform .35s ease, box-shadow .35s ease;
-  }
-  /* Die Drehung des Bands (--winkel) treibt ein kleines Skript über
-     requestAnimationFrame an — das läuft in jedem Browser und auch dann,
-     wenn CSS-Eigenschafts-Animationen nicht unterstützt werden. */
-  .karte::before {
-    content: ''; position: absolute; inset: 0; border-radius: 14px; padding: 1.5px;
-    background: var(--band);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor; mask-composite: exclude;
-    pointer-events: none;
-  }
-  .karte::after {
-    content: ''; position: absolute; inset: -2px; border-radius: 16px; z-index: -1;
-    background: var(--band); filter: blur(20px); opacity: .16;
-    pointer-events: none;
-  }
-  .karte:hover { transform: translateY(-3px); box-shadow: 0 26px 54px rgba(0, 0, 0, .55), 0 3px 10px rgba(0, 0, 0, .4); }
+/* Umschalter Foto/Video: dieselben Knöpfe wie überall; der gewählte Modus
+   bleibt als Zustandsanzeige statisch gefüllt. */
+.modus { display: inline-flex; gap: 10px; margin-bottom: 16px; }
+.modus button.aktivmodus {
+  background: var(--lidl-blau);
+  color: #fff; border-color: var(--lidl-blau);
+}
 
-  #ablage { padding: 44px 18px; text-align: center; color: var(--grau); cursor: pointer; }
-  #ablage.aktiv, #ablage:hover { background: #171226; }
-  #ablage.aktiv, #ablage:hover { color: var(--text); }
-  #ablage.aktiv::before, #ablage:hover::before { padding: 2.5px; }
-  #ablage.aktiv::after, #ablage:hover::after { opacity: .3; }
-  #ablage strong { color: var(--text); font-size: 18px; }
+/* Karten: weiß mit Lidl-Dreifarben-Streifen als Oberkante.
+   Wichtig: KEIN rotateX/preserve-3d — siehe v1.2-Fehler (Klicks gingen
+   bei gekippten Karten ins Leere). */
+.karte {
+  position: relative; background: var(--karte); border-radius: 18px;
+  border: 1px solid var(--rand);
+  padding: 20px; margin-bottom: 18px; overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0, 43, 92, .13);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.karte::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--streifen);
+  pointer-events: none;
+}
+.karte:hover { transform: translateY(-3px); box-shadow: 0 20px 54px rgba(0, 43, 92, .18); }
 
-  .versteckt { display: none !important; }
-  .zeile { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  .regler { display: grid; grid-template-columns: 130px 1fr 58px; gap: 10px; align-items: center; margin: 8px 0; }
-  .regler label { color: var(--grau); font-size: 14px; }
-  .regler output { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
-  input[type=range] { width: 100%; accent-color: var(--lila2); }
+#ablage { padding: 46px 18px; text-align: center; color: var(--grau); cursor: pointer; }
+#ablage.aktiv, #ablage:hover { background: #f0f6ff; color: var(--text); }
+#ablage.aktiv::before, #ablage:hover::before { height: 6px; }
+#ablage strong { color: var(--lidl-blau); font-size: 18px; }
 
-  /* Knöpfe: schlichte Lila-Outline auf transparentem Grund; beim Überfahren
-     vollflächig und ruhig im Standardlila gefüllt (helle Verlaufstöne machten
-     den Text unlesbar — bewusst clean gehalten). */
-  button, a.laden {
-    display: inline-block; background: transparent;
-    border: 1.5px solid var(--lila2);
-    color: #d9ccff; font-weight: 600; border-radius: 12px;
-    padding: 10px 20px; font-size: 15.5px; cursor: pointer;
-    text-decoration: none; text-shadow: none; box-shadow: none;
-    transition: background .18s ease, color .15s ease, border-color .15s ease,
-                box-shadow .2s ease, transform .12s ease, opacity .15s ease;
-  }
-  button:hover:not(:disabled), a.laden:hover {
-    background: var(--lila2);
-    border-color: var(--lila2); color: #fff;
-    box-shadow: 0 8px 22px rgba(139, 92, 246, .35);
-    transform: translateY(-1px);
-  }
-  button:active:not(:disabled), a.laden:active {
-    transform: translateY(1px);
-    box-shadow: 0 4px 14px rgba(139, 92, 246, .3);
-  }
-  button:disabled { opacity: .4; cursor: default; }
-  button.zweit { font-weight: 500; }
-  a.laden { margin-top: 10px; }
+.versteckt { display: none !important; }
+.zeile { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.regler { display: grid; grid-template-columns: 130px 1fr 58px; gap: 10px; align-items: center; margin: 8px 0; }
+.regler label { color: var(--grau); font-size: 14px; }
+.regler output { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; }
+input[type=range] { width: 100%; accent-color: var(--lidl-blau); }
 
-  /* Vorschau mit leichter 3D-Neigung beim Überfahren */
-  .leinwandhuelle { position: relative; margin: 10px 0; perspective: 1200px; }
-  #leinwand {
-    width: 100%; height: auto; display: block; border-radius: 10px; background: #000;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, .55);
-    transition: transform .35s ease;
-  }
-  .leinwandhuelle:hover #leinwand { transform: rotateX(1.1deg) scale(1.004); }
+/* Knöpfe: Lidl-Blau als Outline, beim Überfahren vollflächig gefüllt */
+button, a.laden {
+  display: inline-block; background: transparent;
+  border: 1.5px solid var(--lidl-blau);
+  color: var(--lidl-blau); font-weight: 600; border-radius: 12px;
+  padding: 10px 20px; font-size: 15.5px; cursor: pointer;
+  text-decoration: none; text-shadow: none; box-shadow: none;
+  transition: background .18s ease, color .15s ease, border-color .15s ease,
+              box-shadow .2s ease, transform .12s ease, opacity .15s ease;
+}
+button:hover:not(:disabled), a.laden:hover {
+  background: var(--lidl-blau);
+  border-color: var(--lidl-blau); color: #fff;
+  box-shadow: 0 8px 22px rgba(0, 80, 170, .3);
+  transform: translateY(-1px);
+}
+button:active:not(:disabled), a.laden:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 14px rgba(0, 80, 170, .25);
+}
+button:disabled { opacity: .4; cursor: default; }
+button.zweit { font-weight: 500; }
+a.laden { margin-top: 10px; }
 
-  .hinweis { color: var(--grau); font-size: 13.5px; }
-  .fehler { color: #f87171; white-space: pre-wrap; }
-  .gut { color: var(--ok); }
-  .warnung { color: var(--warn); }
-  #balkenhuelle { background: #232837; border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; box-shadow: inset 0 2px 5px rgba(0,0,0,.5); }
-  #balken {
-    background: linear-gradient(90deg, #ff5e5e, #ffb648, #f8e16b, #59e08b, #52c5ff, #8a7bff, #e86bff);
-    background-size: 300% 100%; animation: schimmer 3s linear infinite;
-    height: 100%; width: 0%; transition: width .2s; border-radius: 8px;
-  }
-  video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
-  #ergebnisbild { width: 100%; border-radius: 10px; margin-top: 10px; box-shadow: 0 16px 36px rgba(0, 0, 0, .55); }
-  /* (Der Speichern-Knopf a.laden teilt sich die Outline-Gestaltung oben.) */
-  .fuss { color: var(--grau); font-size: 12.5px; margin-top: 28px; }
-  .fuss a { color: var(--grau); }
-  .abschnittstitel { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
-  .knopfzeile { margin-top: 12px; }
+.leinwandhuelle { position: relative; margin: 10px 0; }
+#leinwand {
+  width: 100%; height: auto; display: block; border-radius: 10px; background: #000;
+  box-shadow: 0 10px 28px rgba(0, 43, 92, .22);
+  transition: transform .35s ease;
+}
 
-  /* Bei „Bewegung reduzieren": Schimmer/Puls aus — das Regenbogenband
-     dreht bewusst weiter, es ist Teil der Optik und flackert nicht. */
-  @media (prefers-reduced-motion: reduce) {
-    #balken, h1, h1 .funkel { animation: none; }
-    .karte, #leinwand, button, a.laden { transition: none; }
-  }
+.hinweis { color: var(--grau); font-size: 13.5px; }
+.fehler { color: var(--lidl-rot); white-space: pre-wrap; }
+.gut { color: var(--ok); }
+.warnung { color: var(--warn); }
+#balkenhuelle { background: var(--rand); border-radius: 8px; height: 14px; overflow: hidden; margin: 10px 0; box-shadow: inset 0 2px 5px rgba(0, 43, 92, .12); }
+#balken {
+  background: var(--streifen);
+  background-size: 200% 100%; animation: schimmer 3s linear infinite;
+  height: 100%; width: 0%; transition: width .2s; border-radius: 8px;
+}
+video { width: 100%; border-radius: 10px; background: #000; margin-top: 10px; box-shadow: 0 10px 28px rgba(0, 43, 92, .22); }
+#ergebnisbild { width: 100%; border-radius: 10px; margin-top: 10px; box-shadow: 0 10px 28px rgba(0, 43, 92, .22); }
+.fuss { color: var(--grau); font-size: 12.5px; margin-top: 28px; }
+.fuss a { color: var(--lidl-blau); }
+.abschnittstitel { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--lidl-blau); }
+.knopfzeile { margin-top: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #balken { animation: none; }
+  .karte, #leinwand, button, a.laden { transition: none; }
+}
+
 </style>
 </head>
 <body>

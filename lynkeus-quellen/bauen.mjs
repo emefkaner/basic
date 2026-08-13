@@ -24,15 +24,31 @@ const bundle = ergebnis.outputFiles[0].text;
 const uri = (pfad) => 'data:image/png;base64,' + fs.readFileSync(pfad).toString('base64');
 const struktur = fs.readFileSync(HIER + 'src/struktur.html', 'utf8');
 
+// Version (Fußzeile Nachtdesign) — beim Versionssprung hier UND im
+// Kommentar in src/struktur.html nachziehen.
+const VERSION = '2.7';
+
 const VARIANTEN = [
-  { thema: 'thema-lynkeus.css', favicon: 'favicon.png', ziel: '../lynkeus.html' },
-  { thema: 'thema-lidl.css', favicon: 'favicon-lidl.png', ziel: '../lynkeus-lidl.html' },
+  {
+    thema: 'thema-lynkeus.css', favicon: 'favicon.png', ziel: '../lynkeus.html',
+    kopfrechts: '',
+    fusszeile1: `<strong>Lynkeus v${VERSION}</strong> · Created by emefka`,
+  },
+  {
+    thema: 'thema-lidl.css', favicon: 'favicon-lidl.png', ziel: '../lynkeus-lidl.html',
+    // Team-Kunde-Logo wie im MCO-Now-Konverter (sales-kunde.png, verkleinert)
+    kopfrechts: `<div class="kundeblock"><span class="kundelabel">bereitgestellt von</span>` +
+      `<img id="kundelogo" src="${uri(HIER + 'kundelogo.png')}" alt="Team Kunde"></div>`,
+    fusszeile1: '<strong>Lynkeus – GEMINI Fighter</strong> · Erstellt von Marc Ferdinand Körner – Team Kunde',
+  },
 ];
 
 for (const v of VARIANTEN) {
   let html = struktur;
   html = html.split('__THEMA__').join(fs.readFileSync(HIER + 'src/' + v.thema, 'utf8'));
   html = html.split('__FAVICON__').join(uri(HIER + v.favicon));
+  html = html.split('__KOPFRECHTS__').join(v.kopfrechts);
+  html = html.split('__FUSSZEILE1__').join(v.fusszeile1);
   html = html.split('__BG96__').join(uri(HIER + 'bg_96.png'));
   html = html.split('__BG48__').join(uri(HIER + 'bg_48.png'));
   // split/join statt replace: das Bundle enthält $-Zeichen, die replace() deuten würde

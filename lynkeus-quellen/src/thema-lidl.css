@@ -50,6 +50,15 @@ h1 { margin: 0; line-height: 0; }
 }
 .unter { color: var(--grau); margin: 10px 0 20px; font-size: 14.5px; }
 
+/* Team-Kunde-Logo oben rechts im blauen Kopfbalken (wie im MCO-Now-Konverter) */
+.kundeblock { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+.kundelabel { color: rgba(255, 255, 255, .72); font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+#kundelogo { display: block; height: 48px; width: auto; max-width: 190px; object-fit: contain; }
+@media (max-width: 560px) {
+  .kundelabel { display: none; }
+  #kundelogo { height: 30px; max-width: 110px; }
+}
+
 /* Umschalter Foto/Video: dieselben Knöpfe wie überall; der gewählte Modus
    bleibt als Zustandsanzeige statisch gefüllt. */
 .modus { display: inline-flex; gap: 10px; margin-bottom: 16px; }

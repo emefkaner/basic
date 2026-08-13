@@ -27,7 +27,7 @@ etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
 
 ## Versionierung
 
-Aktuelle Version: **2.6** (steht in `src/struktur.html`, gilt für beide Varianten). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.7** (Kommentar in `src/struktur.html` + Konstante VERSION in `bauen.mjs`; sichtbar nur im Footer des Nachtdesigns — die Lidl-Fußzeile nennt auf Wunsch stattdessen den Ersteller). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/struktur.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, BEIDE fertigen Dateien mit
 committen.
@@ -80,6 +80,11 @@ committen.
   drei Lidl-Farben (statt statischem Streifen oben)
 - 2.6 — Lidl-Band mit HARTEN Farbkanten: nur Blau/Gelb/Rot als Segmente,
   keine Zwischenfarben (der weiche Verlauf mischte Grün/Orange/Violett)
+- 2.7 — Lidl-Variante: Team-Kunde-Logo oben rechts im Kopfbalken (aus dem
+  MCO-Now-Konverter, `kundelogo.png` = verkleinertes sales-kunde.png) und
+  eigene Fußzeile „Lynkeus – GEMINI Fighter · Erstellt von Marc Ferdinand
+  Körner – Team Kunde"; Kopf-rechts und Fußzeile sind jetzt
+  Varianten-Bausteine in bauen.mjs
 
 ## Dateien
 

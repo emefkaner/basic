@@ -39,6 +39,25 @@ export const config = {
   // Optionale Alternativen.
   openaiKey: process.env.OPENAI_API_KEY || '',
   anthropicKey: process.env.ANTHROPIC_API_KEY || '',
+  // Wer schreibt die Aufnahmen mit: auto | gemini | openai | elevenlabs.
+  // „auto" heißt: Gemini, sonst OpenAI, sonst ElevenLabs.
+  sttAnbieter: process.env.STT_ANBIETER || 'auto',
+  // ElevenLabs: Sprachausgabe, Stimme aufräumen, Mitschrift.
+  // Ohne Schlüssel bleiben alle drei Funktionen schlicht aus.
+  elevenlabs: {
+    key: process.env.ELEVENLABS_API_KEY || '',
+    // Stimme für die Sprachausgabe. IDs stehen unter
+    // https://elevenlabs.io/app/voice-library – oder in der App auswählen.
+    voiceId: process.env.ELEVENLABS_VOICE_ID || '',
+    // eleven_multilingual_v2 ist die Vorgabe der API und kann Deutsch.
+    model: process.env.ELEVENLABS_MODEL || 'eleven_multilingual_v2',
+    // scribe_v2 ist laut Modelltabelle der Nachfolger von scribe_v1.
+    scribeModel: process.env.ELEVENLABS_SCRIBE_MODEL || 'scribe_v2',
+    // Basis-Adresse. ElevenLabs bietet regionale Server an
+    // (api.eu.residency.elevenlabs.io und weitere); außerdem lässt sich damit
+    // im Test ein Ersatzserver vorschalten, ohne echte Credits zu verbrennen.
+    basis: (process.env.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io/v1').replace(/\/$/, ''),
+  },
   // Spotify for Podcasters (Anchor) – für den direkten Push per Browser-Automation.
   anchor: {
     email: process.env.ANCHOR_EMAIL || '',
@@ -72,4 +91,8 @@ export const defaultSettings = {
   sourceFeedUrl: process.env.SOURCE_FEED_URL || '',
   // Wer im Podcast spricht und wie – fließt in jeden Infotext ein.
   crew: '',
+  // ElevenLabs: gewählte Stimme und die zuletzt gesprochenen Texte.
+  elevenVoiceId: '',
+  introText: '',
+  outroText: '',
 };

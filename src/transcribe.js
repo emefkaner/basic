@@ -4,23 +4,45 @@ import OpenAI from 'openai';
 import { config, paths } from './config.js';
 import { toTranscriptionAudio } from './audio.js';
 import { geminiClient, geminiGenerate } from './gemini.js';
+import { elevenlabsAktiv, mitScribeTranskribieren } from './elevenlabs.js';
 
-// Wandelt eine Aufnahme in Text um.
-// Bevorzugt Google Gemini (kostenloser Kontingentbereich, gut bei Deutsch und
-// Eigennamen). Fällt auf OpenAI Whisper zurück, wenn nur dieser Schlüssel gesetzt ist.
-// Ohne Schlüssel wird "" zurückgegeben – die App funktioniert dann ohne Transkript.
+// Welcher Dienst schreibt mit?
+//
+// Vorgabe bleibt Gemini (kostenloser Kontingentbereich). ElevenLabs Scribe wird
+// nur genommen, wenn es ausdrücklich eingestellt ist — sonst wäre ein
+// gesetzter Schlüssel gleichbedeutend mit stillen Kosten bei jeder Folge.
+export function sttAnbieter() {
+  const gewuenscht = (config.sttAnbieter || 'auto').toLowerCase();
+  if (gewuenscht === 'elevenlabs') return elevenlabsAktiv() ? 'elevenlabs' : 'auto-aus';
+  if (gewuenscht === 'gemini') return config.geminiKey ? 'gemini' : 'auto-aus';
+  if (gewuenscht === 'openai') return config.openaiKey ? 'openai' : 'auto-aus';
+  if (config.geminiKey) return 'gemini';
+  if (config.openaiKey) return 'openai';
+  if (elevenlabsAktiv()) return 'elevenlabs';
+  return 'keiner';
+}
+
+// Wandelt eine Aufnahme in Text um. Welcher Dienst das tut, entscheidet
+// `sttAnbieter()` — Vorgabe ist Gemini (kostenloser Kontingentbereich, gut bei
+// Deutsch und Eigennamen). Ohne jeden Schlüssel kommt "" zurück; die App
+// funktioniert dann ohne Transkript.
 // Mehrere Aufnahme-Teile nacheinander transkribieren und zusammenfügen.
 // Gibt Text UND Fehlergründe zurück: Ein leises Scheitern hat schon dazu
 // geführt, dass am Ende gar kein Infotext entstand, ohne dass jemand wusste warum.
 // „melde" bekommt kurze Sätze über den aktuellen Schritt. Ohne das sitzt der
 // Nutzer minutenlang vor einer Anzeige, die nichts sagt.
-export async function transcribeAll(files, melde = () => {}) {
+//
+// Ein Eintrag in `quellen` ist entweder ein Dateipfad (wie bisher) oder
+// `{ datei, adresse }`. Die `adresse` ist die öffentliche Speicheradresse der
+// Aufnahme; ElevenLabs Scribe holt sie damit selbst ab, statt dass sie durch
+// die App hindurchgeschoben wird.
+export async function transcribeAll(quellen, melde = () => {}) {
   const parts = [];
   const fehler = [];
-  for (let i = 0; i < files.length; i++) {
-    const teil = (text) => melde({ teil: i + 1, gesamt: files.length, phase: text });
+  for (let i = 0; i < quellen.length; i++) {
+    const teil = (text) => melde({ teil: i + 1, gesamt: quellen.length, phase: text });
     try {
-      const text = await transcribe(files[i], teil);
+      const text = await transcribe(quellen[i], teil);
       if (text) parts.push(text);
     } catch (err) {
       console.error('Transkription eines Teils fehlgeschlagen:', err.message);
@@ -30,22 +52,34 @@ export async function transcribeAll(files, melde = () => {}) {
   return { text: parts.join('\n\n'), fehler };
 }
 
-export async function transcribe(file, melde = () => {}) {
-  if (!config.geminiKey && !config.openaiKey) return '';
+export async function transcribe(quelle, melde = () => {}) {
+  const { datei, adresse } = typeof quelle === 'string' ? { datei: quelle, adresse: '' } : (quelle || {});
+  const anbieter = sttAnbieter();
+  if (anbieter === 'keiner' || anbieter === 'auto-aus') return '';
+
+  // ElevenLabs Scribe: Wenn die Aufnahme öffentlich im Speicher liegt, wird sie
+  // gar nicht erst angefasst — kein Herunterladen, kein Umwandeln, kein
+  // Hochladen. Das ist der mit Abstand sparsamste Weg.
+  if (anbieter === 'elevenlabs' && adresse) {
+    return await mitScribeTranskribieren({ sourceUrl: adresse, melde });
+  }
+
+  if (!datei) throw new Error('Aufnahme liegt weder als Datei noch unter einer abrufbaren Adresse vor.');
 
   // Für die Übertragung eine schlanke Mono-MP3 erzeugen (klein und überall lesbar).
-  const slim = path.join(paths.tmp, `stt-${path.basename(file)}.mp3`);
-  let source = file;
+  const slim = path.join(paths.tmp, `stt-${path.basename(datei)}.mp3`);
+  let source = datei;
   try {
     melde('Aufnahme wird für die Übertragung verkleinert');
-    await toTranscriptionAudio(file, slim);
+    await toTranscriptionAudio(datei, slim);
     source = slim;
   } catch (err) {
     console.error('Konvertierung für Transkription fehlgeschlagen, nutze Originaldatei:', err.message);
   }
 
   try {
-    if (config.geminiKey) return await transcribeWithGemini(source, melde);
+    if (anbieter === 'elevenlabs') return await mitScribeTranskribieren({ file: source, melde });
+    if (anbieter === 'gemini') return await transcribeWithGemini(source, melde);
     melde('Aufnahme wird mitgeschrieben');
     return await transcribeWithWhisper(source);
   } finally {

@@ -251,7 +251,8 @@ einem kurzen `curl` prüfen statt raten.
 | `pub-….r2.dev` (öffentliche R2-Adresse) | gesperrt |
 | `cinespasten.emefka.com` (die App) | gesperrt |
 | `api.github.com`, `www.google.com` | gesperrt |
-| `docs.dolby.io`, `dev.to`, `elevenlabs.io` | gesperrt (WebFetch: EGRESS_BLOCKED) |
+| `elevenlabs.io`, `api.elevenlabs.io` | **erreichbar** (geprüft 18.08.2026 — die alte „gesperrt"-Notiz war überholt) |
+| `docs.dolby.io`, `dev.to` | gesperrt (WebFetch: EGRESS_BLOCKED) |
 
 Wichtig: In `SETUP-WERTE.md` stehen **keine** R2-Schlüssel (nur Bucket,
 Account-ID, öffentliche Adresse). Ohne Schlüssel kein Zugriff auf die Bilder im
@@ -445,6 +446,64 @@ mit den vorhandenen Credits funktioniert.
 
 Der eingebaute Cover-Generator wurde deshalb aus der App entfernt. In der
 Folge gibt es nur noch „Bild von einer Adresse übernehmen" und den Upload.
+
+## ElevenLabs (eingebaut 18.08.2026)
+
+Drei Funktionen, alle **aus**, solange kein `ELEVENLABS_API_KEY` gesetzt ist.
+Anbindung liegt in `src/elevenlabs.js` — bewusst ohne SDK, drei HTTP-Aufrufe.
+
+An der Doku belegt, nicht geraten:
+
+| Was | Endpunkt | Form |
+|---|---|---|
+| Sprachausgabe | `POST /v1/text-to-speech/{voice_id}` | JSON, gibt Audio |
+| Stimme aufräumen | `POST /v1/audio-isolation` | multipart, Feld `audio` |
+| Mitschrift | `POST /v1/speech-to-text` | multipart, `model_id` Pflicht |
+| Stimmen | `GET /v1/voices` | — |
+
+Angemeldet wird über die Kopfzeile **`xi-api-key`** (mit falschem Schlüssel
+antwortet die API 401 `{"detail":{"message":"Invalid API key"}}` — selbst
+ausprobiert).
+
+**Was das kostet — der wichtigste Punkt:**
+
+- *Stimme aufräumen*: **1000 Credits je Minute** Audio und **höchstens
+  60 Minuten je Datei**. Eine 2-Stunden-Folge kostet also rund 120.000 Credits
+  und muss außerdem in Teile unter einer Stunde zerlegt sein. Der Gratis-Tarif
+  hat 10.000 im Monat. Deshalb ist der Schalter standardmäßig aus, und der
+  Preis steht als echte Zahl direkt daneben in der Oberfläche.
+- *Sprachausgabe*: 1 Credit je Zeichen.
+- *Mitschrift*: nach Audio-Dauer.
+
+**Der Bandbreiten-Kniff:** Scribe kennt `source_url` — ElevenLabs holt die
+Aufnahme dann **selbst aus R2**, es läuft kein Byte durch Render. Bei
+`STT_ANBIETER=elevenlabs` und aktivem R2 wird der Teil deshalb gar nicht erst
+heruntergeladen (`direktMoeglich` in `routes/episodes.js`). Genau das entlastet
+die Bandbreite, an der der Hobby-Tarif im August hängen blieb. Voice Isolator
+kann das **nicht** — der nimmt nur eine hochgeladene Datei.
+
+**Geprüft** mit einem Ersatzserver, der die Endpunkte nachbildet (Skript lag im
+Kritzelordner, nicht im Repo): 29 Prüfungen, darunter Feldnamen im multipart,
+`output_format`, die 60-Minuten-Grenze *vor* dem Hochladen, Fehlertexte im
+Klartext, und im Browser Stimmenauswahl, Vorhören, „Als Intro übernehmen",
+Schalter in der Folge und die Fehleranzeige. **Ungeprüft bleibt der Lauf gegen
+die echte API** (kein Schlüssel vorhanden) und das eigentliche Aufräumen im
+Bau-Weg (kein ffmpeg im Sandkasten).
+
+`ELEVENLABS_BASE_URL` gibt es genau dafür — und für ElevenLabs' regionale
+Server (`api.eu.residency.elevenlabs.io`).
+
+### ElevenLabs im Chat mit Claude
+
+Zwei verschiedene Dinge, nicht verwechseln:
+
+- **Connector im Claude-Verzeichnis** (`https://api.elevenlabs.io/v1/mcp`,
+  OAuth): verwaltet **Sprach-Agenten** (`create_agent`, `get_agent`, …) und
+  kann Sprachausgabe nur als kurzlebigen Download-Link. Für Podcast-Arbeit zu
+  wenig.
+- **Offizieller lokaler MCP-Server** (`uvx elevenlabs-mcp`, PyPI
+  `elevenlabs-mcp`): kann alles — TTS, Stimmklone, Transkription. Braucht
+  `ELEVENLABS_API_KEY` in der Konfiguration des MCP-Clients.
 
 ## Sprache
 

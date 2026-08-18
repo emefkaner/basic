@@ -7,12 +7,13 @@ import { paths } from '../config.js';
 import { requireAuth } from '../auth.js';
 import { listEpisodes, getEpisode, saveEpisode, deleteEpisode, getSettings } from '../store.js';
 import { buildEpisode, buildEpisodeCopy, probeDuration, bereinigungNoetig } from '../audio.js';
-import { transcribeAll } from '../transcribe.js';
+import { transcribeAll, sttAnbieter } from '../transcribe.js';
 import { generateDescription } from '../describe.js';
 import { uploadFile, downloadToFile, deleteKey, storageEnabled, publicUrl } from '../storage.js';
 import { config } from '../config.js';
 import { publishToAnchor } from '../anchorPublisher.js';
 import { generatePeaks, cutRegions, PEAKS_VERSION } from '../waveform.js';
+import { elevenlabsAktiv, stimmeIsolieren, isolationCredits, GRENZEN } from '../elevenlabs.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -99,6 +100,10 @@ router.post('/', uploadFelder, async (req, res) => {
       // RNNoise ist unabhängig zuschaltbar und standardmäßig an: kostet nichts
       // und trifft Umgebungsgeräusche besser als die klassischen Filter.
       rnnoise: req.body.rnnoise !== 'false' && req.body.rnnoise !== '0',
+      // ElevenLabs Voice Isolator. Standardmäßig AUS, weil er echtes Geld
+      // kostet: 1000 Credits je Minute Audio, also rund 120.000 für eine
+      // 2-Stunden-Folge. Der Gratis-Tarif hat 10.000 im Monat.
+      elevenlabs: req.body.elevenlabs === 'true' || req.body.elevenlabs === '1',
     },
     // Alle Teile auf dieselbe Lautheit ziehen, damit Teil 1 und Teil 2 nicht
     // unterschiedlich laut sind. Standardmäßig an – das will man fast immer.
@@ -230,6 +235,7 @@ router.post('/:id/fertig', fertigUpload.single('fertig'), async (req, res) => {
         enabled: req.body.enhance !== 'false',
         strength: zahl(req.body.strength, STANDARD_STAERKE, 0, 100),
         rnnoise: req.body.rnnoise === 'true',
+        elevenlabs: req.body.elevenlabs === 'true',
       };
     }
     if (req.body?.normalize !== undefined) {
@@ -464,16 +470,27 @@ async function transkriptNachholen(id) {
   try {
     const ep = getEpisode(id);
     const gesamt = (ep.parts || []).length;
-    const partPaths = [];
+
+    // Schreibt ElevenLabs mit und liegen die Aufnahmen öffentlich im Speicher,
+    // holt ElevenLabs sie selbst ab. Dann läuft KEIN Byte durch diese App —
+    // bei einer 2-Stunden-Folge spart das je Lauf mehrere hundert Megabyte
+    // Bandbreite in beide Richtungen. Genau daran hing die Render-Sperre.
+    const direktMoeglich = sttAnbieter() === 'elevenlabs' && storageEnabled();
+
+    const quellen = [];
     for (const part of ep.parts || []) {
-      melde({ phase: 'Aufnahmen werden geholt', teil: partPaths.length + 1, gesamt });
+      if (direktMoeglich) {
+        quellen.push({ datei: '', adresse: publicUrl(part.key) });
+        continue;
+      }
+      melde({ phase: 'Aufnahmen werden geholt', teil: quellen.length + 1, gesamt });
       const local = path.join(paths.tmp, `stt-${id}-${part.id}${path.extname(part.key)}`);
       const got = await downloadToFile(part.key, local);
-      if (got) { partPaths.push(got); tmpFiles.push(got); }
+      if (got) { quellen.push({ datei: got, adresse: '' }); tmpFiles.push(got); }
     }
-    if (!partPaths.length) throw new Error('Aufnahmen nicht abrufbar.');
+    if (!quellen.length) throw new Error('Aufnahmen nicht abrufbar.');
 
-    const { text, fehler } = await transcribeAll(partPaths, melde);
+    const { text, fehler } = await transcribeAll(quellen, melde);
 
     // Aus dem frischen Transkript gleich einen neuen Textvorschlag ziehen.
     melde({ phase: 'Infotext wird geschrieben', teil: gesamt, gesamt });
@@ -587,6 +604,7 @@ router.put('/:id', (req, res) => {
       enabled: Boolean(req.body.enhance.enabled),
       strength: zahl(req.body.enhance.strength, STANDARD_STAERKE, 0, 100),
       rnnoise: Boolean(req.body.enhance.rnnoise),
+      elevenlabs: Boolean(req.body.enhance.elevenlabs),
     };
     ep.needsRebuild = true;
   }
@@ -759,12 +777,50 @@ async function buildAndAnalyse(id, { withText = true, fertigDatei = null } = {})
     melde('Aufnahmen werden geladen …');
     // Aufnahme-Teile in ihrer Reihenfolge in den Arbeitsordner holen.
     const partPaths = [];
+    const partQuellen = [];   // dieselben Teile, zusätzlich mit Speicheradresse
     for (const part of ep.parts || []) {
       const local = path.join(paths.tmp, `part-${id}-${part.id}${path.extname(part.key)}`);
       const got = await downloadToFile(part.key, local);
-      if (got) { partPaths.push(got); tmpFiles.push(got); }
+      if (got) {
+        partPaths.push(got);
+        tmpFiles.push(got);
+        partQuellen.push({ datei: got, adresse: storageEnabled() ? publicUrl(part.key) : '' });
+      }
     }
     if (!partPaths.length) throw new Error('Keine Aufnahme-Teile gefunden.');
+
+    // Stimme aufräumen mit ElevenLabs (Voice Isolator), falls angehakt.
+    //
+    // Bewusst VOR dem Zusammenbauen und teilweise: Der Dienst nimmt höchstens
+    // 60 Minuten je Datei. Scheitert ein Teil, wird er unverändert
+    // weiterverwendet — eine fertige Folge ist mehr wert als ein sauberer
+    // Klang — aber der Grund landet an der Folge und damit vor den Augen des
+    // Nutzers. Ein stilles Scheitern hat hier schon zu viel Sucherei geführt.
+    if (ep.enhance?.elevenlabs && elevenlabsAktiv()) {
+      const gruende = [];
+      for (let i = 0; i < partPaths.length; i++) {
+        melde(`Stimme wird aufgeräumt (Teil ${i + 1} von ${partPaths.length}) …`);
+        const dauer = await probeDuration(partPaths[i]).catch(() => 0);
+        const sauber = path.join(paths.tmp, `clean-${id}-${i}.mp3`);
+        try {
+          if (dauer > GRENZEN.isolationSekunden) {
+            throw new Error(`Teil ${i + 1} ist ${Math.round(dauer / 60)} Minuten lang — ElevenLabs schafft höchstens 60.`);
+          }
+          await stimmeIsolieren({ inFile: partPaths[i], outFile: sauber, dauerSekunden: dauer });
+          partPaths[i] = sauber;
+          partQuellen[i] = { datei: sauber, adresse: '' }; // aufgeräumt liegt nur lokal
+          tmpFiles.push(sauber);
+          console.log(`ElevenLabs hat Teil ${i + 1} aufgeräumt (~${isolationCredits(dauer)} Credits).`);
+        } catch (err) {
+          console.error('Aufräumen fehlgeschlagen:', err.message);
+          gruende.push(err.message);
+          fs.rmSync(sauber, { force: true });
+        }
+      }
+      const merk = getEpisode(id);
+      merk.aufraeumFehler = gruende.join(' · ');
+      saveEpisode(merk);
+    }
 
     // Intro/Outro bei Bedarf holen.
     let introPath = null, outroPath = null;
@@ -828,7 +884,7 @@ async function buildAndAnalyse(id, { withText = true, fertigDatei = null } = {})
       let transcript = '', transkriptFehler = [];
       try {
         melde('Aufnahme wird transkribiert … (dauert bei langen Folgen)');
-        const erg = await transcribeAll(partPaths);
+        const erg = await transcribeAll(partQuellen);
         transcript = erg.text;
         transkriptFehler = erg.fehler;
       } catch (err) {

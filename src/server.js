@@ -13,6 +13,7 @@ import episodesRouter from './routes/episodes.js';
 import settingsRouter from './routes/settings.js';
 import importRouter from './routes/import.js';
 import statusRouter from './routes/status.js';
+import elevenlabsRouter from './routes/elevenlabs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(__dirname, '..', 'public');
@@ -59,6 +60,7 @@ app.use('/api/episodes', episodesRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/import', importRouter);
 app.use('/api/status', statusRouter);
+app.use('/api/elevenlabs', elevenlabsRouter);
 
 // ---- Frontend ----
 // Login-Seite immer erreichbar; die App-Seite erfordert Login (sonst Redirect).

@@ -40,6 +40,9 @@ Auf dem Handy braucht die Mikrofon-Aufnahme **HTTPS** (lokal geht `localhost`).
 | `GEMINI_API_KEY`    | **Empfohlen:** Transkription **und** Infotext ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)) |
 | `OPENAI_API_KEY`    | optionale Alternative zur Transkription (Whisper)           |
 | `ANTHROPIC_API_KEY` | optionale Alternative für den Infotext (Claude)             |
+| `ELEVENLABS_API_KEY`| optional: Sprachausgabe, „Stimme aufräumen", Mitschrift ([elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys)) |
+| `ELEVENLABS_VOICE_ID`| optional: Stimme für die Sprachausgabe (geht auch in der App) |
+| `STT_ANBIETER`      | wer mitschreibt: `auto` (Standard), `gemini`, `openai`, `elevenlabs` |
 | `DATA_DIR`          | Lokaler Zwischenspeicher / Fallback (Render: `/data`)       |
 | `R2_*`              | Cloudflare R2 (empfohlen, siehe unten) – dauerhafter Speicher|
 | `PORT`              | Server-Port (Standard 3000)                                 |
@@ -133,6 +136,28 @@ stärkere Trennung von Stimme und Umgebung (Auto/Restaurant) kannst du ein
 die App nutzt es dann automatisch zusätzlich.
 
 ---
+
+## ElevenLabs (optional, kostet Credits)
+
+Mit einem `ELEVENLABS_API_KEY` kommen drei Dinge dazu. Ohne Schlüssel bleibt
+alles aus und die App läuft unverändert.
+
+1. **Sprachausgabe** — in den Einstellungen unter „🗣️ ElevenLabs": Stimme
+   wählen, Text eintippen, vorhören, und bei Gefallen als **Intro** oder
+   **Outro** übernehmen. Kosten: 1 Credit je Zeichen.
+2. **Stimme aufräumen** — in der Folge unter „🎚️ Klang nachjustieren" der
+   Schalter „🗣️ Stimme aufräumen (ElevenLabs)". Holt die Sprache aus der
+   Aufnahme heraus, deutlich kräftiger als RNNoise.
+   **Kostet 1000 Credits je Minute** — eine 2-Stunden-Folge also rund 120.000,
+   bei 10.000 Gratis-Credits im Monat. Läuft nur über „Auf dem Server
+   berechnen" und höchstens 60 Minuten je Teil.
+3. **Mitschrift (Scribe)** — mit `STT_ANBIETER=elevenlabs` statt Gemini.
+   Praktischer Nebeneffekt: Liegen die Aufnahmen in R2, holt ElevenLabs sie
+   **selbst** von dort. Es läuft dann kein Byte durch die App — das spart bei
+   langen Folgen je Lauf hunderte Megabyte Bandbreite.
+
+Scheitert das Aufräumen, wird die Folge trotzdem gebaut (mit den
+unbearbeiteten Aufnahmen), und der Grund steht in der Folgenansicht.
 
 ## Was diese App bewusst NICHT tut
 

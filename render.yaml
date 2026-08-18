@@ -29,6 +29,13 @@ services:
         sync: false          # optionale Alternative zur Transkription (Whisper)
       - key: ANTHROPIC_API_KEY
         sync: false          # optionale Alternative für den Infotext (Claude)
+      # ---- ElevenLabs (optional) ----
+      - key: ELEVENLABS_API_KEY
+        sync: false          # Sprachausgabe, Stimme aufräumen, Mitschrift
+      - key: ELEVENLABS_VOICE_ID
+        sync: false          # kann leer bleiben, Auswahl geht in der App
+      - key: STT_ANBIETER
+        value: auto          # auf "elevenlabs" stellen, um Scribe zu nutzen
       # ---- Cloudflare R2 (empfohlen) ----
       - key: R2_ACCOUNT_ID
         sync: false

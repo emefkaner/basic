@@ -5,6 +5,7 @@ import { getSettings, listEpisodes } from '../store.js';
 import { storageEnabled } from '../storage.js';
 import { geminiModellName } from '../gemini.js';
 import { istEingeplant, feedDatum } from '../rss.js';
+import { sttAnbieter } from '../transcribe.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -30,9 +31,13 @@ router.get('/', async (req, res) => {
     schluessel: {
       gemini: Boolean(config.geminiKey),
       anchor: Boolean(config.anchor.email && config.anchor.password),
+      elevenlabs: Boolean(config.elevenlabs.key),
     },
     geminiModell,
-    klangbereinigung: 'lokal: RNNoise + ffmpeg-Filter (kostet nichts)',
+    klangbereinigung: config.elevenlabs.key
+      ? 'lokal: RNNoise + ffmpeg-Filter (kostet nichts) · zusätzlich zuschaltbar: ElevenLabs Voice Isolator (kostet Credits)'
+      : 'lokal: RNNoise + ffmpeg-Filter (kostet nichts)',
+    mitschrift: sttAnbieter(),
     dateien: {
       intro: s.intro || null,
       outro: s.outro || null,

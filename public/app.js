@@ -35,6 +35,16 @@ function uploadMitFortschritt(url, formData, onProgress) {
   });
 }
 
+// ElevenLabs-Status einmal holen und merken – er ändert sich während einer
+// Sitzung nicht, und jede Ansicht bräuchte ihn sonst neu.
+let elevenStatusCache = null;
+async function elevenStatus() {
+  if (elevenStatusCache) return elevenStatusCache;
+  try { elevenStatusCache = await api('/api/elevenlabs/status'); }
+  catch { elevenStatusCache = { aktiv: false }; }
+  return elevenStatusCache;
+}
+
 function fmtMB(bytes) {
   return (bytes / 1048576).toFixed(1).replace('.', ',');
 }
@@ -552,6 +562,8 @@ async function renderEpisode(id) {
     ep = await api(`/api/episodes/${encodeURIComponent(id)}`);
   } catch (err) { view.innerHTML = `<p class="error">${err.message}</p>`; return; }
 
+  const elev = await elevenStatus();
+
   // Solange in Verarbeitung: Statusanzeige + Polling.
   if (ep.status === 'processing') {
     const schritte = [
@@ -717,6 +729,10 @@ async function renderEpisode(id) {
         <p class="field-hint" style="margin:8px 0 12px;padding:8px 10px;border-left:3px solid var(--purple);background:var(--surface);border-radius:0 8px 8px 0;">
           <b>Aktuelle Fassung:</b> ${klangStandText(ep)}
         </p>
+        ${ep.aufraeumFehler
+          ? `<p class="error" style="margin:0 0 12px;">Stimme aufräumen ging nicht:
+               ${escapeHtml(ep.aufraeumFehler)}<br>Die Folge wurde mit den unbearbeiteten Aufnahmen gebaut.</p>`
+          : ''}
 
         <label style="display:flex;align-items:center;gap:10px;">
           <input type="checkbox" id="reRnn" ${ep.enhance?.rnnoise ? 'checked' : ''} style="width:auto;" />
@@ -726,6 +742,15 @@ async function renderEpisode(id) {
           trennen. Trifft Lüfter, Straße und Raumrauschen deutlich genauer als der Regler darunter und
           lässt dabei Lachen stehen — das Modell ist eigens auf Stimme <i>inklusive</i> nicht-sprachlicher
           Laute trainiert. Kostet nichts und läuft ohne fremde Server.</p>
+${elev.aktiv ? `
+        <label style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+          <input type="checkbox" id="reEleven" ${ep.enhance?.elevenlabs ? 'checked' : ''} style="width:auto;" />
+          🗣️ Stimme aufräumen (ElevenLabs)
+        </label>
+        <p class="field-hint">Holt die Sprache aus der Aufnahme heraus — deutlich kräftiger als alles
+          darüber, aber es <b>kostet Geld</b>: ${elev.creditsProStunde.toLocaleString('de-DE')} Credits je Stunde
+          Aufnahme, bei einer 2-Stunden-Folge also rund ${(elev.creditsProStunde * 2).toLocaleString('de-DE')}.
+          Läuft nur über <b>„Auf dem Server berechnen"</b> und höchstens 60 Minuten je Teil.</p>` : ''}
 
         <label style="display:flex;align-items:center;gap:10px;margin-top:12px;">
           <input type="checkbox" id="reEnh" ${ep.enhance?.enabled ? 'checked' : ''} style="width:auto;" />
@@ -1096,9 +1121,12 @@ function warteAufTranskript(id) {
 // bleibt stehen und zeigt weiter den tatsächlichen Stand der Audiodatei.
 function klangStandText(ep) {
   const teile = [];
+  if (ep.enhance?.elevenlabs) teile.push('Stimme aufgeräumt (ElevenLabs)');
   if (ep.enhance?.rnnoise) teile.push('KI-Entrauschung (RNNoise)');
   if (ep.enhance?.enabled) teile.push(`${ep.enhance.strength ?? 20} % klassische Rauschunterdrückung`);
-  if (!ep.enhance?.rnnoise && !ep.enhance?.enabled) teile.push('ohne Rauschunterdrückung');
+  if (!ep.enhance?.rnnoise && !ep.enhance?.enabled && !ep.enhance?.elevenlabs) {
+    teile.push('ohne Rauschunterdrückung');
+  }
 
   if (ep.normalize?.enabled !== false) teile.push('Teile gleich laut');
   if (ep.trimSilence?.enabled) {
@@ -1150,6 +1178,8 @@ function reEinstellungen() {
       enabled: $('#reEnh').checked,
       strength: Number($('#reStrength').value),
       rnnoise: $('#reRnn').checked,
+      // Der Schalter fehlt, wenn ElevenLabs nicht eingerichtet ist.
+      elevenlabs: Boolean($('#reEleven')?.checked),
     },
     normalize: { enabled: $('#reNorm').checked },
     trimSilence: {
@@ -1244,6 +1274,9 @@ function wireNachjustieren(id, ep) {
       fd.append('enhance', String(enhance.enabled));
       fd.append('strength', String(enhance.strength));
       fd.append('rnnoise', String(enhance.rnnoise));
+      // „Auf diesem Gerät" kann ElevenLabs nicht – sonst stünde am Ende eine
+      // Bearbeitung an der Folge, die nie stattgefunden hat.
+      fd.append('elevenlabs', 'false');
       fd.append('normalize', String(normalize.enabled));
       fd.append('trimSilence', String(trimSilence.enabled));
       fd.append('trimSeconds', String(trimSilence.seconds));
@@ -1826,6 +1859,11 @@ async function renderSettings() {
       ${s.coverUrl ? `<img src="${s.coverUrl}" alt="Cover" style="width:120px;height:120px;object-fit:cover;border-radius:12px;margin-top:14px;" />` : ''}
     </div>
 
+    <div class="card" id="elevenCard">
+      <h2 class="section" style="margin-top:0;">🗣️ ElevenLabs</h2>
+      <div id="elevenBox"><span class="spinner"></span></div>
+    </div>
+
     <div class="card">
       <h2 class="section" style="margin-top:0;">🎭 Wer spricht im Podcast</h2>
       <p class="muted">Fließt in jeden Infotext ein — die KI schreibt dann in eurem Sinne und spielt an, wie ihr auf den Film reagiert.</p>
@@ -1945,6 +1983,135 @@ async function renderSettings() {
       btn.disabled = false; btn.textContent = 'Übernehmen';
     }
   });
+
+  elevenAufbauen(s);
+}
+
+// ---------- ElevenLabs in den Einstellungen ----------
+
+// Baut den ElevenLabs-Kasten. Ohne Schlüssel wird das ehrlich hingeschrieben
+// statt einen toten Knopf anzubieten.
+async function elevenAufbauen(s) {
+  const box = $('#elevenBox');
+  if (!box) return;
+
+  let st;
+  try {
+    st = await api('/api/elevenlabs/status');
+  } catch (e) {
+    box.innerHTML = `<p class="error">Status nicht abrufbar: ${escapeHtml(e.message)}</p>`;
+    return;
+  }
+
+  if (!st.aktiv) {
+    box.innerHTML = `
+      <p class="muted">Nicht eingerichtet. Für Sprachausgabe, „Stimme aufräumen" und
+      die Mitschrift über ElevenLabs braucht die App einen Schlüssel.</p>
+      <p class="field-hint">Schlüssel holen unter
+        <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener">elevenlabs.io/app/settings/api-keys</a>
+        und als Umgebungsvariable <code>ELEVENLABS_API_KEY</code> setzen.</p>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <p class="muted">Eingerichtet. Modell für Sprachausgabe: <code>${escapeHtml(st.modell)}</code>,
+      für die Mitschrift: <code>${escapeHtml(st.scribeModell)}</code>.</p>
+
+    <label for="el_stimme">Stimme</label>
+    <select id="el_stimme"><option>Lade Stimmen …</option></select>
+    <p class="field-hint">Wird für alle Sprachausgaben genommen und bleibt gespeichert.</p>
+
+    <label for="el_text" style="margin-top:14px;">Text zum Sprechen</label>
+    <textarea id="el_text" style="min-height:90px;" placeholder="z. B. Willkommen bei den Cinespasten.">${escapeHtml(s.introText || '')}</textarea>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button class="btn ghost small" id="el_probe">▶︎ Vorhören</button>
+      <button class="btn small" id="el_intro">Als Intro übernehmen</button>
+      <button class="btn small" id="el_outro">Als Outro übernehmen</button>
+    </div>
+    <div id="el_info" style="margin-top:10px;"></div>
+    <audio id="el_audio" controls class="hidden" style="width:100%;margin-top:10px;"></audio>
+
+    <p class="field-hint" style="margin-top:14px;padding:8px 10px;border-left:3px solid var(--purple);background:var(--surface);border-radius:0 8px 8px 0;">
+      <b>Was das kostet:</b> Sprachausgabe 1 Credit je Zeichen.
+      „Stimme aufräumen" in der Folge kostet <b>${st.creditsProStunde.toLocaleString('de-DE')} Credits je Stunde</b> Aufnahme —
+      eine 2-Stunden-Folge also rund ${(st.creditsProStunde * 2).toLocaleString('de-DE')}.
+      Der Gratis-Tarif hat 10.000 im Monat.</p>`;
+
+  // Stimmen nachladen.
+  const auswahl = $('#el_stimme');
+  try {
+    const { stimmen } = await api('/api/elevenlabs/stimmen');
+    auswahl.innerHTML = stimmen.length
+      ? stimmen.map((v) => `<option value="${escapeAttr(v.id)}" ${v.id === st.stimme ? 'selected' : ''}>${escapeHtml(v.name)}</option>`).join('')
+      : '<option value="">Keine Stimme im Konto gefunden</option>';
+  } catch (e) {
+    auswahl.innerHTML = `<option value="">Stimmen nicht abrufbar: ${escapeHtml(e.message)}</option>`;
+  }
+
+  auswahl.addEventListener('change', async () => {
+    try {
+      await api('/api/elevenlabs/stimme', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stimme: auswahl.value }),
+      });
+      toast('Stimme gemerkt.');
+    } catch (e) {
+      $('#el_info').innerHTML = `<p class="error">${escapeHtml(e.message)}</p>`;
+    }
+  });
+
+  const info = $('#el_info');
+
+  $('#el_probe').addEventListener('click', async () => {
+    const text = $('#el_text').value.trim();
+    if (!text) { info.innerHTML = '<p class="error">Erst einen Text eintippen.</p>'; return; }
+    const btn = $('#el_probe');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Spricht …';
+    info.innerHTML = '';
+    try {
+      const res = await fetch('/api/elevenlabs/probe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, stimme: auswahl.value }),
+      });
+      if (!res.ok) {
+        let grund = `Fehler ${res.status}`;
+        try { grund = (await res.json()).error || grund; } catch {}
+        throw new Error(grund);
+      }
+      const blob = await res.blob();
+      const el = $('#el_audio');
+      el.src = URL.createObjectURL(blob);
+      el.classList.remove('hidden');
+      el.play().catch(() => {});
+    } catch (e) {
+      info.innerHTML = `<p class="error">Ging nicht: ${escapeHtml(e.message)}</p>`;
+    } finally {
+      btn.disabled = false; btn.textContent = '▶︎ Vorhören';
+    }
+  });
+
+  for (const ziel of ['intro', 'outro']) {
+    $(`#el_${ziel}`).addEventListener('click', async () => {
+      const text = $('#el_text').value.trim();
+      if (!text) { info.innerHTML = '<p class="error">Erst einen Text eintippen.</p>'; return; }
+      const btn = $(`#el_${ziel}`);
+      btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Erzeugt …';
+      info.innerHTML = '';
+      try {
+        const erg = await api('/api/elevenlabs/ansage', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, ziel, stimme: auswahl.value }),
+        });
+        info.innerHTML = `<p class="field-hint">Als ${ziel === 'intro' ? 'Intro' : 'Outro'} gespeichert (${erg.zeichen} Zeichen verbraucht).</p>`;
+        toast('Gespeichert.');
+      } catch (e) {
+        info.innerHTML = `<p class="error">Ging nicht: ${escapeHtml(e.message)}</p>`;
+      } finally {
+        btn.disabled = false; btn.textContent = ziel === 'intro' ? 'Als Intro übernehmen' : 'Als Outro übernehmen';
+      }
+    });
+  }
 }
 
 // Verfolgt einen laufenden Import und zeigt den Fortschritt an.
@@ -1998,6 +2165,8 @@ async function loadStatus() {
         <div>${ok(st.schluessel.gemini)} Gemini-Schlüssel (Transkript und Infotext)</div>
         <div>${ok(st.schluessel.gemini && !String(st.geminiModell).startsWith('Fehler'))}
           Gemini-Modell: <b>${escapeHtml(st.geminiModell || '–')}</b></div>
+        <div>${ok(st.schluessel.elevenlabs)} ElevenLabs-Schlüssel (Sprachausgabe, Stimme aufräumen)</div>
+        <div>🖊️ Mitschrift über: <b>${escapeHtml(st.mitschrift || '–')}</b></div>
         <div>${ok(st.dateien.intro)} Intro: ${escapeHtml(st.dateien.intro || 'fehlt')}</div>
         <div>${ok(st.dateien.outro)} Outro: ${escapeHtml(st.dateien.outro || 'fehlt')}</div>
         <div>${ok(st.dateien.cover)} Podcast-Cover: ${escapeHtml(st.dateien.cover || 'fehlt')}</div>

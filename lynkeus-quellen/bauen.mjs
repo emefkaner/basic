@@ -26,7 +26,7 @@ const struktur = fs.readFileSync(HIER + 'src/struktur.html', 'utf8');
 
 // Version (Fußzeile Nachtdesign) — beim Versionssprung hier UND im
 // Kommentar in src/struktur.html nachziehen.
-const VERSION = '2.8';
+const VERSION = '2.9';
 
 const VARIANTEN = [
   {

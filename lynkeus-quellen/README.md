@@ -27,7 +27,7 @@ etwas nur eine Variante betrifft). Die App liest Suchrahmen-Farben über
 
 ## Versionierung
 
-Aktuelle Version: **2.8** (Kommentar in `src/struktur.html` + Konstante VERSION in `bauen.mjs`; sichtbar nur im Footer des Nachtdesigns — die Lidl-Fußzeile nennt auf Wunsch stattdessen den Ersteller). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
+Aktuelle Version: **2.9** (Kommentar in `src/struktur.html` + Konstante VERSION in `bauen.mjs`; sichtbar nur im Footer des Nachtdesigns — die Lidl-Fußzeile nennt auf Wunsch stattdessen den Ersteller). Regel: **Bei jeder Änderung um 0,1 erhöhen.**
 Die Nummer steht an zwei Stellen in `src/struktur.html` (Kommentar im `<head>`
 und im Footer) — beide nachziehen, neu bauen, BEIDE fertigen Dateien mit
 committen.
@@ -92,6 +92,16 @@ committen.
   20–60 MB und bräuchte Sekunden je Einzelbild — für eine Offline-Single-File
   untauglich; dieses Verfahren läuft in Echtzeit und erhält Kanten/Details,
   erfindet aber nichts dazu
+- 2.9 — DECKENDE Sterne (GLS-Fall: 1080p, Stern fast undurchsichtig, harte
+  Kante): Bei Deckkraft ~1 steckt im Pixel keine Hintergrund-Information —
+  Gegenblenden teilt durch fast Null und hinterlässt einen Geisterstern.
+  Neu: Ausbesserungsmodus (Inpainting nach delogo-Prinzip: Sternmaske +2 px,
+  Füllung aus nächsten freien Pixeln in 4 Richtungen entfernungsgewichtet,
+  2× nachgeglättet), automatisch aktiv ab gemessener Stärke 0,85
+  (AUSBESSERN_AB), nur im Video-Modus — Foto bleibt pixelgenau rein
+  rechnerisch. FEHLERBEHEBUNG dabei: „Standardposition bestätigt" hatte die
+  GEMESSENE Deckkraft mit verworfen (Stärke blieb 0,6, Stern blieb stehen);
+  jetzt wird eine deutlich abweichende Messung (≥0,15) übernommen
 
 ## Dateien
 

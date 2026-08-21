@@ -10,6 +10,7 @@ import {
 import {
   standardWerte, fotoStandardWerte, veoBox, fotoBox, boxAufloesen, ausschnitt,
   alphaBauen, wasserzeichenEntfernen, bildSaeubern, luminanzAus, sternSuchen,
+  AUSBESSERN_AB,
 } from './engine.js';
 import { Hochskalierer, zielAufloesungen } from './skalierer.js';
 
@@ -286,7 +287,7 @@ function vorschauZeichnen() {
   const ctx = $('leinwand').getContext('2d');
   const kopie = new ImageData(new Uint8ClampedArray(originalPx.data), breite, hoehe);
   let box = boxAufloesen(basisFn()(breite, hoehe), breite, hoehe, werte);
-  if (!originalZeigen) ({ box } = bildSaeubern(aktuelleVorlage(), kopie, werte, basisFn()));
+  if (!originalZeigen) ({ box } = bildSaeubern(aktuelleVorlage(), kopie, werte, basisFn(), modus === 'video' && werte.staerke >= AUSBESSERN_AB));
   ctx.putImageData(kopie, 0, 0);
   if ($('rahmen').checked) {
     // Rahmenfarben kommen aus dem jeweiligen Design (Lynkeus/Lidl)
@@ -364,9 +365,15 @@ async function sternAutomatisch(vonHand) {
     Math.abs(fund.size / basis.size - 1) <= 0.06;
 
   if (anStandard) {
-    // Google hat nichts verändert: die bewährten Standardwerte sind genauer
-    // als jede Einzelmessung — dabei bleiben.
+    // Google hat an Position/Größe nichts verändert: die bewährten
+    // Standardwerte sind genauer als jede Einzelmessung — dabei bleiben.
     werte = { ...standard };
+    // ABER: Weicht die GEMESSENE Deckkraft deutlich ab (GLS-Fall: fast
+    // deckender Stern an Standardposition), muss sie übernommen werden —
+    // sonst bleibt der Stern stehen (Fehler bis v2.8).
+    if (modus === 'video' && fund.staerke != null && Math.abs(fund.staerke - standard.staerke) >= 0.15) {
+      werte.staerke = Math.round(fund.staerke * 20) / 20;
+    }
   } else {
     werte.versatzX = fund.x - basis.x;
     werte.versatzY = fund.y - basis.y;
@@ -378,9 +385,12 @@ async function sternAutomatisch(vonHand) {
   reglerSetzen();
   vorschauZeichnen();
 
-  $('suchergebnis').textContent = anStandard
+  const deckend = modus === 'video' && werte.staerke >= AUSBESSERN_AB
+    ? ' Deckender Stern erkannt — der Kern wird aus der Umgebung ausgebessert.'
+    : '';
+  $('suchergebnis').textContent = (anStandard
     ? `✓ Stern an der erwarteten Standardposition bestätigt (Treffergüte ${de(fund.guete)}).`
-    : `✓ Stern gefunden bei ${fund.x}/${fund.y}, Größe ${fund.size} px — Regler übernommen (Treffergüte ${de(fund.guete)}).`;
+    : `✓ Stern gefunden bei ${fund.x}/${fund.y}, Größe ${fund.size} px — Regler übernommen (Treffergüte ${de(fund.guete)}).`) + deckend;
 }
 
 // ---------- Foto: herausrechnen und als PNG speichern ----------
@@ -526,7 +536,7 @@ async function videoUmwandeln() {
       probe.close();
 
       const px = ctx.getImageData(roi.x, roi.y, roi.breite, roi.hoehe);
-      wasserzeichenEntfernen(px, karte, { x: 0, y: 0, breite: roi.breite, hoehe: roi.hoehe });
+      wasserzeichenEntfernen(px, karte, { x: 0, y: 0, breite: roi.breite, hoehe: roi.hoehe }, werte.staerke >= AUSBESSERN_AB);
       ctx.putImageData(px, roi.x, roi.y);
 
       if (skalierer) skalierer.ziehe(leinwand);

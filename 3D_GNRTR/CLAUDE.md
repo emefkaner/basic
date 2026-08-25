@@ -1,0 +1,153 @@
+# 3D_GNRTR — Konstruktionslogik für alle 3D-Druck-Projekte
+
+Dieser Ordner enthält parametrische STL-Generatoren (reines Python 3, ohne
+CAD, ohne Abhängigkeiten außer wo vermerkt). Jedes Projekt ist ein eigener
+Unterordner mit `generate.py` (STLs), `vorschau.py` (SVG-Ansichten),
+`README.md` und `stl/`. Dieses Dokument ist die gesammelte Logik aus den
+bisherigen Projekten — **so wird hier gearbeitet.**
+
+## 1. Mesh-Technik (kein CAD, keine Booleans)
+
+Bauteile entstehen aus **geschlossenen, sich überlappenden Prismen/Lofts
+("Schalen")**, die zusammen in eine STL geschrieben werden. Der Slicer
+vereinigt überlappende Schalen beim Slicen — Booleans sind unnötig, und
+jede Schale ist einzeln beweisbar wasserdicht. Grundbausteine (in jedem
+`generate.py` enthalten, das reichhaltigste Set hat
+`rc-transportbox/generate.py` bzw. `fernrohrhalter/generate.py`):
+
+- `prisma(poly, z0, z1)` — einfaches Polygon senkrecht extrudiert
+  (Ear-Clipping-Triangulierung, konkav erlaubt, keine Löcher).
+- `loften(profile, hoehen)` — Stapel von Querschnitten **gleicher
+  Punktzahl und Reihenfolge** zu einem Körper; damit entstehen Fasen,
+  Kantenverrundungen (Profil pro Stufe einziehen) und Kegel.
+- `loch_prisma(aussen, innen, ...)` — Prisma mit genau einem Loch;
+  außen/innen brauchen gleiche Punktzahl und radiale Korrespondenz
+  (beide star-shaped um dasselbe Zentrum).
+- Löcher in beliebigen Konturen (z. B. Schrift): Brücken-Triangulierung
+  (`hochzeitsornament/generate.py`, `prisma_mit_loechern`); Mäntel aus den
+  Originalkonturen, Kantencheck akzeptiert dort gerade Kantenzahlen.
+- Andere Achsrichtungen durch Achsentausch-Rotationen wie
+  `(x,y,z)->(z,x,y)` — zyklisch = Determinante +1, Normalen bleiben ok.
+- Schrift: `fontTools` + TTF (Great Vibes liegt in `hochzeitsornament/`),
+  quadratische Beziers mit impliziten On-Curve-Punkten expandieren.
+
+**Ein Punkt niemals doppelt** am Polygonanfang/-ende (Kante der Länge 0
+lässt das Ear-Clipping steckenbleiben).
+
+## 2. Pflicht-Prüfungen vor jeder Lieferung
+
+Der Generator prüft selbst und bricht bei Verstoß ab — nie ungeprüft
+liefern:
+
+1. **Dichtheit:** jede Kante exakt 2× (`kanten_pruefen`). Bei
+   Brücken-Triangulierung: jede Kante in gerader Anzahl.
+2. **Passung:** Nachbarteile als 2D-Konturen in Einbaulage übereinander
+   legen, Punkte auf Überdeckung testen (Punkt-in-Polygon + Randabstand).
+3. **Formschluss:** die Freigabebewegung testen, nicht raten. Achtung:
+   in Polarkoordinaten konstruierte Verzahnungen lösen sich durch
+   **Drehung** um das Zentrum, nicht durch Geradfahrt — ein
+   Translationstest übersieht das (so geschehen, im Drehtest gefunden).
+4. **Containment:** Reliefs/Schrift müssen vollständig auf ihrer
+   Grundfläche liegen, sonst wird in der Luft gedruckt (die Schleife
+   einer „5" ragte einmal über den Herzrand — der Check fängt das).
+5. **Bauraum:** beste Drehlage auf dem Bett suchen (alle Winkel, größter
+   Randabstand). Bett: Bambu H2S, angenommen 350 × 350, real evtl.
+   350 × 320 — **mindestens 20 mm Rand** fordern (Platz für Brim und
+   Bettunsicherheit). Ein Kreis braucht seinen Durchmesser in BEIDEN
+   Achsen; Drehen macht runde Teile nicht schmaler, Kippen scheitert
+   an der Z-Grenze.
+6. **Volumen** (Divergenzsatz) als Plausibilitäts- und Materialschätzung.
+
+## 3. Druckbarkeits-Regeln (alles ohne Stützen)
+
+- Teile so konstruieren, dass sie **in Drucklage generiert** werden.
+- Querliegende Bohrungen → **Tropfenprofil** (Spitze nach oben, 45°).
+- Querliegende Blöcke/Lagerböcke → **Rautenprofil** (45° trägt sich).
+- Senkrechte Prismen haben keine Überhänge; Verrundungen oben über
+  Loft-Einzug, Unterkanten scharf (Standfläche) oder als Fuß-Fase.
+- Ein Deckel mit verrundeter Außenkante wird **mit der Innenseite nach
+  oben** gedruckt; alles was dann auf der Außenfläche sitzen soll, darf
+  keine Hohlräume brauchen, die andere Schalen füllen würden —
+  Anbauten stattdessen an den Wandring verlegen.
+- Schnapper/Federn: Biegung **in der Lagenebene** (Zug in XY), nie über
+  Lagenhaftung.
+
+## 4. Toleranzen & Verbindungen (bewährte Werte, PETG)
+
+| Verbindung | Wert |
+|---|---|
+| Schiebesitz (Verzahnung, Schwalbe) | 0,12–0,15 mm je Flanke |
+| Klebespalt (Epoxid) | 0,15 mm je Flanke |
+| Presssitz Stift in Bohrung | 0,2–0,3 mm Übermaß, Einführfase 1–1,5 mm |
+| Drehsitz Stift in Bohrung | 0,2–0,3 mm Spiel; 0,1 mm = gewollte Reibung |
+| Drehspiel Hülse auf Pfosten | 0,6–0,7 mm im Durchmesser |
+| Schnappzunge | Randdehnung ε ≈ 3·t·δ/(2·L²) ≤ 4 % halten |
+| Klemmrippen (Crush-Ribs) | 1,1 mm dünn, 5 mm tief, Anlauffase; schlucken ±4 mm — **das Mittel der Wahl bei unsicheren Fremdmaßen** |
+| Niederhalten im Deckel | Blattfeder-Bögen (1 mm dick, ~10 mm Hub) |
+
+Formschluss-Prinzipien, die sich bewährt haben:
+- **Hinterschnittene Doppel-Verzahnung** (innerer Zahn spreizt nach innen,
+  äußerer nach außen → sperren sich gegenseitig; senkrecht steckbar).
+- **T-Nut mit Blindende:** Last zieht gegen das Blindende — Formschluss
+  statt Reibung (Tragegriff).
+- Bei **2 Segmenten** liegen beide Stoßflächen in einer Ebene (seitlich
+  zusammenschiebbar); ab 3 Segmenten nur senkrecht fügen — das letzte
+  Teil muss in beide Nachbarn gleichzeitig.
+- Verbindungsklötze bauen **nur nach außen** auf, lichte Innenmaße
+  bleiben unangetastet.
+
+## 5. Material-Faustregeln
+
+- **PETG:** draußen, Feuchtigkeit, Schnapper, Dauerstöße (Roboter).
+- **PLA (matt):** drinnen, Deko, wird lackiert (matt = bester
+  Lackträger; Silk verträgt keine feinen Details und lackiert schlecht).
+- Wandstärken: 5 mm freistehende Wand, 2,8 mm Kofferwand, 4 mm Platte.
+- Empfohlene Slicer-Werte stehen im jeweiligen README.
+
+## 6. Prozess-Regeln (aus Fehlern gelernt)
+
+- **Eine STL pro Bauteil-Variante, Stückzahl in den Dateinamen**
+  (`..._5x_drucken.stl`). Keine Alternativ-Varianten im Ordner ablegen —
+  im Slicer wird sonst die falsche erwischt und Ausschuss gedruckt
+  (genau so ein Segment zu viel entstanden). Alternativen nur per Flag.
+- **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
+  nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
+  Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,
+  Restspalt messen). Unbekannte Fremdmaße → Crush-Ribs statt Präzision.
+- **Immer rendern und ansehen** bevor geliefert wird. `vorschau.py`
+  schreibt SVGs (eigener kleiner Painter-Renderer); Rasterisieren:
+  `/opt/pw-browsers/chromium_headless_shell-*/chrome-linux/headless_shell
+  --headless --no-sandbox --screenshot=... datei.svg` — lokal tut es
+  jeder Browser. Große Dreiecke für Attrappen stückeln (Painter
+  sortiert sonst falsch).
+- Jede Änderung: `python3 generate.py` (Prüfungen laufen mit), dann
+  `python3 vorschau.py`, committen, pushen.
+- Physik kurz gegenrechnen, bevor gebaut wird: Hebel (Standbreite gegen
+  Anstoßhöhe), Schwerpunkt (Balance-Lagerung am Schwerpunkt; bei
+  veränderlichem Schwerpunkt Balance auf Mittelstellung + definierte
+  Reibung), Zungendehnung.
+- Anfahrkanten für Roboter **steil, nie als Rampe** (Rampen sind
+  Kletterhilfen); Barrieren ≥ 40 mm hoch, Kletterhöhe der Sauger ~20 mm.
+- Fremd-Fonts: Lizenz (OFL.txt) mit ins Repo.
+
+## 7. Neues Projekt anlegen
+
+1. `3D_GNRTR/<projektname>/` mit `generate.py` — Basis von
+   `rc-transportbox/generate.py` (Koffer/Mechanik) oder
+   `fernrohrhalter/generate.py` (Gelenke/Rundteile) oder
+   `bodenroboter-schutzring/generate.py` (Ringe/Segmente/Loft) kopieren.
+2. Alle Maße als benannte Konstanten oben, abgeleitete Werte in einer
+   Funktion; Nutzereingaben (`--fuss`, `--rohr` …) per argparse.
+3. Prüfungen aus Abschnitt 2 einbauen, `vorschau.py` danebenlegen.
+4. README: Welche Datei, wie oft drucken, Material, Zusammenbau,
+   Annahmen + wie man nachmisst und regeneriert.
+
+## Projektübersicht
+
+| Ordner | Inhalt | Besonderheit |
+|---|---|---|
+| `bodenroboter-schutzring/` | Schutzringe um Möbelfüße (Tisch 375, Stuhl 645 innen) | Loft, hinterschnittene Steck-Verzahnung, Formschluss-Drehtest |
+| `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
+| `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
+| `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
+| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 | Crush-Ribs, Federbögen, Schnapper, T-Nut-Griff, Scharnier |

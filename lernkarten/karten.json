@@ -1,6 +1,7 @@
 {
   "titel": "Erste Serie",
   "karten": [
-    { "bild": "motive/pooh.svg", "text": "Pooh" }
+    { "bild": "motive/pooh.svg",   "text": "Pooh" },
+    { "bild": "motive/ferkel.svg", "text": "Ferkel" }
   ]
 }

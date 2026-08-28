@@ -1,0 +1,7 @@
+{
+  "titel": "Beispielserie (nur zum Pruefen des Formats)",
+  "karten": [
+    { "bild": "motive/haus.svg",  "text": "Haus" },
+    { "bild": "motive/apfel.svg", "text": "Apfel" }
+  ]
+}

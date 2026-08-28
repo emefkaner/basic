@@ -42,6 +42,23 @@ Streifen der Karte verschwindet dahinter. Darum bleiben oben **20 mm** frei.
    Taschenkante verschwindet**, wenn sie eingeschoben ist (in der Mitte und am
    Rand). Damit lässt sich der obere Rand von 20 mm genau einstellen.
 
+## Bild in ein SVG verwandeln
+
+Fotos und PNGs werden beim Drucken schnell unscharf; SVG bleibt bei jeder
+Größe scharf. Ausmalbilder (schwarze Linien auf hellem Grund) lassen sich
+automatisch umwandeln:
+
+```
+python3 lernkarten/vektorisieren.py bild.png lernkarten/motive/pooh.svg
+```
+
+Das Skript rechnet hoch, wirft alles Helle weg (Holzmaserung, Papierton,
+Raster), schneidet auf das Motiv zu und lässt `potrace` Kurven daraus machen.
+Voraussetzungen: `pip install pillow` und `apt-get install -y potrace`.
+
+Bleiben zu viele Flecken übrig oder verschwinden feine Linien:
+`--schwelle` verstellen (Standard 128, höher = mehr wird als Linie erkannt).
+
 ## Karten bauen
 
 ```
@@ -50,8 +67,11 @@ PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium node lernkarten/bauen.mjs
 
 - Motive liegen in `motive/` (SVG, PNG, JPG).
 - Welche Karte welches Motiv bekommt, steht in `karten.json`.
-- Ergebnis: `ausgabe/karten.pdf` — **A4 quer, zwei Karten je Blatt**, mit
-  gestrichelter Schnittlinie.
+- Ergebnis in `ausgabe/`: **`karten.pdf`** zum Drucken und **`karten.html`**
+  zum Ansehen und Weiterbasteln (A4 quer, zwei Karten je Blatt, gestrichelte
+  Schnittlinie). Das HTML ist in sich geschlossen — die Bilder stecken als
+  Datenadresse darin, es lässt sich also einfach im Browser öffnen.
+  Dasselbe gilt für `passprobe.html` / `passprobe.pdf`.
 - Maße und Ränder stehen zentral in `mass.mjs`.
 
 ## Drucken und zuschneiden
@@ -59,5 +79,7 @@ PLAYWRIGHT_CHROMIUM=/opt/pw-browsers/chromium node lernkarten/bauen.mjs
 1. `ausgabe/karten.pdf` mit **100 %** Skalierung drucken (siehe Passprobe).
 2. Papier: **200–250 g/m² Karton**. Normales 80-g-Papier knickt beim
    Einschieben.
-3. Entlang der gestrichelten Linie schneiden. Die Linie selbst wegschneiden,
-   dann bleibt kein Grau am Rand.
+3. Schneiden: Jede Karte hat eine **durchgezogene graue Umrandung** genau auf
+   der Schnittkante, dazu **Schnittmarken** in den Blatträndern. Für einen
+   geraden Schnitt das Lineal an zwei gegenüberliegende Marken anlegen. Die
+   graue Linie selbst mit wegschneiden, dann bleibt kein Rand stehen.

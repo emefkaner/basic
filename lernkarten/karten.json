@@ -1,7 +1,6 @@
 {
-  "titel": "Beispielserie (nur zum Pruefen des Formats)",
+  "titel": "Erste Serie",
   "karten": [
-    { "bild": "motive/haus.svg",  "text": "Haus" },
-    { "bild": "motive/apfel.svg", "text": "Apfel" }
+    { "bild": "motive/pooh.svg", "text": "Pooh" }
   ]
 }

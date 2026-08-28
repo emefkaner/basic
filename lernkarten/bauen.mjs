@@ -6,7 +6,7 @@
 //
 // Ergebnis liegt in lernkarten/ausgabe/.
 
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -44,11 +44,13 @@ const grundStil = `
     width: ${KARTE.breite}mm;
     height: ${KARTE.hoehe}mm;
     background: #fff;
-    /* Schnittlinie: duenn und grau, wird beim Ausschneiden entfernt */
-    outline: 0.2mm dashed #b9b9b9;
+    /* Schnittlinie: genau auf der Kante, duenn und grau */
+    outline: 0.25mm solid #8a8a8a;
     outline-offset: 0;
     overflow: hidden;
   }
+  /* Schnittmarken in den Raendern - zum Anlegen des Lineals */
+  .marke { position: absolute; background: #333; }
   .inhalt {
     position: absolute;
     left: ${SICHER.links}mm;
@@ -74,6 +76,47 @@ const grundStil = `
   }
 `;
 
+// Schnittmarken: kurze Striche in den Raendern, in Verlaengerung der vier
+// Kartenkanten. Sie liegen NEBEN der Karte, nicht darauf - so bleibt nach dem
+// Schneiden nichts davon uebrig. Am Blattrand werden sie gekuerzt, damit sie
+// nicht in den nicht bedruckbaren Streifen des Druckers laufen.
+function schnittmarken(x, y, b, h) {
+  const S = 0.25;   // Strichstaerke in mm
+  const L = 4;      // Wunschlaenge der Marke in mm
+  const A = 1.5;    // Abstand zur Kartenkante in mm
+  const RAND = 3.5; // so nah darf eine Marke an den Blattrand
+  const MIN = 1.5;  // kuerzere Marken lohnen nicht
+  const m = [];
+  const strich = (l, t, w, hh) => m.push(
+    `<div class="marke" style="left:${l}mm;top:${t}mm;width:${w}mm;height:${hh}mm;"></div>`);
+
+  // Waagerechte Kanten (oben/unten): je eine Marke links und rechts der Karte.
+  for (const kante of [y, y + h]) {
+    const t = kante - S / 2;
+    const lAnfang = Math.max(RAND, x - A - L);
+    const lLang = x - A - lAnfang;
+    if (lLang >= MIN) strich(lAnfang, t, lLang, S);
+
+    const rAnfang = x + b + A;
+    const rLang = Math.min(L, BOGEN.breite - RAND - rAnfang);
+    if (rLang >= MIN) strich(rAnfang, t, rLang, S);
+  }
+
+  // Senkrechte Kanten (links/rechts): je eine Marke ueber und unter der Karte.
+  for (const kante of [x, x + b]) {
+    const l = kante - S / 2;
+    const oAnfang = Math.max(RAND, y - A - L);
+    const oLang = y - A - oAnfang;
+    if (oLang >= MIN) strich(l, oAnfang, S, oLang);
+
+    const uAnfang = y + h + A;
+    const uLang = Math.min(L, BOGEN.hoehe - RAND - uAnfang);
+    if (uLang >= MIN) strich(l, uAnfang, S, uLang);
+  }
+
+  return m.join('');
+}
+
 function kartenBogen(karten) {
   const links1 = (BOGEN.breite - (2 * KARTE.breite + BOGEN.spalt)) / 2;
   const links2 = links1 + KARTE.breite + BOGEN.spalt;
@@ -89,7 +132,9 @@ function kartenBogen(karten) {
           ${k.text ? `<div class="wort">${k.text}</div>` : ''}
         </div>
       </div>`).join('');
-    bogenHtml.push(`<div class="bogen" style="width:${BOGEN.breite}mm;height:${BOGEN.hoehe}mm;">${felder}</div>`);
+    const marken = paar.map((_, j) =>
+      schnittmarken(j === 0 ? links1 : links2, oben, KARTE.breite, KARTE.hoehe)).join('');
+    bogenHtml.push(`<div class="bogen" style="width:${BOGEN.breite}mm;height:${BOGEN.hoehe}mm;">${felder}${marken}</div>`);
   }
 
   return `<!doctype html><meta charset="utf-8"><style>
@@ -150,17 +195,23 @@ function passprobeBogen() {
   </div>`;
 }
 
-async function schreibePdf(browser, html, datei, quer) {
+// Schreibt beides: das HTML (in sich geschlossen, Bilder stecken als Daten-
+// adresse drin - laesst sich also direkt im Browser oeffnen und anpassen) und
+// das daraus gedruckte PDF.
+async function schreibe(browser, html, name, quer) {
+  writeFileSync(join(AUSGABE, `${name}.html`), html);
+  console.log('geschrieben:', `lernkarten/ausgabe/${name}.html`);
+
   const seite = await browser.newPage();
   await seite.setContent(html, { waitUntil: 'load' });
   await seite.pdf({
-    path: join(AUSGABE, datei),
+    path: join(AUSGABE, `${name}.pdf`),
     printBackground: true,
     preferCSSPageSize: true,
     landscape: quer,
   });
   await seite.close();
-  console.log('geschrieben:', join('lernkarten/ausgabe', datei));
+  console.log('geschrieben:', `lernkarten/ausgabe/${name}.pdf`);
 }
 
 async function main() {
@@ -169,7 +220,7 @@ async function main() {
 
   const browser = await chromium.launch(CHROMIUM ? { executablePath: CHROMIUM } : {});
   try {
-    await schreibePdf(browser, passprobeBogen(), 'passprobe.pdf', false);
+    await schreibe(browser, passprobeBogen(), 'passprobe', false);
 
     if (!nurPassprobe) {
       const liste = JSON.parse(readFileSync(join(HIER, 'karten.json'), 'utf8'));
@@ -178,7 +229,7 @@ async function main() {
         bildDaten: k.bild ? alsDatenAdresse(k.bild) : null,
       }));
       if (karten.length) {
-        await schreibePdf(browser, kartenBogen(karten), 'karten.pdf', true);
+        await schreibe(browser, kartenBogen(karten), 'karten', true);
       } else {
         console.log('karten.json enthaelt keine Karten - nichts zu bauen.');
       }

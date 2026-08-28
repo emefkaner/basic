@@ -391,10 +391,14 @@ Folgen-Cover erzeugt. Regeln dafür:
    Repo-Bilder gehen alternativ über `media_import_url` mit der Rohadresse,
    z. B. `https://raw.githubusercontent.com/emefkaner/podcaster/main/cover-vorlagen/03-hail-mary.jpg`.
 
-   **Wie Fotos vom Nutzer hereinkommen.** Bilder, die er in den Chat einfügt,
-   erreichen zwar meine Augen, aber **nicht das Dateisystem** — sie lassen sich
-   weder zuschneiden noch hochladen. Auch der Anhang-Knopf hat am 07.08. nicht
-   funktioniert. Zuverlässig ist `media_upload_widget`: Der Browser lädt direkt
+   **Wie Fotos vom Nutzer hereinkommen.** KORREKTUR (28.08.2026): Bilder aus
+   dem Chat liegen sehr wohl auf der Platte — im Sitzungsprotokoll
+   `~/.claude/projects/<projekt>/<sitzung>.jsonl` stecken sie als Base64 unter
+   `{"type":"image","source":{"data":…}}`. Herausholen: JSONL zeilenweise als
+   JSON lesen, nach `type == "image"` suchen, `source.data` dekodieren. Damit
+   lassen sie sich zuschneiden, vektorisieren und hochladen. Die alte Notiz
+   („erreichen nicht das Dateisystem") war falsch.
+   Der Anhang-Knopf hat am 07.08. nicht funktioniert. Ebenfalls zuverlässig ist `media_upload_widget`: Der Browser lädt direkt
    zu Higgsfield, ich bekomme die Medien-ID. Danach lässt sich die Datei über
    `https://d2ol7oe51mr4n9.cloudfront.net/user_<id>/<media_id>.jpg` **zurück**-
    holen, in voller Auflösung — so entstehen die Gesichts-Ausschnitte.

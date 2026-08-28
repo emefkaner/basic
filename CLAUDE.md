@@ -17,6 +17,20 @@ Deshalb gilt:
 4. **Unsicherheit benennen.** Wenn etwas nicht überprüft werden konnte, das
    klar sagen — nicht als Tatsache verkaufen.
 
+## Bilder NIE ohne Rückfrage erzeugen (festgelegt 28.08.2026)
+
+Jede Bilderzeugung kostet Credits des Nutzers. Deshalb gilt ausnahmslos:
+
+1. **Vorher fragen.** Nie von sich aus ein Bild erzeugen, auch nicht als
+   Beispiel, Probe oder „schnell mal getestet".
+2. **Erst die Kosten nennen**, dann die Erlaubnis abwarten. Kosten mit
+   `get_cost: true` ermitteln, nicht schätzen, und zusammen mit dem
+   Restguthaben nennen.
+3. Ein „kannst du das auch mit X machen?" ist **keine** Erlaubnis, sondern
+   eine Frage. Antwort: was es kostet und was dabei herauskäme — dann warten.
+
+Gilt für alle Wege: Higgsfield, Adobe, Gemini, egal welches Werkzeug.
+
 ## Anleitungen für den Nutzer — kurz und klickbar
 
 Keine vagen Verweise. „Schau auf GitHub unter Actions, ob er grün wird" ist
@@ -350,6 +364,7 @@ Folgen-Cover erzeugt. Regeln dafür:
    **Gastpodcaster** kommen öfter vor; für die gibt es keine Vorlage, also
    **vorher ein Bild der Person erfragen**. Niemals eine Figur dazuerfinden.
 1. **Immer nur ein Bild auf einmal.** Kein Stapel, keine Varianten parallel.
+   Und nie ohne vorherige Zusage — siehe „Bilder NIE ohne Rückfrage erzeugen".
 2. **Modell: `flux_2` (variant `pro`, 1k).** Kostet genau 1 Credit und ist das
    einzige geprüfte Modell, das beides kann. Vor dem Erzeugen immer mit
    `get_cost: true` gegenprüfen.

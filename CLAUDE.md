@@ -185,6 +185,39 @@ The plate carries the action — the prompt never has to name it. Rules:
   reject the *upload* regardless of text. Fixes there: brighter export, shifted
   in-point, small crop, re-tries.
 
+## Real people in the set dressing block the upload (verified, S16_13)
+
+The parlour-car plates kept failing at generation while identical shots with
+guns went through. The cause was not the weapon and not the actors: a framed
+**Abraham Lincoln portrait** hangs on the wall. A recognisable real person in
+the set dressing is enough for the scanner to reject the job.
+
+Fix: obscure the portrait in the plate before uploading. Verified working
+(S16_13 passed, S16_11 built the same way). What it takes:
+
+- **A static blur box is not enough** — the camera drifts and the box slips
+  off, leaving the face visible. The first attempt failed exactly this way and
+  produced a worthless test.
+- Track the picture frame by image correlation, then blur the inner picture
+  only, leaving the gold frame standing (reads as an empty frame, unobtrusive).
+- **The matching score must be robust to occlusion** (clamp each pixel's
+  contribution, e.g. `d < 35 ? d : 35`), otherwise an actor passing in front
+  drags the track off target.
+- **Clamp the scale range.** Unclamped, the estimated size drifts and the mask
+  shrinks off the picture. In S16_11 it collapsed to 43 % while the portrait
+  was really at ~93 %.
+- Where the track still fails (fast pan plus occlusion), hand-measure a few
+  keyframes and interpolate; hand over to the tracker at a frame where it is
+  verified good.
+- Keep the mask box off the actor: clip its edge where he covers the picture.
+  Feather inward only, so the mask never spills outside the box.
+- **Always verify the finished file frame by frame** across the whole clip —
+  every failure so far looked fine at one timestamp and was broken at another.
+
+Tooling in this sandbox: no system ffmpeg, but `npm i ffmpeg-static` in the
+scratchpad gives a full build. Mask per frame as raw gray, then
+`alphamerge` + `overlay` — `crop` cannot change size at runtime via `sendcmd`.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

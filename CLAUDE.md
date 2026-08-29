@@ -218,6 +218,58 @@ Tooling in this sandbox: no system ffmpeg, but `npm i ffmpeg-static` in the
 scratchpad gives a full build. Mask per frame as raw gray, then
 `alphamerge` + `overlay` — `crop` cannot change size at runtime via `sendcmd`.
 
+## A changed situation has to lead the prompt (verified, S16_05)
+
+The Iron Cloud flies in the S16 shots, but S16_05 came back with the train
+running on rails — although the prompt did say "flying forty metres above the
+desert". The altitude was buried in the middle of the REPLACE block, where it
+read as one property among many.
+
+Rules for any prompt that changes the fundamental situation of a plate:
+
+- **Put it first, in its own block, right after TASK**, and name it as the one
+  thing that matters ("This is the single most important fact about the shot").
+- **Add a falsification clause** listing what may never appear: "if any rail,
+  sleeper, embankment, platform or ground at eye level appears in any window,
+  the shot is wrong." Positive descriptions alone were not enough.
+- **Let the sound carry it too.** "No rail clatter, no rhythm of wheels on
+  track" is a strong hint about which situation is meant; a flying machine gets
+  drone, wind and rigging instead.
+- Repeat the situation once in POSITIVE LOCKS, never more than that.
+
+## The window is part of the plate, not part of the replacement
+
+In S11_01 the model enlarged the window so the new landscape would fit. Lock
+the opening explicitly in KEEP and in REPLACE: the frame keeps its exact size,
+shape and position in every frame, and the replacement exists strictly INSIDE
+that unchanged opening. The formula that worked: **"the landscape adapts to
+the window, never the window to the landscape."**
+
+With several windows in one wall, add: all openings show one single continuous
+world, same direction, same speed, same defocus — otherwise each window invents
+its own landscape.
+
+## In-world effects (artifacts, magic, powers)
+
+Describe the effect as a **camera-observable physical property**, never as an
+intention. Not "he controls his mind", but "a hairline ring of light runs once
+around the rim, the way light travels around a struck bell". Intentions invite
+the model to stage its own show.
+
+What holds a supernatural effect inside a period film:
+
+- Anchor it in things the audience knows physically: heat in metal, vibration,
+  dust in the air, a liquid running down brass, light dropping in the room.
+- **Name what it never does**: no beams, sparks, arcs, symbols, glowing eyes.
+  This is the one place where naming an exclusion pays off, because the model's
+  prior for "magic" is very strong.
+- Two elements at most. Resonance plus glowing veins works; adding a third
+  turns to mush.
+- The actor's non-reaction has to be stated positively in the effect block,
+  otherwise the model reads the stillness as a gap and invents a reaction:
+  "The man gives nothing away — the only thing that reacts is the metal."
+- Effects on objects are safe with moderation; see the packaging section above.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

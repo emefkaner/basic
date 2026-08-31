@@ -141,6 +141,12 @@ Formschluss-Prinzipien, die sich bewährt haben:
   nicht — die Segmente lagen uebereinander statt ineinander, unsichtbar
   in der STL. Verzahnungen deshalb als **Intervalle in Einbaulage**
   pruefen (`scharnier_pruefen`).
+  Das gilt genauso fuer alles mit **Leserichtung**: Logo, Schrift,
+  Gravur. Beim RC-Koffer war das Scharnier umgerechnet, das Logo nicht --
+  der Schriftzug kam spiegelverkehrt aus dem Drucker. Gegenprobe ist
+  eine Ansicht des Teils in EINBAULAGE (`ansicht_deckel_aussen.svg`);
+  in Druckkoordinaten sieht ein spiegelverkehrtes Logo voellig normal
+  aus.
 - **Scharnierachsen: rohes Filament statt gedrucktem Stift.** 1,75-mm-
   Filament ist gezogen, homogen, rund und glatt — als Achse besser als
   jeder Druck, und es kostet kein Bauteil. Bohrung 2,2 mm (Tropfen, weil

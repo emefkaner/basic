@@ -439,6 +439,51 @@ def scharnier_ansicht(pfad, p, wanne, deckel_zu):
          tilt=math.radians(72))
 
 
+def deckel_aussen(pfad, p):
+    """Der Deckel so, wie er auf dem fertigen Koffer liegt.
+
+    Der Deckel wird GESPIEGELT gedruckt. Ein Logo hat eine Leserichtung,
+    steht in den Druckkoordinaten also verkehrt herum -- ob es am Ende
+    richtig liegt, sieht man nur in dieser Ansicht. Genau das ist einmal
+    durchgerutscht: der Schriftzug kam spiegelverkehrt aus dem Drucker.
+    """
+    gruppen = p.get("logo_gruppen") or []
+    ax, ay = p["aussen_x"] / 2.0, p["aussen_y"] / 2.0
+    s = 2.2
+    W, H = 2 * ax * s + 40, 2 * ay * s + 80
+
+    def X(x):
+        return (-x + ax) * s + 20        # Spiegelung = Gebrauchslage
+
+    def Y(y):
+        return (ay - y) * s + 50
+
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" '
+         'viewBox="0 0 %.0f %.0f">' % (W, H, W, H),
+         '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
+         '<text x="%.0f" y="30" font-family="sans-serif" font-size="16" '
+         'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
+         'Deckel von aussen, fertiger Koffer</text>' % (W / 2),
+         '<polygon points="%s" fill="#6b7078"/>'
+         % " ".join("%.1f,%.1f" % (X(x), Y(y))
+                    for x, y in g.rundrechteck(2 * ax, 2 * ay, g.ECKRADIUS))]
+    for farbe, teile in gruppen:
+        for f, loecher in teile:
+            d = "M" + " ".join("%.1f,%.1f" % (X(x), Y(y)) for x, y in f) + " Z"
+            for h in loecher:
+                d += " M" + " ".join("%.1f,%.1f" % (X(x), Y(y))
+                                     for x, y in h) + " Z"
+            z.append('<path d="%s" fill="%s" fill-rule="evenodd"/>' % (d, farbe))
+    z.append('<text x="%.0f" y="%.0f" font-family="sans-serif" font-size="12" '
+             'text-anchor="middle" fill="#555">%s</text>'
+             % (W / 2, H - 16,
+                "Schriftzug muss hier LESBAR sein" if gruppen
+                else "kein Logo (keine logo.svg im Ordner)"))
+    z.append('</svg>')
+    with open(pfad, "w") as f_:
+        f_.write("\n".join(z))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mit-griff", action="store_true",
@@ -537,11 +582,14 @@ def main():
     controller_lage(os.path.join(ziel, "ansicht_controller_lage.svg"), p)
     scharnier_ansicht(os.path.join(ziel, "ansicht_scharnier.svg"), p,
                       wanne, deckel_zu)
+    g.logo_flaechen(p)
+    deckel_aussen(os.path.join(ziel, "ansicht_deckel_aussen.svg"), p)
 
     for name in ("ansicht_wanne_offen.svg", "ansicht_deckel_innen.svg",
                  "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg",
                  "ansicht_draufsicht.svg", "ansicht_schnitt.svg",
-                 "ansicht_controller_lage.svg", "ansicht_scharnier.svg"):
+                 "ansicht_controller_lage.svg", "ansicht_scharnier.svg",
+                 "ansicht_deckel_aussen.svg"):
         print("%-28s %6.0f kB"
               % (name, os.path.getsize(os.path.join(ziel, name)) / 1024.0))
 

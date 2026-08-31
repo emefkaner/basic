@@ -132,6 +132,14 @@ Die Farbe reicht `LOGO_TIEFE` = 0,6 mm tief (3 Lagen — deckt sauber);
 darüber läuft der Deckel in der Grundfarbe weiter. Das hält die Zahl der
 Filamentwechsel und damit den Purge klein.
 
+**Der Deckel wird gespiegelt gedruckt** ((x,y,z) → (−x, y, z_top−z)) —
+die Außenfläche liegt ja am Bett. Ein Logo hat anders als ein Scharnier
+eine **Leserichtung**, muss in den Druckkoordinaten also bei −x stehen.
+Ohne das kommt der Schriftzug spiegelverkehrt aus dem Drucker (genau so
+passiert). Kontrolliert wird es an `stl/ansicht_deckel_aussen.svg`: dort
+ist der Deckel in Gebrauchslage gezeichnet, und da muss der Schriftzug
+lesbar sein.
+
 **Import in Bambu Studio:**
 
 1. Alle Deckel-STLs zusammen auswählen und laden:

@@ -967,6 +967,20 @@ def logo_flaechen(g):
                        if pfad.lower().endswith(".svg")
                        else bild_farbgruppen(pfad, LOGO_BREITE))
             gruppen, aussen, inseln = zerlegt
+            # ACHTUNG Spiegelung: der Deckel wird um Y gespiegelt
+            # gedruckt ((x,y,z)->(-x,y,z_top-z)). Beim Scharnier ist das
+            # schon eingerechnet -- ein Logo hat aber zusaetzlich eine
+            # LESERICHTUNG. In Druckkoordinaten muss es deshalb bei -x
+            # stehen, sonst steht der Schriftzug im Gebrauch
+            # spiegelverkehrt auf dem Deckel.
+            def sp(poly):
+                return [(-x, y) for (x, y) in poly]
+
+            gruppen = [(farbe, [(sp(f), [sp(h) for h in loecher])
+                                for (f, loecher) in teile])
+                       for (farbe, teile) in gruppen]
+            aussen = [sp(f) for f in aussen]
+            inseln = [sp(h) for h in inseln]
             treffer = (aussen, inseln)
             datei = os.path.basename(pfad)
             g["logo_gruppen"] = gruppen

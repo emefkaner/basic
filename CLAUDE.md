@@ -50,6 +50,33 @@ design detail from the prompt that the new images no longer show. Text describes
 symmetric with "the image beats the text": whichever channel owns appearance must
 be the only one speaking about it.
 
+## References carry identity, not sequence — one direction of change per shot
+
+A reference transmits *what a thing is*. It does not transmit *when*. Lining four
+elements up as a storyboard ("start with @image1 → transition into @image2 → …
+→ final look @image4") does not give the model an order; it gives it four pictures
+of the same object in a bag. Two consequences, both seen on S05 INFLATE:
+
+- **A state that appears in two references gets played twice.** The INFLATE prompt
+  used a closed-roof still as image 1 *and* a closed-roof final look as image 4. The
+  roof opened twice. Whatever state is duplicated across the references is the state
+  the shot stutters on.
+- **Two opposite movements in one prompt have no order.** "Roof opens … zeppelin
+  inflates … roof closes again" gives the model an opening and a closing with nothing
+  to sequence them by, so it does both, repeatedly, in whatever order.
+
+The fix is not more wording about sequence:
+
+- **`start_image` carries the beginning**, because it is the literal first frame and
+  is not negotiable. **One reference carries the end state.** Nothing in between.
+- **One direction of change per generation.** Everything in the shot opens, or
+  everything closes — never both. Lock it positively: *"everything that changes moves
+  in one direction only — open, then further open — and then holds."*
+- Drop the return beat. If the roof has to close again, that is a second shot whose
+  `start_image` is the last frame of the first.
+- Stage the middle by **checkable end states** ("an envelope already longer than the
+  carriage, underside still slack"), never by describing the mechanism travelling.
+
 ## Plate / compositing shots
 
 - **Never tag a character who is already in the plate.** The tag makes the model

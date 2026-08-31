@@ -77,22 +77,43 @@ def main():
     orange = (200, 122, 44)
     rot = (196, 70, 60)
 
-    wanne = [tri for s in g.teil_wanne(p) for tri in s]
-    deckel = [tri for s in g.teil_deckel(p) for tri in s]
-    griff = [tri for s in g.teil_griff(p) for tri in s]
+    def flach(schalen):
+        out = []
+        for e in schalen:
+            sch = e[0] if (isinstance(e, tuple) and len(e) == 2
+                           and isinstance(e[0], list)) else e
+            out.extend(sch)
+        return out
+
+    wanne = flach(g.teil_wanne(p))
+    deckel = flach(g.teil_deckel(p))
+    griff = flach(g.teil_griff(p))
 
     # 1) Wanne offen, Blick in die Faecher; Attrappen des Inhalts
     box_att = g.prisma([(p["fachA_x0"] + 4, -g.AUTOBOX_L / 2),
                         (p["fachA_x0"] + 4 + g.AUTOBOX_B, -g.AUTOBOX_L / 2),
                         (p["fachA_x0"] + 4 + g.AUTOBOX_B, g.AUTOBOX_L / 2),
                         (p["fachA_x0"] + 4, g.AUTOBOX_L / 2)], 0.0, g.AUTOBOX_H)
+    mx0 = p["fachC_x0"]
+    my0 = -p["fachC_t"] / 2.0
+    ctrl_att = g.prisma([(x + mx0, y + my0) for (x, y) in p["kontur"]],
+                        1.0, g.CTRL_H)
     bild(os.path.join(ziel, "ansicht_wanne_offen.svg"),
-         [(wanne, grau), (box_att, rot)],
-         drehung=math.radians(28), skala=2.0,
-         titel="Wanne mit Faechern (Auto-Box als rote Attrappe)",
-         untertitel="links Controllerfach mit Klemmrippen, rechts Auto-Box, "
-                    "hinten Scharnieraugen, vorn Rastkeile",
-         tilt=math.radians(48))
+         [(wanne, grau), (box_att, rot), (ctrl_att, (200, 90, 60))],
+         drehung=math.radians(28), skala=1.8,
+         titel="Wanne: Konturmulde + Auto-Box (Attrappen rot)",
+         untertitel="Controllerfach als Pistolen-Mulde nach Tray-Vorbild, "
+                    "Klemmrippen an der Kontur",
+         tilt=math.radians(52))
+
+    # 1b) Wanne leer, damit die Mulde selbst sichtbar ist
+    bild(os.path.join(ziel, "ansicht_wanne_leer.svg"),
+         [(wanne, grau)],
+         drehung=math.radians(28), skala=1.8,
+         titel="Wanne leer: die Konturmulde",
+         untertitel="Fuellschale mit pistolenfoermigem Loch, 26 mm tief, "
+                    "8 Klemmrippen",
+         tilt=math.radians(55))
 
     # 2) Deckel in Drucklage (Innenseite oben)
     bild(os.path.join(ziel, "ansicht_deckel_innen.svg"),

@@ -45,9 +45,31 @@ AUTOBOX_L  = 100.0    # gemessene Originalbox des Autos
 AUTOBOX_B  = 50.0
 AUTOBOX_H  = 50.0
 
-CTRL_L     = 115.0    # Pistolen-Controller, liegend auf der Seite:
-CTRL_T     = 120.0    # L = Lauf-Richtung, T = Griff-Richtung (Tiefe),
-CTRL_H     = 62.0     # H = Dicke inkl. Drehrad (zeigt nach oben)
+CTRL_H     = 50.0     # Controller-Dicke liegend (gemessen)
+
+# Controller-Silhouette (Draufsicht, liegend wie im Original-Tray), aus dem
+# Foto des Formfaser-Trays vermessen; Massstab ueber die bekannte 100-mm-
+# Auto-Box (474 px). Einheiten mm, y nach unten (wird beim Aufbau
+# gespiegelt). Der Radbogen wird programmatisch eingefuegt.
+CTRL_KONTUR_ROH = [
+    (0.0,  56.0),   # Schnauze vorn-unten
+    (8.1,  43.2),   # Schnauze vorn-oben
+    "RAD",          # Drehrad: Bogen ueber (RAD_CX, RAD_CY), Radius RAD_R
+    (96.7,  9.4),   # hinter dem Rad, oben
+    (93.5, 46.3),   # Ruecken / Griffansatz
+    (99.0, 118.1),  # Griffruecken
+    (100.0, 158.2), # Griffende hinten
+    (77.9, 169.8),  # Griffkuppe
+    (55.5, 160.3),  # Griffende vorn
+    (39.9, 107.5),  # Griff vorn / Trigger
+    (35.5,  82.2),  # Triggerbucht
+    (27.0,  71.7),  # Unterkante Elektronikbox
+]
+RAD_CX, RAD_CY, RAD_R = 68.2, 20.0, 20.0
+CTRL_FOTO_LAENGE = 169.8   # y-Spanne der Foto-Silhouette (Radkante-Griffende)
+CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
+MULDE_LUFT = 4.0           # Offset der Mulde um die Silhouette (Rippenraum)
+MULDE_HOEHE = 26.0         # Tiefe der Konturmulde (wie das Original-Tray)
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 
@@ -68,7 +90,7 @@ DECKEL_INNEN = 26.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
-FEDER_HUB  = 10.0     # wie weit sie unter die Deckeldecke ragen
+FEDER_HUB  = 18.0     # wie weit sie unter die Deckeldecke ragen
 
 SCHARNIER_AUGE = 13.0     # Augen-Aussenmass (Raute)
 STIFT_D    = 4.0
@@ -87,18 +109,87 @@ SCHWALBE_SP = 0.25    # Spiel der Griff-Schwalbe
 
 SEG = 64
 
+# Vom Nutzer GEMESSEN (Messschieber): Controller liegend 190 lang (Radkante
+# bis Griffende), 131 breit (Schnauze bis Griffruecken), 50 dick. Die
+# Foto-Silhouette wird darauf anisotrop skaliert -- die Foto-Skala war
+# wegen Parallaxe (Referenzbox liegt hoeher als die Controller-Kontur)
+# in beiden Achsen unterschiedlich zu klein.
+CTRL_LAENGE = 190.0
+CTRL_BREITE = 131.0
+
 
 # ---------------------------------------------------------------------------
 # Abgeleitete Masze
 # ---------------------------------------------------------------------------
 
+def ctrl_kontur():
+    """Silhouette als geschlossenes Polygon in mm, y nach oben, auf die
+    gemessenen Werte skaliert, Ursprung = linke untere BBox-Ecke."""
+    pts = []
+    for eintrag in CTRL_KONTUR_ROH:
+        if eintrag == "RAD":
+            # Bogen ueber das Rad, von links (180 Grad) bis -30 Grad
+            for i in range(13):
+                w = math.radians(180.0 - 210.0 * i / 12.0)
+                pts.append((RAD_CX + RAD_R * math.cos(w),
+                            RAD_CY - RAD_R * math.sin(w)))
+        else:
+            pts.append(eintrag)
+    xs = [x for (x, _) in pts]
+    ys = [y for (_, y) in pts]
+    sx = CTRL_BREITE / (max(xs) - min(xs))
+    sy = CTRL_LAENGE / (max(ys) - min(ys))
+    ymax = max(ys)
+    return [((x - min(xs)) * sx, (ymax - y) * sy) for (x, y) in pts]
+
+
+def offset_polygon(poly, d):
+    """Polygon um d nach aussen versetzen (Vertex-Normalen-Verfahren --
+    fuer kleine d an handgezaehlten Konturen ausreichend)."""
+    if flaeche_signiert(poly) < 0:
+        poly = poly[::-1]
+    n = len(poly)
+    out = []
+    for i in range(n):
+        x0, y0 = poly[(i - 1) % n]
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % n]
+        # Kantennormalen (aussen = rechts der Laufrichtung bei CCW)
+        def norm(ax, ay, bx, by):
+            dx, dy = bx - ax, by - ay
+            l = math.hypot(dx, dy) or 1.0
+            return (dy / l, -dx / l)
+        n1 = norm(x0, y0, x1, y1)
+        n2 = norm(x1, y1, x2, y2)
+        mx, my = n1[0] + n2[0], n1[1] + n2[1]
+        l = math.hypot(mx, my) or 1.0
+        # Miter-Begrenzung: nicht weiter als 2*d hinaus
+        f = min(2.0, 2.0 / l)
+        out.append((x1 + mx / l * d * f / (f if f else 1) * 1.0,
+                    y1 + my / l * d * f / (f if f else 1) * 1.0))
+    return out
+
+
 def abgeleitet():
     g = {}
-    # Faecher: Nennmass + Rippenraum (Rippen ragen RIPPE_TIEF hinein und
-    # koennen bis auf 1 mm plattgedrueckt werden -> Fach = Nennmass + 2*(TIEF-1))
     zuschlag = 2.0 * (RIPPE_TIEF - 1.0)
-    g["fachC_l"] = CTRL_L + zuschlag
-    g["fachC_t"] = CTRL_T + zuschlag
+    kontur = ctrl_kontur()
+    mulde = offset_polygon(kontur, MULDE_LUFT)
+    xs = [x for (x, _) in mulde]
+    ys = [y for (_, y) in mulde]
+    # 3 mm Randsteg rundum, damit die Fuellschale um die Mulde herum
+    # ueberall Material hat (Loch darf die Fachwand nicht beruehren)
+    steg = 3.0
+    g["mulde"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in mulde]
+    g["kontur"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in kontur]
+    radpts = g["kontur"][2:15]                   # Radbogen-Punkte
+    griffpts = g["kontur"][17:21]                # Griffende
+    g["rad_pos"] = (sum(x for x, _ in radpts) / len(radpts),
+                    sum(y for _, y in radpts) / len(radpts))
+    g["griff_pos"] = (sum(x for x, _ in griffpts) / len(griffpts),
+                      sum(y for _, y in griffpts) / len(griffpts))
+    g["fachC_l"] = max(xs) - min(xs) + 2 * steg
+    g["fachC_t"] = max(ys) - min(ys) + 2 * steg
     g["fachA_l"] = AUTOBOX_B + zuschlag          # Box liegt quer: B in X
     g["fachA_t"] = AUTOBOX_L + zuschlag
 
@@ -159,7 +250,8 @@ def triangulieren(poly):
             if _kreuz(a, b, c) <= 1e-9:
                 continue
             if any(_in_dreieck(poly[j], a, b, c)
-                   for j in idx if j not in (ia, ib, ic)):
+                   for j in idx if j not in (ia, ib, ic)
+                   and poly[j] != a and poly[j] != b and poly[j] != c):
                 continue
             out.append((ia, ib, ic))
             del idx[i]
@@ -240,6 +332,60 @@ def loch_prisma(aussen, innen, z0, z1):
     return t
 
 
+def punkt_in_polygon(pt, poly):
+    x, y = pt
+    drin = False
+    for i in range(len(poly)):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % len(poly)]
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            drin = not drin
+    return drin
+
+
+def _bruecke_einbauen(aussen, loch):
+    """Loch ueber eine Bruecke in die Aussenkontur einschneiden (Technik
+    aus dem Hochzeitsornament-Projekt)."""
+    paare = sorted(((ax - lx) ** 2 + (ay - ly) ** 2, i, j)
+                   for i, (ax, ay) in enumerate(aussen)
+                   for j, (lx, ly) in enumerate(loch))
+    for _, i, j in paare[:40]:
+        loch_um = loch[j:] + loch[:j]
+        kombi = (aussen[:i + 1] + loch_um + [loch_um[0]] + aussen[i:])
+        try:
+            triangulieren(kombi)
+            return kombi
+        except RuntimeError:
+            continue
+    raise RuntimeError("keine brauchbare Bruecke gefunden")
+
+
+def prisma_mit_loechern(aussen, loecher, z0, z1):
+    """Prisma mit beliebigen Loechern: Deckel/Boden aus der Bruecken-
+    Triangulierung, Mantel aus den Originalkonturen. Bruecken erzeugen in
+    den Deckflaechen koinzidente Doppelkanten -> Kantencheck dort mit
+    gerade_erlaubt fahren."""
+    if flaeche_signiert(aussen) < 0:
+        aussen = aussen[::-1]
+    loecher = [l[::-1] if flaeche_signiert(l) > 0 else l for l in loecher]
+    kombi = aussen
+    for l in loecher:
+        kombi = _bruecke_einbauen(kombi, l)
+    t = []
+    for (a, b, c) in triangulieren(kombi):
+        pa, pb, pc = kombi[a], kombi[b], kombi[c]
+        t.append(((pa[0], pa[1], z0), (pc[0], pc[1], z0), (pb[0], pb[1], z0)))
+        t.append(((pa[0], pa[1], z1), (pb[0], pb[1], z1), (pc[0], pc[1], z1)))
+    for kontur in [aussen] + loecher:
+        n = len(kontur)
+        for i in range(n):
+            x1, y1 = kontur[i]
+            x2, y2 = kontur[(i + 1) % n]
+            t.append(((x1, y1, z0), (x2, y2, z0), (x2, y2, z1)))
+            t.append(((x1, y1, z0), (x2, y2, z1), (x1, y1, z1)))
+    return t
+
+
 def verschieben(t, dx=0.0, dy=0.0, dz=0.0):
     return [tuple((x + dx, y + dy, z + dz) for (x, y, z) in tri) for tri in t]
 
@@ -254,7 +400,7 @@ def dreh_z90(t):
     return [tuple((-y, x, z) for (x, y, z) in tri) for tri in t]
 
 
-def kanten_pruefen(t):
+def kanten_pruefen(t, gerade_erlaubt=False):
     z = {}
     for (a, b, c) in t:
         for p, q in ((a, b), (b, c), (c, a)):
@@ -262,6 +408,8 @@ def kanten_pruefen(t):
             kq = tuple(round(w, 5) for w in q)
             s = (kp, kq) if kp < kq else (kq, kp)
             z[s] = z.get(s, 0) + 1
+    if gerade_erlaubt:
+        return sum(1 for n in z.values() if n % 2 != 0)
     return sum(1 for n in z.values() if n != 2)
 
 
@@ -368,6 +516,24 @@ def rippe(x, y, richtung, z0, z1):
     return loften([voll, voll, kurz], [z0, z1 - 3.0, z1])
 
 
+def rippe_frei(px, py, nx, ny, z0, z1):
+    """Klemmrippe an einer Konturwand: steht bei (px,py), ragt in Richtung
+    der Normalen (nx,ny) ins Fach, mit Anlauffase oben."""
+    l = math.hypot(nx, ny) or 1.0
+    nx, ny = nx / l, ny / l
+    tx, ty = -ny, nx
+    b = RIPPE_BREIT / 2.0
+
+    def quer(tief):
+        return [(px - tx * b, py - ty * b),
+                (px + tx * b, py + ty * b),
+                (px + tx * b + nx * tief, py + ty * b + ny * tief),
+                (px - tx * b + nx * tief, py - ty * b + ny * tief)]
+
+    return loften([quer(RIPPE_TIEF), quer(RIPPE_TIEF), quer(RIPPE_TIEF - 1.5)],
+                  [z0, z1 - 3.0, z1])
+
+
 def scharnier_auge(loch_d, laenge):
     """Auge: Raute aussen, Tropfenloch innen, Achse entlang X,
     Zentrum (0,0,0), erstreckt sich x = 0..laenge."""
@@ -416,14 +582,27 @@ def teil_wanne(g):
                   (g["fachA_x0"], max(y_innen, y_aussen))]
             schalen.append(prisma(bl, 0.0, z1))
 
-    # Klemmrippen Controllerfach: je 2 pro Wand
-    cx = (g["fachC_x0"] + g["fachC_x1"]) / 2.0
-    for dy in (-g["fachC_t"] * 0.28, g["fachC_t"] * 0.28):
-        schalen.append(rippe(g["fachC_x0"], dy, "+x", 0.0, z1))
-        schalen.append(rippe(g["fachC_x1"], dy, "-x", 0.0, z1))
-    for dx in (-g["fachC_l"] * 0.28, g["fachC_l"] * 0.28):
-        schalen.append(rippe(cx + dx, -g["innen_y"] / 2.0, "+y", 0.0, z1))
-        schalen.append(rippe(cx + dx, g["innen_y"] / 2.0, "-y", 0.0, z1))
+    # Controllerfach: Konturmulde nach dem Vorbild des Original-Trays.
+    # Eine Fuellschale mit pistolenfoermigem Loch (Bruecken-Triangulierung)
+    # bildet die Mulde; Klemmrippen an markanten Konturpunkten uebernehmen
+    # die Toleranz. Die Mulde ist MULDE_HOEHE tief -- darueber haelt der
+    # Federbogen des Deckels.
+    mx0 = g["fachC_x0"]
+    my0 = -g["fachC_t"] / 2.0
+    mulde_pos = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
+    kontur_pos = [(x + mx0, y + my0) for (x, y) in g["kontur"]]
+    fachrect = [(g["fachC_x0"], -g["innen_y"] / 2.0),
+                (g["fachC_x1"], -g["innen_y"] / 2.0),
+                (g["fachC_x1"], g["innen_y"] / 2.0),
+                (g["fachC_x0"], g["innen_y"] / 2.0)]
+    schalen.append((prisma_mit_loechern(fachrect, [mulde_pos],
+                                        0.0, MULDE_HOEHE), True))
+
+    # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil)
+    for idx in (0, 7, 15, 17, 18, 19, 20, 22):
+        px, py = mulde_pos[idx]
+        qx, qy = kontur_pos[idx]
+        schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
 
     # Klemmrippen Autofach
     ax = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
@@ -506,16 +685,23 @@ def teil_deckel(g):
         profil = aussen_pts + innen_pts
         return profil
 
-    for cx, spann, breite, ys in (
-            ((g["fachC_x0"] + g["fachC_x1"]) / 2.0, g["fachC_l"] * 0.7, 10.0,
-             (-g["fachC_t"] * 0.25, g["fachC_t"] * 0.25)),
-            ((g["fachA_x0"] + g["fachA_x1"]) / 2.0, g["fachA_l"] * 0.8, 10.0,
-             (-g["fachA_t"] * 0.25, g["fachA_t"] * 0.25))):
+    # Federn gezielt ueber Drehrad und Griffende des Controllers sowie
+    # ueber der Auto-Box. ACHTUNG: der Deckel wird beim Schliessen um die
+    # X-Achse... nein: um Y gespiegelt ((x,y,z)->(-x,y,z_top-z)), die
+    # x-Positionen der Wanne erscheinen im Deckel daher negiert.
+    mx0 = g["fachC_x0"]
+    my0 = -g["fachC_t"] / 2.0
+    ziele = [(-(mx0 + g["rad_pos"][0]), my0 + g["rad_pos"][1], 64.0),
+             (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1], 64.0),
+             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, -g["fachA_t"] * 0.22,
+              g["fachA_l"] * 0.8),
+             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, g["fachA_t"] * 0.22,
+              g["fachA_l"] * 0.8)]
+    for cx, y, spann in ziele:
         profil = feder(cx, spann)
-        for y in ys:
-            t = prisma(profil, y - breite / 2.0, y + breite / 2.0)
-            t = [tuple((x, z, y_) for (x, y_, z) in tri) for tri in t]
-            schalen.append(t)
+        t = prisma(profil, y - 5.0, y + 5.0)
+        t = [tuple((x, z, y_) for (x, y_, z) in tri) for tri in t]
+        schalen.append(t)
 
     # Scharnieraugen (versetzt zu denen der Wanne, Presssitz)
     z_rand = BODEN + DECKEL_INNEN
@@ -680,13 +866,18 @@ def teil_stift(g):
 def bauen(ziel, name, schalen):
     fehler = 0
     alle = []
-    for s in schalen:
-        fehler += kanten_pruefen(s)
-        alle.extend(s)
+    for eintrag in schalen:
+        if isinstance(eintrag, tuple):
+            sch, gerade = eintrag
+        else:
+            sch, gerade = eintrag, False
+        fehler += kanten_pruefen(sch, gerade_erlaubt=gerade)
+        alle.extend(sch)
     stl_schreiben(os.path.join(ziel, name), alle, name)
+    vol = sum(volumen(e[0] if isinstance(e, tuple) else e)
+              for e in schalen)
     print("%-36s %3d Schalen %6d Dreiecke  ~%6.1f cm3  offene Kanten: %d"
-          % (name, len(schalen), len(alle),
-             sum(volumen(s) for s in schalen) / 1000.0, fehler))
+          % (name, len(schalen), len(alle), vol / 1000.0, fehler))
     return fehler
 
 

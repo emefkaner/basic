@@ -23,7 +23,7 @@ er rotieren und schlagen könnte.
 Die Controller-Silhouette wurde aus dem Foto des Original-Trays vermessen
 (Maßstab über die bekannte 100-mm-Auto-Box, Messgitter-Overlay) und auf
 die **gemessenen** Werte kalibriert: 190 lang × 131 breit, Gehäuse 42 dick,
-mit Drehrad 57. Die Sicherung ist dreifach:
+mit Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die Sicherung ist dreifach:
 
 - **Konturmulde** (30 mm tief): die Fachfüllung hat ein pistolenförmiges
   Loch mit 4 mm Luft — der Controller kann weder verrutschen noch
@@ -42,8 +42,9 @@ steht also 15 mm einseitig über. Er wird mit dem **Rad nach oben** eingelegt:
 dann liegt das Gehäuse flach in der Mulde und das Rad ragt frei in den
 Deckelraum (3 mm Luft). Andersherum läge er auf dem Rad und würde kippeln —
 die asymmetrische Pistolenform der Mulde lässt die gespiegelte Lage aber
-ohnehin nicht zu. Der Generator prüft den Radfreiraum und bricht ab, wenn
-`DECKEL_INNEN` zu klein wird.
+ohnehin nicht zu. Der Generator prüft zweierlei und bricht bei Verstoß ab: dass das Rad in
+der Höhe in den Deckel passt (aktuell 27 mm Rad gegen 30 mm Deckel = 3 mm
+Luft), und dass keine Deckelfeder über dem Radkreis steht.
 
 Silhouette, Maße (`CTRL_LAENGE`, `CTRL_BREITE`, `CTRL_GEHAEUSE_D`,
 `CTRL_RAD_UEBER`, `AUTOBOX_*`)

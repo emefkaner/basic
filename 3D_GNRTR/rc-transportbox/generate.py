@@ -174,8 +174,19 @@ LOGO_DATEI  = "logo.png"
 LOGO_BREITE = 130.0   # mm ueber die Deckelmitte
 LOGO_TIEFE  = 0.6     # 3 Lagen bei 0,2 mm -- deckt sauber in Farbe 2
 
-CTRL_FED_DICK = 1.4   # Laengsfeder am Kopfende der Controllermulde
-CTRL_FED_HUB  = 15.0  # Hub -- deckt den unbekannten Radueberstand ab
+# Kleine Laengsfeder am Kopfende. Der erste Entwurf hatte 15 mm Hub --
+# das war eine Kruecke gegen die damals unbekannte Kontur und im Druck
+# viel zu klobig. Die Kontur ist jetzt gemessen, also reicht eine
+# kurze, weiche Feder, die das Spiel wegnimmt.
+CTRL_FED_DICK = 1.2
+CTRL_FED_HUB  = 5.0
+CTRL_FED_SEHNE = 45.0   # Laenge der Federsehne
+
+# Die gemessene Kontur kommt aus einer Pixelmaske und hat daher kleine
+# Treppen. Chaikin rundet sie weich aus; der Versatz nach aussen sorgt
+# dafuer, dass die Mulde dabei nirgends enger wird.
+KONTUR_GLATT = 3      # Chaikin-Durchlaeufe
+KONTUR_WEIT  = 0.6    # mm, den die geglaettete Kontur nach aussen rueckt
 
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
 FEDER_HUB  = 18.0     # wie weit sie unter die Deckeldecke ragen
@@ -260,7 +271,127 @@ def ctrl_kontur():
     ys = [y for (_, y) in pts]
     sx = CTRL_BREITE / (max(xs) - min(xs))
     sy = CTRL_LAENGE / (max(ys) - min(ys))
-    return [((x - min(xs)) * sx, (y - min(ys)) * sy) for (x, y) in pts]
+    pts = [((x - min(xs)) * sx, (y - min(ys)) * sy) for (x, y) in pts]
+    return kontur_glaetten(pts)
+
+
+def schlaufen_entfernen(poly):
+    """Selbstueberschneidungen nach einem Versatz aufloesen.
+
+    Versetzt man eine Kontur nach aussen, ueberschlagen sich die Kanten
+    an engen konkaven Stellen zu kleinen Schlaufen. Ein Polygon mit
+    Schlaufe ist nicht triangulierbar. Hier wird jede Kreuzung gesucht,
+    der Schnittpunkt eingesetzt und der Umweg dazwischen verworfen.
+    """
+    def schnitt(a, b, c, d):
+        r = (b[0] - a[0], b[1] - a[1])
+        s2 = (d[0] - c[0], d[1] - c[1])
+        nen = r[0] * s2[1] - r[1] * s2[0]
+        if abs(nen) < 1e-12:
+            return None
+        t = ((c[0] - a[0]) * s2[1] - (c[1] - a[1]) * s2[0]) / nen
+        u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / nen
+        if 1e-6 < t < 1 - 1e-6 and 1e-6 < u < 1 - 1e-6:
+            return (a[0] + r[0] * t, a[1] + r[1] * t)
+        return None
+
+    for _ in range(40):
+        n = len(poly)
+        gefunden = False
+        for i in range(n):
+            for j in range(i + 2, n):
+                if i == 0 and j == n - 1:
+                    continue
+                p = schnitt(poly[i], poly[(i + 1) % n],
+                            poly[j], poly[(j + 1) % n])
+                if p is None:
+                    continue
+                # die kuerzere der beiden Schlaufen verwerfen
+                innen = poly[i + 1:j + 1]
+                aussen = poly[j + 1:] + poly[:i + 1]
+                poly = (aussen + [p]) if len(innen) < len(aussen) \
+                    else (poly[:i + 1] + [p] + poly[j + 1:])
+                gefunden = True
+                break
+            if gefunden:
+                break
+        if not gefunden:
+            break
+    return poly
+
+
+def kerben_fuellen(pts, min_spalt=16.0, min_bogen=40.0):
+    """Schmale Einschnitte der Kontur ueberbruecken.
+
+    Der Abzugsclip steht aus dem Gehaeuse heraus; dahinter bleibt ein
+    schmaler Schlitz. Den formzutreu auszusparen bringt nichts -- man
+    bekommt den Controller so kaum eingefaedelt, und beim Versetzen der
+    Kontur nach aussen ueberschlaegt sich das Polygon dort (die
+    Bruecken-Triangulierung scheitert dann). Also: liegen zwei Punkte
+    naeher als `min_spalt` beieinander, sind aber entlang der Kontur
+    weiter als `min_bogen` auseinander, wird der Bogen dazwischen durch
+    die direkte Verbindung ersetzt. Groessere Einbuchtungen bleiben --
+    dort steckt der Platz fuer ein weiteres Fach.
+    """
+    aendert = True
+    while aendert and len(pts) > 8:
+        aendert = False
+        n = len(pts)
+        laengen = [math.dist(pts[i], pts[(i + 1) % n]) for i in range(n)]
+        for i in range(n):
+            bogen = 0.0
+            for k in range(1, n - 2):
+                j = (i + k) % n
+                bogen += laengen[(i + k - 1) % n]
+                if bogen < min_bogen:
+                    continue
+                if bogen > 0.5 * sum(laengen):
+                    break
+                if math.dist(pts[i], pts[j]) < min_spalt:
+                    if j > i:
+                        pts = pts[:i + 1] + pts[j:]
+                    else:
+                        pts = pts[j:i + 1]
+                    aendert = True
+                    break
+            if aendert:
+                break
+    return pts
+
+
+def kontur_glaetten(pts, runden=None, weit=None):
+    """Ecken der gemessenen Kontur weich ausrunden (Chaikin).
+
+    Die Silhouette stammt aus einer Pixelmaske: sie ist masslich richtig,
+    hat aber lauter kleine Treppen und Zacken, die sich im Druck als
+    Nubsis in der Mulde wiederfinden. Chaikin schneidet jede Ecke ab und
+    ersetzt sie durch zwei Punkte auf ein Viertel und drei Viertel der
+    Kante -- nach ein paar Durchlaeufen ist die Kontur glatt. Weil das
+    die Flaeche leicht schrumpfen laesst, wird sie anschliessend um
+    KONTUR_WEIT nach aussen versetzt: die Mulde darf weiter werden, nie
+    enger.
+    """
+    runden = KONTUR_GLATT if runden is None else runden
+    weit = KONTUR_WEIT if weit is None else weit
+    for _ in range(runden):
+        neu = []
+        n = len(pts)
+        for i in range(n):
+            a, b = pts[i], pts[(i + 1) % n]
+            neu.append((0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]))
+            neu.append((0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]))
+        pts = neu
+    pts = kerben_fuellen(pts)
+    if weit:
+        pts = schlaufen_entfernen(offset_polygon(pts, weit))
+    # nach dem Glaetten liegen viele Punkte sehr dicht -- ausduennen
+    aus = []
+    for q in pts:
+        if not aus or math.dist(q, aus[-1]) >= 0.8:
+            aus.append(q)
+    if len(aus) > 3 and math.dist(aus[0], aus[-1]) < 0.8:
+        aus.pop()
+    return aus
 
 
 def kopf_glaetten(pts, bis=16):
@@ -321,7 +452,7 @@ def abgeleitet():
     g = {}
     zuschlag = 2.0 * (RIPPE_TIEF - 1.0)
     kontur = ctrl_kontur()
-    mulde = offset_polygon(kontur, MULDE_LUFT)
+    mulde = schlaufen_entfernen(offset_polygon(kontur, MULDE_LUFT))
     xs = [x for (x, _) in mulde]
     ys = [y for (_, y) in mulde]
     # 3 mm Randsteg rundum, damit die Fuellschale um die Mulde herum
@@ -350,8 +481,10 @@ def abgeleitet():
     # Klemmrippen: an allen Konturpunkten AUSSER im Radbereich. Das Rad
     # reicht von z=12 bis 57 -- eine Rippe wuerde dort auf das Drehrad
     # druecken statt auf das Gehaeuse.
-    g["rippen_idx"] = [i for i, q in enumerate(k)
-                       if q[1] < y0k + 0.78 * CTRL_LAENGE]
+    # Keine Klemmrippen mehr in der Controllermulde: die Kontur ist
+    # gemessen, die Rippen standen als "Nubsis" in der Mulde und wurden
+    # nicht gebraucht. Die Laengsfeder nimmt das Restspiel.
+    g["rippen_idx"] = []
     g["fachC_l"] = max(xs) - min(xs) + 2 * steg
     g["fachC_t"] = max(ys) - min(ys) + 2 * steg
     g["fachA_l"] = AUTOBOX_B + zuschlag          # Box liegt quer: B in X
@@ -1367,8 +1500,13 @@ def ctrl_feder(g, z1, mx0=None, my0=None):
     kopf = [p for p in mulde if p[1] > grenze]
     if len(kopf) < 2:
         return []
-    pa = min(kopf, key=lambda p: p[0])
-    pb = max(kopf, key=lambda p: p[0])
+    # kurze Sehne mittig auf dem Kopfende statt ueber die volle Breite
+    kopf.sort(key=lambda p: p[0])
+    mx = (kopf[0][0] + kopf[-1][0]) / 2.0
+    pa = min(kopf, key=lambda p: abs(p[0] - (mx - CTRL_FED_SEHNE / 2.0)))
+    pb = min(kopf, key=lambda p: abs(p[0] - (mx + CTRL_FED_SEHNE / 2.0)))
+    if math.dist(pa, pb) < 12.0:
+        pa, pb = kopf[0], kopf[-1]
     mitte = (sum(p[0] for p in mulde) / len(mulde),
              sum(p[1] for p in mulde) / len(mulde))
     L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])

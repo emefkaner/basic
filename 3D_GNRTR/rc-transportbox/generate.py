@@ -54,6 +54,12 @@ AUTOBOX_H  = 50.0
 CTRL_GEHAEUSE_D = 42.0    # Gehaeusedicke ohne Rad (gemessen)
 CTRL_RAD_UEBER  = 15.0    # Radueberstand ueber die Gehaeuseseite (57 - 42)
 CTRL_H = CTRL_GEHAEUSE_D + CTRL_RAD_UEBER    # Gesamthoehe liegend = 57
+# Das Rad steht (Controller von hinten gesehen) nach RECHTS ueber -- liegend
+# mit Rad oben liegt er also auf seiner linken Gehaeuseseite. Durchmesser
+# und Laengsposition sind bis zur Messung aus dem Foto geschaetzt; sie
+# steuern nur, wo im Deckel Freiraum bleiben muss.
+RAD_D = 45.0              # Durchmesser des Drehrads (gemessen)
+RAD_FREI = 4.0            # Sicherheitsabstand der Federn zum Radrand
 
 # Controller-Silhouette (Draufsicht, liegend wie im Original-Tray), aus dem
 # Foto des Formfaser-Trays vermessen; Massstab ueber die bekannte 100-mm-
@@ -73,7 +79,11 @@ CTRL_KONTUR_ROH = [
     (35.5,  82.2),  # Triggerbucht
     (27.0,  71.7),  # Unterkante Elektronikbox
 ]
-RAD_CX, RAD_CY, RAD_R = 68.2, 20.0, 20.0
+# Radgeometrie in Rohkoordinaten, ruecklaufend aus der Messung bestimmt:
+# Raddurchmesser 45 mm, Raender in der 131er Achse 77 mm / 10 mm. Die
+# Summe 77+45+10 = 132 gegen 131 gemessene Breite zeigt ~1 mm Messstreuung,
+# die Werte liegen deshalb mittig dazwischen (ergibt 76.4 / 9.6).
+RAD_CX, RAD_CY, RAD_R = 75.5, 20.0, 17.2
 CTRL_FOTO_LAENGE = 169.8   # y-Spanne der Foto-Silhouette (Radkante-Griffende)
 CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
 MULDE_LUFT = 4.0           # Offset der Mulde um die Silhouette (Rippenraum)
@@ -728,11 +738,26 @@ def teil_deckel(g):
         t = [tuple((x, z, y_) for (x, y_, z) in tri) for tri in t]
         schalen.append(t)
 
-    # Kontrolle: das Rad muss im Deckel frei bleiben
+    # Kontrolle 1: das Rad muss in der Hoehe frei bleiben
     if ueber_rad > DECKEL_INNEN - 1.0:
         raise SystemExit("FEHLER: Drehrad ragt %.1f mm in den Deckel, dort "
                          "sind nur %.1f mm -- DECKEL_INNEN erhoehen"
                          % (ueber_rad, DECKEL_INNEN))
+
+    # Kontrolle 2: keine Feder darf ueber dem Rad stehen -- sie wuerde es
+    # klemmen statt den Controller zu halten. Rechteck der Feder gegen den
+    # Radkreis pruefen.
+    rad_x = -(mx0 + g["rad_pos"][0])
+    rad_y = my0 + g["rad_pos"][1]
+    grenze = RAD_D / 2.0 + RAD_FREI
+    for cx, y, spann, hub in ziele[:2]:
+        dy = abs(y - rad_y) - 5.0
+        dx = abs(cx - rad_x) - spann / 2.0
+        if max(dx, dy) < grenze:
+            raise SystemExit(
+                "FEHLER: Deckelfeder bei x=%.0f y=%.0f steht ueber dem "
+                "Drehrad (Radmitte x=%.0f y=%.0f, D=%.0f) -- Federposition "
+                "oder Spannweite anpassen" % (cx, y, rad_x, rad_y, RAD_D))
 
     # Scharnieraugen (versetzt zu denen der Wanne, Presssitz)
     z_rand = BODEN + DECKEL_INNEN

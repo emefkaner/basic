@@ -190,9 +190,66 @@ What the listing gives you, and what it does not:
 - **Near-duplicates.** `PINKERTON` / `PINKERTON2`, `VILLAIN` / `VILLAIN-NOHOOD`,
   `Schmitzkowsky` / `SchmitzkowskyGoggle`. Which variant is current is a genuine
   question for the user — that one is worth asking.
-- **Not the pixels.** The CDN host is blocked by this environment's network policy, so
-  the images themselves cannot be opened. Reason from names and descriptions, and say
-  plainly that the picture itself was not seen. Never describe an image as if it had been.
+- **The pixels too — look at them.** The CDN *is* reachable. Take the `medias[].url`
+  from the listing verbatim (a hand-typed uuid gives 403) and `curl` it to the
+  scratchpad, then read it. Never reason from a name when you can open the file, and
+  never describe an image you have not opened.
+
+## Watch the results — the share link is openable
+
+A `higgsfield.ai/s/<id>` link can be inspected end to end. Do it before diagnosing
+anything; the failure is usually visible in three frames and invisible in a description.
+
+```
+curl -sSL "https://higgsfield.ai/s/<id>" -o page.html
+strings -a page.html | grep -oE 'https?://[a-zA-Z0-9._/-]*\.mp4' | sort -u   # cloudfront
+curl -sS -o shot.mp4 "<that url>"
+pip3 install --quiet imageio-ffmpeg      # no system ffmpeg in this environment
+FF=$(python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())")
+$FF -i shot.mp4 -vf "fps=1,scale=740:-1,tile=2x5" -frames:v 1 gridA.png
+$FF -ss 0.5 -i shot.mp4 -vf "fps=1,scale=740:-1,tile=2x5" -frames:v 1 gridB.png
+```
+
+Two sheets offset by half a second read as a 2 fps flipbook and catch the one-second
+artefacts. The `og:image` meta tag on the page is the first frame on its own.
+
+## Check what the end reference actually shows before locking a state
+
+An end-state element is a picture of a *finished object*, and it quietly fixes states
+the shot may need to be different. `@IRON-CLOUD-Inflated` shows the inflated zeppelin
+over the train — with the carriage roof **closed**. A prompt locking "the roof stays
+open through the final frame" against it made the model do both: open the roof, then
+put it back. The lid that opens and vanishes into nowhere is that contradiction.
+
+So before writing a lock about a state, open the reference and check that state in it.
+Where the reference contradicts the shot, the reference wins — either drop the lock or
+build a still that shows the state you need and save it as its own element.
+
+Such elements also carry their *photography*: `@IRON-CLOUD-Inflated` is a studio product
+shot, object centred on grey seamless, evenly lit, locked-off camera. Tagged in a moving
+exterior it pulls the camera toward standing still. Say in the prompt which part of the
+reference is being used — "take the envelope and its hardware from this reference and
+nothing else from it; the light and the camera of this shot are the ones described
+below".
+
+## An empty beat gets filled with invention
+
+Do not give a mechanism its own stretch of time with nothing else happening in it. The
+INFLATE shot gave the roof three seconds alone, before the zeppelin appeared. The model
+had no picture of an open roof and three seconds to fill, so it invented the only form
+that was legible at that size: a single carriage-sized lid that lifted off and
+disappeared. From the second the balloon justified the opening, the same model opened
+the roof correctly.
+
+Two rules follow:
+
+- **Let the payload drive the mechanism.** "The envelope pushes the roof open from
+  inside, the opening and the material appearing are the same event" beats a roof that
+  opens on its own and then waits.
+- **A mechanism needs enough pixels to exist.** In a wide shot of the whole train the
+  carriage roof is a thin sliver — two narrow hinged panels cannot be resolved there at
+  all, so something carriage-sized comes out instead. That is a framing problem and no
+  wording fixes it. Give the mechanism its own closer shot.
 
 **Check the element description against the blocking before generating.** An environment
 element fixes look direction and which side of frame the track sits on. If the prompt

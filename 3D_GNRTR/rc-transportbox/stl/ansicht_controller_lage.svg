@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="800" viewBox="0 0 1120 800">
+<rect width="100%%" height="100%%" fill="#fbfbfa"/>
+<text x="560" y="30" font-family="sans-serif" font-size="18" font-weight="600" text-anchor="middle" fill="#1a1a1a">So liegt der Controller in der Mulde</text>
+<polygon points="155.1,110.8 123.7,133.6 67.0,275.0 54.3,277.3 42.9,283.8 33.6,294.0 27.5,306.9 25.0,321.3 26.3,336.0 31.5,349.5 39.9,360.6 50.9,368.2 63.3,371.7 76.1,370.8 88.0,365.4 41.1,383.2 131.3,374.2 307.0,389.6 405.1,392.5 433.5,330.2 410.2,267.1 281.0,223.2 219.2,210.8 193.5,186.9" fill="#c8663f" stroke="#8d4225" stroke-width="1.6"/>
+<text x="245.0" y="74.0" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="600">1 - wie auf deinem Foto, von oben</text>
+<text x="104.5" y="160.5" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Rad</text>
+<text x="362.5" y="300.2" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Griff</text>
+<rect x="201.2" y="100.3" width="189.2" height="75.2" rx="5" fill="#e5dcf2" fill-opacity="0.75" stroke="#7d3fa8" stroke-width="2"/>
+<text x="295.9" y="147.6" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#4b2570" font-weight="600">Hot Wheels</text>
+<polygon points="911.5,107.4 911.4,105.9 911.1,104.4 910.6,103.0 910.0,101.7 909.2,100.4 908.2,99.3 907.1,98.3 905.8,97.5 904.5,96.9 903.1,96.4 901.6,96.1 900.1,96.0 631.4,96.0 629.9,96.1 628.4,96.4 627.0,96.9 625.7,97.5 624.4,98.3 623.3,99.3 622.3,100.4 621.5,101.7 620.9,103.0 620.4,104.4 620.1,105.9 620.0,107.4 620.0,374.3 620.1,375.8 620.4,377.3 620.9,378.7 621.5,380.0 622.3,381.2 623.3,382.3 624.4,383.3 625.7,384.1 627.0,384.8 628.4,385.3 629.9,385.6 631.4,385.7 900.1,385.7 901.6,385.6 903.1,385.3 904.5,384.8 905.8,384.1 907.1,383.3 908.2,382.3 909.2,381.2 910.0,380.0 910.6,378.7 911.1,377.3 911.4,375.8 911.5,374.3" fill="#f2f2ef" stroke="#b8bcc2" stroke-width="1.4"/>
+<polygon points="629.8,191.9 644.8,171.2 738.2,133.7 739.7,125.3 744.0,117.8 750.7,111.7 759.3,107.6 768.8,105.9 778.5,106.9 787.4,110.3 794.7,115.8 799.8,123.1 802.1,131.3 801.5,139.7 797.9,147.6 809.7,116.6 803.7,176.2 813.9,292.2 815.8,357.0 774.7,375.7 733.0,360.4 704.0,275.1 695.8,234.2 680.0,217.2" fill="#c8663f" stroke="#8d4225" stroke-width="1.4"/>
+<rect x="623.5" y="252.9" width="54.0" height="129.2" rx="6" fill="#e5dcf2" stroke="#7d3fa8" stroke-width="1.6"/>
+<rect x="843.3" y="252.9" width="54.0" height="129.2" rx="6" fill="#e5dcf2" stroke="#7d3fa8" stroke-width="1.6"/>
+<rect x="829.1" y="96.0" width="82.4" height="153.4" fill="#b1483f" stroke="#7d2a23" stroke-width="1.4"/>
+<text x="765.8" y="74.0" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="600">2 - dieselbe Form in der Wanne (90 Grad gedreht)</text>
+<text x="774.1" y="121.3" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Rad</text>
+<text x="784.4" y="350.3" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Griff</text>
+<text x="870.3" y="172.7" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff" font-weight="600">Auto-Box</text>
+<text x="310.0" y="436.0" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="600">3 - Hoehenschnitt: was steckt drin, was ragt heraus</text>
+<rect x="124.0" y="544.0" width="26.0" height="156.0" fill="#dfe1e4" stroke="#8a8f96"/>
+<rect x="320.0" y="544.0" width="26.0" height="156.0" fill="#dfe1e4" stroke="#8a8f96"/>
+<rect x="124.0" y="460.0" width="222.0" height="84.0" fill="none" stroke="#8a8f96" stroke-dasharray="5 4"/>
+<rect x="150.0" y="532.0" width="105.0" height="168.0" fill="#c8663f"/>
+<rect x="257.0" y="472.0" width="60.0" height="228.0" fill="#2b2b30"/>
+<text x="202.0" y="558.0" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Gehaeuse</text>
+<text x="287.0" y="498.0" font-family="sans-serif" font-size="12" text-anchor="middle" fill="#fff">Rad</text>
+<line x1="116.0" y1="700.0" x2="382.0" y2="700.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="704.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">0  Muldenboden</text>
+<line x1="116.0" y1="580.0" x2="382.0" y2="580.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="584.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">30  Muldenkante</text>
+<line x1="116.0" y1="544.0" x2="382.0" y2="544.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="548.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">39  Wannenrand</text>
+<line x1="116.0" y1="532.0" x2="382.0" y2="532.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="536.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">42  Gehaeuse</text>
+<line x1="116.0" y1="472.0" x2="382.0" y2="472.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="476.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">57  Rad</text>
+<line x1="116.0" y1="460.0" x2="382.0" y2="460.0" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3 3"/>
+<text x="390.0" y="464.0" font-family="sans-serif" font-size="12" text-anchor="start" fill="#555">60  Deckeldecke</text>
+<text x="620.0" y="560.0" font-family="sans-serif" font-size="13" text-anchor="start" fill="#444">Der Controller ist 42 mm dick, die Mulde nur 30 mm tief.</text>
+<text x="620.0" y="582.0" font-family="sans-serif" font-size="13" text-anchor="start" fill="#444">Er steckt also 30 mm in der Mulde und steht 12 mm heraus,</text>
+<text x="620.0" y="604.0" font-family="sans-serif" font-size="13" text-anchor="start" fill="#444">das Drehrad 27 mm. Ueber dem Wannenrand hat der Deckel</text>
+<text x="620.0" y="626.0" font-family="sans-serif" font-size="13" text-anchor="start" fill="#444">21 mm lichte Hoehe - beides passt hinein, das Rad mit</text>
+<text x="620.0" y="648.0" font-family="sans-serif" font-size="13" text-anchor="start" fill="#444">3 mm Luft. Deshalb Rad nach OBEN einlegen.</text>
+</svg>

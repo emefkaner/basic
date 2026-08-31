@@ -17,7 +17,7 @@ er rotieren und schlagen könnte.
 |---|---|---|
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
-| Achsstift | `rcbox_4_achsstift_2x_drucken.stl` | **2 ×** |
+| Achsstift (89 mm) | `rcbox_4_achsstift_2x_drucken.stl` | **2 ×** |
 
 Der Griff (`rcbox_3_griff_1x_drucken.stl`) entsteht nur mit
 `python3 generate.py --mit-griff`; ohne die Option löscht der Generator
@@ -88,9 +88,21 @@ und Muldenluft (`MULDE_LUFT`) sind Parameter in `generate.py`.
 
 ## Mechanik
 
-- **Scharnier hinten:** Rautenaugen mit Tropfenbohrung an Wanne und Deckel
-  (verzahnt versetzt), zwei Achsstifte von außen einstecken — Presssitz im
-  Deckelauge, Drehsitz im Wannenauge.
+- **Scharnier hinten: durchgehendes Klavierband.** Sieben Segmente à
+  25 mm über 180 mm Breite, abwechselnd Wanne (4) und Deckel (3),
+  Rautenprofil mit Tropfenbohrung. Die tragende Breite an der Wanne ist
+  damit **101 mm statt 24 mm**, der Stift 5 statt 4 mm — zwei kurze Nasen
+  waren die Sollbruchstelle, wenn der volle Koffer am Deckel hängt. Zwei
+  Achsstifte (je 89 mm) werden von links und rechts eingeschoben und
+  treffen sich im mittleren Segment: Presssitz in den Deckelaugen,
+  Drehsitz in den Wannenaugen.
+
+  Der Deckel wird **gespiegelt** gedruckt ((x,y,z) → (−x,y,z_top−z)).
+  Ein Segment, das im Gebrauch bei x liegen soll, muss deshalb im
+  Druckmodell bei −x stehen. Ohne diese Umrechnung liegen Deckel- und
+  Wannensegmente übereinander statt ineinander — in der STL nicht zu
+  sehen, beim Zusammenbau fatal. `scharnier_pruefen()` testet die
+  Intervalle in Einbaulage auf Überlappung und den Spalt dazwischen.
 - **Stufenfalz rundum:** der Deckel trägt eine umlaufende, 1,5 mm dünne
   Lippe, die 9 mm tief in eine zurückgesetzte Kante der Wanne greift.
   Außen bleibt die Fuge eine bündige Linie — innen ist der Deckel geführt,
@@ -137,7 +149,9 @@ rendert die passenden Ansichten.
   (spröder); PETG ist für Schnapper und Federn die erste Wahl.
 - **Alle Teile liegen druckfertig, keine Stützen.** Der Deckel wird mit
   der Innenseite nach oben gedruckt — die verrundete Außenkante liegt am
-  Bett. Der Griff (nur mit `--mit-griff`) liegt flach.
+  Bett. Die Achsstifte liegen **flach** (89 mm lang): stehend gedruckt
+  lägen alle Lagen quer zur Achse und der Stift bräche bei der ersten
+  Biegung. Der Griff (nur mit `--mit-griff`) liegt flach.
 - **Wände/Infill:** 3 Wandlinien, 10–12 % Infill. Die Füllschale der
   Konturmulde ist volumig — das niedrige Infill hält sie leicht, die
   4-mm-Außenwände bleiben trotzdem praktisch massiv.
@@ -149,8 +163,9 @@ rendert die passenden Ansichten.
 
 ## Zusammenbau
 
-1. Deckel hinten an die Wanne halten, Augen fluchten lassen, beide
-   Achsstifte von außen durchstecken und eindrücken.
+1. Deckel hinten an die Wanne halten, die Bandsegmente ineinander
+   schieben, dann die beiden Achsstifte von links und rechts einschieben
+   bis der Kopf anliegt — sie treffen sich im mittleren Segment.
 2. Controller **mit dem Drehrad nach oben** in die Mulde drücken (Rippen
    geben nach), Auto-Box ins kleine Fach.
 3. Deckel zu — die Lippe zentriert sich in den Falz, die Zungen schnappen
@@ -163,6 +178,14 @@ Prismen-Schalen je STL (der Slicer vereinigt beim Slicen), jede Schale auf
 Wasserdichtheit geprüft. Querliegende Bohrungen als Tropfen, querliegende
 Blöcke als Rauten. Die Schnapper-Dimensionierung ist auf ≤4 % Randdehnung
 beim Schnappen ausgelegt (Zunge 1,4 mm, Hub 1,4 mm).
+
+Ein Fach kann fehlerfrei modelliert und trotzdem massiv zugefüllt sein,
+wenn eine andere Schale darüber liegt — genau das passierte beim ersten
+Hot-Wheels-Fach: der Rahmen stand da, aber die Füllschale der
+Konturmulde füllte das Innere bis oben. In der STL sieht das völlig
+unauffällig aus. Deshalb prüft `hw_hohlraum_pruefen()` mit senkrechten
+Strahlen durch jedes Fach, ob dort wirklich Luft ist, und meldet jede
+Fläche oberhalb des Bodens.
 
 Die Wanne ist innen in zwei Zonen geteilt: unten die **Muldenzone** (30 mm,
 dort sitzen Füllschale, Trennwand, Blöcke und Rippen), darüber die
@@ -177,4 +200,8 @@ Ansichten: `stl/ansicht_draufsicht.svg` (maßstäbliche Belegung von oben —
 zeigt, was den Platz wirklich belegt), `stl/ansicht_koffer_zu.svg`,
 `stl/ansicht_wanne_offen.svg` (mit Attrappen), `stl/ansicht_wanne_leer.svg`,
 `stl/ansicht_deckel_innen.svg`, `stl/ansicht_falz_schnitt.svg`
-(maßstäblicher Schnitt durch die Fuge).
+(maßstäblicher Schnitt durch die Fuge), `stl/ansicht_schnitt.svg`
+(waagerechter Materialschnitt aus der fertigen Geometrie — grau ist
+Material, weiß ist Luft), `stl/ansicht_controller_lage.svg` (wie der
+Controller in der Mulde liegt, mit Höhenschnitt),
+`stl/ansicht_scharnier.svg` (Band von hinten).

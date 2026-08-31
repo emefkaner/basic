@@ -225,6 +225,219 @@ def draufsicht(pfad, p):
         f.write("\n".join(z))
 
 
+def materialschnitt(pfad, p, zs=15.0):
+    """Waagerechter Materialschnitt durch die fertige Wannengeometrie.
+
+    Nicht aus der Planung gezeichnet, sondern aus den Dreiecken selbst:
+    jedes Dreieck, das die Ebene z=zs schneidet, liefert ein Segment,
+    danach entscheidet ein Strahl je Rasterpunkt (ungerade Zahl von
+    Schnitten = Material). So sieht man sofort, ob ein Fach wirklich frei
+    ist -- ein zugefuelltes Fach faellt in der 3D-Ansicht nicht auf."""
+    schalen = g.teil_wanne(p)
+    tris = [t for s_ in schalen for t in (s_[0] if isinstance(s_, tuple) else s_)]
+    seg = []
+    for (a, b, c) in tris:
+        pts = []
+        for q0, q1 in ((a, b), (b, c), (c, a)):
+            if (q0[2] - zs) * (q1[2] - zs) < 0:
+                t = (zs - q0[2]) / (q1[2] - q0[2])
+                pts.append((q0[0] + (q1[0] - q0[0]) * t,
+                            q0[1] + (q1[1] - q0[1]) * t))
+        if len(pts) == 2:
+            seg.append(pts)
+    ix = p["innen_x"] / 2.0 + g.WAND
+    iy = p["innen_y"] / 2.0 + g.WAND
+    step = 1.5
+    rows = []
+    y = iy
+    while y > -iy:
+        xs = []
+        for (q0, q1) in seg:
+            if min(q0[1], q1[1]) <= y <= max(q0[1], q1[1]) and abs(q1[1] - q0[1]) > 1e-12:
+                t = (y - q0[1]) / (q1[1] - q0[1])
+                if 0.0 <= t <= 1.0:
+                    xs.append(q0[0] + (q1[0] - q0[0]) * t)
+        row, x = [], -ix
+        while x < ix:
+            row.append(sum(1 for xv in xs if xv < x) % 2 == 1)
+            x += step
+        rows.append(row)
+        y -= step
+    b = len(rows[0])
+    W, H = b * 4 + 40, len(rows) * 4 + 80
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+         'viewBox="0 0 %d %d">' % (W, H, W, H),
+         '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
+         '<text x="%d" y="24" font-family="sans-serif" font-size="15" '
+         'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
+         'Materialschnitt auf halber Fachhoehe (z = %.0f mm)</text>'
+         % (W / 2, zs)]
+    for i, row in enumerate(rows):
+        x0 = None
+        for j, voll in enumerate(row + [False]):
+            if voll and x0 is None:
+                x0 = j
+            elif not voll and x0 is not None:
+                z.append('<rect x="%d" y="%d" width="%d" height="4" '
+                         'fill="#5a6672"/>' % (20 + x0 * 4, 40 + i * 4,
+                                               (j - x0) * 4))
+                x0 = None
+    z.append('<text x="%d" y="%d" font-family="sans-serif" font-size="12" '
+             'text-anchor="middle" fill="#555">grau = Material, weiss = Luft '
+             '- die Hot-Wheels-Faecher sind durchgehend offen</text>'
+             % (W / 2, len(rows) * 4 + 64))
+    z.append('</svg>')
+    with open(pfad, "w") as f:
+        f.write("\n".join(z))
+
+
+def controller_lage(pfad, p):
+    """Erklaerbild: wie der Controller in der Mulde liegt.
+
+    Oben links die Silhouette in der Orientierung des Nutzerfotos (Rad
+    links, Griffende rechts) mit der Stelle, an der dort das Hot Wheels
+    lag; oben rechts dieselbe Form um 90 Grad gedreht in der Wanne; unten
+    ein Hoehenschnitt, der zeigt, was in der 30 mm tiefen Mulde steckt und
+    was frei in den Deckelraum ragt."""
+    mx0, my0 = p["fachC_x0"], -p["fachC_t"] / 2.0
+    kontur = p["kontur"]
+    foto = [(190.0 - y, x) for (x, y) in kontur]
+    W, H = 1120, 800
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
+         'viewBox="0 0 %d %d">' % (W, H, W, H),
+         '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
+         '<text x="%d" y="30" font-family="sans-serif" font-size="18" '
+         'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
+         'So liegt der Controller in der Mulde</text>' % (W / 2)]
+
+    def txt(x, y, t, size=12, farbe="#444", anker="middle", fett=False):
+        z.append('<text x="%.1f" y="%.1f" font-family="sans-serif" '
+                 'font-size="%d" text-anchor="%s" fill="%s"%s>%s</text>'
+                 % (x, y, size, anker, farbe,
+                    ' font-weight="600"' if fett else "", t))
+
+    # ---- oben links: Orientierung wie auf dem Foto
+    ox, oy, fs = 40, 96, 2.15
+    z.append('<polygon points="%s" fill="#c8663f" stroke="#8d4225" '
+             'stroke-width="1.6"/>'
+             % " ".join("%.1f,%.1f" % (ox + x * fs, oy + y * fs)
+                        for x, y in foto))
+    txt(ox + 205, 74, "1 - wie auf deinem Foto, von oben", 14, "#1a1a1a",
+        "middle", True)
+    txt(ox + 30 * fs, oy + 30 * fs, "Rad", 12, "#fff")
+    txt(ox + 150 * fs, oy + 95 * fs, "Griff", 12, "#fff")
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="5" '
+             'fill="#e5dcf2" fill-opacity="0.75" stroke="#7d3fa8" '
+             'stroke-width="2"/>'
+             % (ox + 75 * fs, oy + 2 * fs, 88 * fs, 35 * fs))
+    txt(ox + 119 * fs, oy + 24 * fs, "Hot Wheels", 12, "#4b2570", "middle", True)
+
+    # ---- oben rechts: Einbaulage
+    bx, by, sc = 620, 96, 1.42
+    ix, iy = p["innen_x"] / 2.0, p["innen_y"] / 2.0
+
+    def X(x):
+        return bx + (x + ix) * sc
+
+    def Y(y):
+        return by + (iy - y) * sc
+
+    z.append('<polygon points="%s" fill="#f2f2ef" stroke="#b8bcc2" '
+             'stroke-width="1.4"/>'
+             % " ".join("%.1f,%.1f" % (X(x), Y(y))
+                        for x, y in g.rundrechteck(2 * ix, 2 * iy, 8)))
+    z.append('<polygon points="%s" fill="#c8663f" stroke="#8d4225" '
+             'stroke-width="1.4"/>'
+             % " ".join("%.1f,%.1f" % (X(x + mx0), Y(y + my0))
+                        for x, y in kontur))
+    for (x0, x1, y0, y1) in p["hw"]:
+        z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="6" '
+                 'fill="#e5dcf2" stroke="#7d3fa8" stroke-width="1.6"/>'
+                 % (X(x0), Y(y1), (x1 - x0) * sc, (y1 - y0) * sc))
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" '
+             'fill="#b1483f" stroke="#7d2a23" stroke-width="1.4"/>'
+             % (X(p["fachA_x0"]), Y(p["fachA_y1"]),
+                (p["fachA_x1"] - p["fachA_x0"]) * sc,
+                (p["fachA_y1"] - p["fachA_y0"]) * sc))
+    txt(bx + ix * sc, 74, "2 - dieselbe Form in der Wanne (90 Grad gedreht)",
+        14, "#1a1a1a", "middle", True)
+    txt(X(mx0 + p["rad_pos"][0]), Y(my0 + p["rad_pos"][1]), "Rad", 12, "#fff")
+    txt(X(mx0 + p["griff_pos"][0]), Y(my0 + p["griff_pos"][1]) + 4, "Griff",
+        12, "#fff")
+    txt(X((p["fachA_x0"] + p["fachA_x1"]) / 2.0),
+        Y((p["fachA_y0"] + p["fachA_y1"]) / 2.0), "Auto-Box", 12, "#fff",
+        "middle", True)
+
+    # ---- unten: Hoehenschnitt
+    hy, hs, hx = 700, 4.0, 150
+    txt(hx + 160, 436, "3 - Hoehenschnitt: was steckt drin, was ragt heraus",
+        14, "#1a1a1a", "middle", True)
+
+    def HY(zz):
+        return hy - zz * hs
+
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#dfe1e4" '
+             'stroke="#8a8f96"/>'
+             % (hx - 26, HY(p["wanne_innen_h"]), 26,
+                p["wanne_innen_h"] * hs))
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#dfe1e4" '
+             'stroke="#8a8f96"/>'
+             % (hx + 170, HY(p["wanne_innen_h"]), 26,
+                p["wanne_innen_h"] * hs))
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="none" '
+             'stroke="#8a8f96" stroke-dasharray="5 4"/>'
+             % (hx - 26, HY(p["wanne_innen_h"] + g.DECKEL_INNEN), 222,
+                g.DECKEL_INNEN * hs))
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#c8663f"/>'
+             % (hx, HY(g.CTRL_GEHAEUSE_D), 105, g.CTRL_GEHAEUSE_D * hs))
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#2b2b30"/>'
+             % (hx + 107, HY(g.CTRL_H), 60, g.CTRL_H * hs))
+    txt(hx + 52, HY(g.CTRL_GEHAEUSE_D) + 26, "Gehaeuse", 12, "#fff")
+    txt(hx + 137, HY(g.CTRL_H) + 26, "Rad", 12, "#fff")
+    for zz, t in ((0, "0  Muldenboden"), (g.MULDE_HOEHE, "30  Muldenkante"),
+                  (p["wanne_innen_h"], "39  Wannenrand"),
+                  (g.CTRL_GEHAEUSE_D, "42  Gehaeuse"),
+                  (g.CTRL_H, "57  Rad"),
+                  (p["wanne_innen_h"] + g.DECKEL_INNEN, "60  Deckeldecke")):
+        z.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#aaa" '
+                 'stroke-width="0.8" stroke-dasharray="3 3"/>'
+                 % (hx - 34, HY(zz), hx + 232, HY(zz)))
+        txt(hx + 240, HY(zz) + 4, t, 12, "#555", "start")
+    txt(620, 560, "Der Controller ist 42 mm dick, die Mulde nur 30 mm tief.",
+        13, "#444", "start")
+    txt(620, 582, "Er steckt also 30 mm in der Mulde und steht 12 mm heraus,",
+        13, "#444", "start")
+    txt(620, 604, "das Drehrad 27 mm. Ueber dem Wannenrand hat der Deckel",
+        13, "#444", "start")
+    txt(620, 626, "21 mm lichte Hoehe - beides passt hinein, das Rad mit",
+        13, "#444", "start")
+    txt(620, 648, "3 mm Luft. Deshalb Rad nach OBEN einlegen.",
+        13, "#444", "start")
+    z.append('</svg>')
+    with open(pfad, "w") as f:
+        f.write("\n".join(z))
+
+
+def scharnier_ansicht(pfad, p, wanne, deckel_zu):
+    """Blick von hinten auf das Scharnierband.
+
+    Der Deckel wird gespiegelt gedruckt; ob seine Segmente wirklich in die
+    Luecken der Wanne greifen, sieht man nur in der Einbaulage. Deshalb
+    hier Wanne und geschlossener Deckel uebereinander, auf den hinteren
+    Streifen beschnitten."""
+    yb = p["aussen_y"] / 2.0 - 14.0
+    wf = [t for t in wanne if all(q[1] > yb for q in t)]
+    df = [t for t in deckel_zu if all(q[1] > yb for q in t)]
+    bild(pfad, [(wf, (120, 125, 132)), (df, (58, 110, 178))],
+         drehung=math.radians(180), skala=3.2,
+         titel="Scharnierband von hinten (Wanne grau, Deckel blau)",
+         untertitel="%d Segmente a %.0f mm, verzahnt - tragende Breite "
+                    "%.0f mm, Stift %.0f mm"
+                    % (g.SCHARNIER_SEG, p["schar_breite"],
+                       len(p["schar_wanne"]) * p["schar_breite"], g.STIFT_D),
+         tilt=math.radians(72))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mit-griff", action="store_true",
@@ -319,10 +532,15 @@ def main():
 
     falz_detail(os.path.join(ziel, "ansicht_falz_schnitt.svg"), p)
     draufsicht(os.path.join(ziel, "ansicht_draufsicht.svg"), p)
+    materialschnitt(os.path.join(ziel, "ansicht_schnitt.svg"), p)
+    controller_lage(os.path.join(ziel, "ansicht_controller_lage.svg"), p)
+    scharnier_ansicht(os.path.join(ziel, "ansicht_scharnier.svg"), p,
+                      wanne, deckel_zu)
 
     for name in ("ansicht_wanne_offen.svg", "ansicht_deckel_innen.svg",
                  "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg",
-                 "ansicht_draufsicht.svg"):
+                 "ansicht_draufsicht.svg", "ansicht_schnitt.svg",
+                 "ansicht_controller_lage.svg", "ansicht_scharnier.svg"):
         print("%-28s %6.0f kB"
               % (name, os.path.getsize(os.path.join(ziel, name)) / 1024.0))
 

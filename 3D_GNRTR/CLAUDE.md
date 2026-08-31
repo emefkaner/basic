@@ -128,6 +128,23 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Breite, nicht die Länge, und das war ohne Rechnung nicht zu sehen.
   Das Ergebnis dem Nutzer als **maßstäbliche Draufsicht** zeigen, nicht
   als Behauptung.
+- **Ueberlappende Schalen koennen Hohlraeume auffressen.** Die
+  Schalen-Union ist bequem, aber ein Fach, das in einer Fuellschale
+  liegt, muss dort auch als **Loch** stehen — sonst ist es massiv, und
+  die STL sieht dabei voellig normal aus. Gegenprobe per Strahltest:
+  senkrechte Strahlen durch den Hohlraum schicken und jede Flaeche
+  oberhalb des Bodens melden (`hw_hohlraum_pruefen`).
+- **Gespiegelt gedruckte Teile: Positionen umrechnen.** Der Kofferdeckel
+  wird um Y gespiegelt gedruckt ((x,y,z)->(-x,y,z_top-z)). Alles, was
+  zum Gegenstueck passen muss (Scharniersegmente!), gehoert bei -x
+  konstruiert. Symmetrische Anbauten verzeihen den Fehler, verzahnte
+  nicht — die Segmente lagen uebereinander statt ineinander, unsichtbar
+  in der STL. Verzahnungen deshalb als **Intervalle in Einbaulage**
+  pruefen (`scharnier_pruefen`).
+- **Lange duenne Stifte liegend drucken.** Stehend liegen alle Lagen quer
+  zur Achse; ein 5-mm-Stift bricht bei der ersten Biegung. Und tragende
+  Scharniere breit aufteilen: zwei 12-mm-Nasen trugen einen 0,8-kg-Koffer
+  auf 24 mm — ein Klavierband mit 7 Segmenten bringt 101 mm.
 - **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
   nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
   Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,

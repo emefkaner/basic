@@ -125,10 +125,17 @@ KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
 FEDER_HUB  = 18.0     # wie weit sie unter die Deckeldecke ragen
 
-SCHARNIER_AUGE = 13.0     # Augen-Aussenmass (Raute)
-STIFT_D    = 4.0
-LOCH_DREH  = 4.3          # Wannenauge (drehbar)
-LOCH_PRESS = 3.8          # Deckelauge (Presssitz)
+# Scharnier: durchgehendes Klavierband ueber die ganze Rueckseite statt
+# zweier kurzer Augen. Zwei 12-mm-Nasen trugen den Deckel auf 24 mm
+# Gesamtbreite -- zu wenig, wenn der volle Koffer am Deckel haengt. Jetzt
+# tragen vier Wannensegmente auf rund 100 mm, und der Stift ist dicker.
+SCHARNIER_AUGE = 15.0     # Augen-Aussenmass (Raute)
+SCHARNIER_SEG  = 7        # Segmente ueber die Breite (Wanne 4, Deckel 3)
+SCHARNIER_BAND = 180.0    # Gesamtbreite des Bands
+SCHARNIER_LUFT = 0.5      # Luft zwischen Wannen- und Deckelsegment
+STIFT_D    = 5.0
+LOCH_DREH  = 5.3          # Wannenauge (drehbar)
+LOCH_PRESS = 4.8          # Deckelauge (Presssitz)
 
 ZUNGE_BREIT = 26.0    # Schnappzungen vorn (tragen den Deckel)
 ZUNGE_DICK  = 1.4
@@ -284,6 +291,17 @@ def abgeleitet():
     g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl),
                (bxm - hb / 2.0, bxm + hb / 2.0, by1 - hl, by1)]
     g["hw_licht"] = (hb, hl)
+
+    # Scharnierband: SCHARNIER_SEG gleich breite Segmente, abwechselnd
+    # Wanne / Deckel. Wanne bekommt die geraden Indizes (aussen 0 und
+    # SEG-1, damit die Bandenden an der Wanne sitzen und der Deckel
+    # dazwischen gefuehrt wird).
+    sb = (SCHARNIER_BAND - (SCHARNIER_SEG - 1) * SCHARNIER_LUFT) / SCHARNIER_SEG
+    g["schar_breite"] = sb
+    g["schar_wanne"], g["schar_deckel"] = [], []
+    for i in range(SCHARNIER_SEG):
+        x0 = -SCHARNIER_BAND / 2.0 + i * (sb + SCHARNIER_LUFT)
+        (g["schar_wanne"] if i % 2 == 0 else g["schar_deckel"]).append(x0)
     return g
 
 
@@ -589,19 +607,32 @@ def hw_feder(x0, x1, y_wand, s, z1):
     return prisma(vorn + hint, 0.0, z1)
 
 
-def hw_fach(x0, x1, y0, y1, z1, feder_vorn=True):
-    """Ein Einzelfach fuer ein loses Hot Wheels: Rahmen mit runden Ecken
-    (x0..x1, y0..y1 sind die LICHTEN Masze), zwei Klemmrippen je
-    Laengsseite und eine Stirnfeder, die auch kuerzere Autos gegen die
-    Gegenseite drueckt."""
+def hw_kontur(x0, x1, y0, y1):
+    """Lichte Fachkontur (Rundrechteck) an ihrer Einbaustelle."""
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+    return [(px + cx, py + cy)
+            for px, py in rundrechteck(x1 - x0, y1 - y0, HW_ECKE)]
+
+
+def hw_fach(x0, x1, y0, y1, z1, feder_vorn=True, rahmen=True):
+    """Ein Einzelfach fuer ein loses Hot Wheels (x0..x1, y0..y1 = LICHTE
+    Masze): zwei Klemmrippen je Laengsseite und eine Stirnfeder, die auch
+    kuerzere Autos gegen die Gegenseite drueckt.
+
+    rahmen=True baut die Fachwand als eigenen Ring -- richtig, wo das Fach
+    frei im Kofferinneren steht. rahmen=False, wenn das Fach als LOCH in
+    einer Fuellschale sitzt: dort liefert die Fuellung das Material
+    rundum, ein zusaetzlicher Ring waere nicht nur ueberfluessig, das
+    Fachinnere bliebe massiv."""
     schalen = []
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
     bx, by = x1 - x0, y1 - y0
-    innen = [(px + cx, py + cy) for px, py in rundrechteck(bx, by, HW_ECKE)]
-    aussen = [(px + cx, py + cy) for px, py in
-              rundrechteck(bx + 2 * HW_WAND, by + 2 * HW_WAND,
-                           HW_ECKE + HW_WAND)]
-    schalen.append(loch_prisma(aussen, innen, 0.0, z1))
+    if rahmen:
+        innen = hw_kontur(x0, x1, y0, y1)
+        aussen = [(px + cx, py + cy) for px, py in
+                  rundrechteck(bx + 2 * HW_WAND, by + 2 * HW_WAND,
+                               HW_ECKE + HW_WAND)]
+        schalen.append(loch_prisma(aussen, innen, 0.0, z1))
     for dy in (-by * 0.26, by * 0.26):
         schalen.append(rippe(x0, cy + dy, "+x", 0.0, z1))
         schalen.append(rippe(x1, cy + dy, "-x", 0.0, z1))
@@ -701,7 +732,8 @@ def teil_wanne(g):
 
     # Zusatzfaecher fuer lose Hot Wheels
     for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
-        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0)))
+        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0),
+                               rahmen=(hx1 > g["fachC_x1"])))
 
     # Controllerfach: Konturmulde nach dem Vorbild des Original-Trays.
     # Eine Fuellschale mit pistolenfoermigem Loch (Bruecken-Triangulierung)
@@ -716,8 +748,17 @@ def teil_wanne(g):
                 (g["fachC_x1"], -g["innen_y"] / 2.0),
                 (g["fachC_x1"], g["innen_y"] / 2.0),
                 (g["fachC_x0"], g["innen_y"] / 2.0)]
-    schalen.append((prisma_mit_loechern(fachrect, [mulde_pos],
+    # Loecher der Fuellschale: die Controllermulde -- und jedes
+    # Hot-Wheels-Fach, das im Controllerfach liegt. Ohne dieses zweite
+    # Loch stuende die Fachwand zwar da, das Fach waere aber bis oben
+    # massiv gefuellt (der Fehler, der beim Durchsehen der Ansicht auffiel).
+    loecher = [mulde_pos]
+    for (hx0, hx1, hy0, hy1) in g["hw"]:
+        if hx1 <= g["fachC_x1"]:
+            loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
+    schalen.append((prisma_mit_loechern(fachrect, loecher,
                                         0.0, MULDE_HOEHE), True))
+    g["fuellung"] = (fachrect, loecher)
 
     # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil)
     for idx in (0, 7, 15, 17, 18, 19, 20, 22):
@@ -738,12 +779,13 @@ def teil_wanne(g):
     # Scharnieraugen hinten aussen (Achse X, Lochmitte 4 ueber Randkante)
     z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
     y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
-    for x0 in (-58.0, 46.0):
-        auge = scharnier_auge(LOCH_DREH, 12.0)
+    sb = g["schar_breite"]
+    for x0 in g["schar_wanne"]:
+        auge = scharnier_auge(LOCH_DREH, sb)
         schalen.append(verschieben(auge, x0, y_auge, z_achse))
-        # Stuetzsteg vom Auge zur Rueckwand
-        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + 12.0, g["aussen_y"] / 2.0 - 1.0),
-                (x0 + 12.0, y_auge), (x0, y_auge)]
+        # Stuetzsteg vom Auge zur Rueckwand, ueber die volle Segmentbreite
+        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
+                (x0 + sb, y_auge), (x0, y_auge)]
         schalen.append(prisma(steg, z_rand - 8.0, z_achse))
 
     # Rastkeile vorn (halbe Raute quer): Zunge des Deckels schnappt darunter
@@ -881,12 +923,20 @@ def teil_deckel(g):
     # Scharnieraugen (versetzt zu denen der Wanne, Presssitz)
     z_rand = BODEN + DECKEL_INNEN
     y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
-    for x0 in (-46.0, 58.0 - 12.0):
-        auge = scharnier_auge(LOCH_PRESS, 12.0)
+    sb = g["schar_breite"]
+    # ACHTUNG Spiegelung: der Deckel wird um Y gespiegelt gedruckt
+    # ((x,y,z)->(-x,y,z_top-z)). Ein Segment, das im GEBRAUCH bei
+    # [a, a+sb] sitzen soll, muss hier also bei [-(a+sb), -a] stehen.
+    # Ohne diese Umrechnung landen Deckel- und Wannensegmente
+    # uebereinander statt ineinander -- der Deckel liesse sich nicht
+    # anscharnieren.
+    for a in g["schar_deckel"]:
+        x0 = -(a + sb)
+        auge = scharnier_auge(LOCH_PRESS, sb)
         schalen.append(verschieben(auge, x0, y_auge,
                                    z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
-        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + 12.0, g["aussen_y"] / 2.0 - 1.0),
-                (x0 + 12.0, y_auge), (x0, y_auge)]
+        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
+                (x0 + sb, y_auge), (x0, y_auge)]
         schalen.append(prisma(steg, z_rand - 10.0,
                               z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
 
@@ -1028,8 +1078,11 @@ def teil_griff(g):
 
 
 def teil_stift(g):
+    """Achsstift fuer das Scharnierband. Zwei Stueck: von links und von
+    rechts eingeschoben, sie treffen sich im mittleren Segment. Je Stift
+    also knapp die halbe Bandbreite."""
     kopf_r, kopf_h = 4.5, 3.0
-    laenge = 12.0 + 2.0 + 12.0 + 1.0
+    laenge = SCHARNIER_BAND / 2.0 - 1.0
     schalen = []
     schalen.append(prisma(kreis(kopf_r), 0.0, kopf_h))
     schalen.append(prisma(kreis(STIFT_D / 2.0), kopf_h - 1.0,
@@ -1052,6 +1105,17 @@ def hw_faecher_pruefen(g):
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
     box = (g["fachA_x0"], g["fachA_x1"], g["fachA_y0"], g["fachA_y1"])
     fehler = []
+    # Liegt ein Fach in einer Fuellschale, MUSS es dort als Loch stehen --
+    # sonst ist es bis oben massiv und man sieht es der STL nicht an.
+    fuell_a, fuell_l = g.get("fuellung", (None, []))
+    for nr, (x0, x1, y0, y1) in enumerate(g["hw"], 1):
+        if fuell_a is None:
+            break
+        mitte = ((x0 + x1) / 2.0, (y0 + y1) / 2.0)
+        if punkt_in_polygon(mitte, fuell_a) and not any(
+                punkt_in_polygon(mitte, loch) for loch in fuell_l):
+            fehler.append("Fach %d liegt in der Fuellschale, ist dort aber "
+                          "kein Loch -- es waere massiv zugefuellt" % nr)
     for nr, (x0, x1, y0, y1) in enumerate(g["hw"], 1):
         ax0, ax1 = x0 - HW_WAND, x1 + HW_WAND
         ay0, ay1 = y0 - HW_WAND, y1 + HW_WAND
@@ -1073,6 +1137,72 @@ def hw_faecher_pruefen(g):
                 fehler.append("Fach %d ragt aus der Wanne" % nr)
                 break
     return sorted(set(fehler))
+
+
+def scharnier_pruefen(g):
+    """Die Segmente von Wanne und Deckel muessen im GEBRAUCH ineinander
+    greifen, nicht uebereinander liegen. Geprueft werden die Intervalle
+    entlang der Achse -- der Deckel wird gespiegelt gedruckt, ein
+    Vorzeichenfehler faellt in der STL sonst niemandem auf."""
+    sb = g["schar_breite"]
+    w = [(a, a + sb) for a in g["schar_wanne"]]
+    d = [(a, a + sb) for a in g["schar_deckel"]]
+    fehler = []
+    for (w0, w1) in w:
+        for (d0, d1) in d:
+            ueber = min(w1, d1) - max(w0, d0)
+            if ueber > 0:
+                fehler.append("Wannensegment %.0f..%.0f und Deckelsegment "
+                              "%.0f..%.0f ueberlappen %.1f mm"
+                              % (w0, w1, d0, d1, ueber))
+    alle = sorted(w + d)
+    for (a0, a1), (b0, b1) in zip(alle, alle[1:]):
+        if b0 - a1 < SCHARNIER_LUFT - 0.01:
+            fehler.append("Segmentspalt nur %.2f mm (soll %.2f)"
+                          % (b0 - a1, SCHARNIER_LUFT))
+    tragend = sum(x1 - x0 for (x0, x1) in w)
+    return fehler, tragend
+
+
+def hw_hohlraum_pruefen(g, schalen):
+    """Beweist, dass die Hot-Wheels-Faecher wirklich leer sind.
+
+    Ein Fach kann fehlerfrei modelliert und trotzdem massiv zugefuellt
+    sein, wenn eine andere Schale (hier die Fuellschale der Konturmulde)
+    darueber liegt -- die STL sieht dabei voellig unauffaellig aus. Der
+    Test schickt senkrechte Strahlen durch das Fachinnere und meldet jede
+    Flaeche oberhalb des Bodens."""
+    tris = [t for sch in schalen
+            for t in (sch[0] if isinstance(sch, tuple) else sch)]
+    treffer = []
+    for nr, (x0, x1, y0, y1) in enumerate(g["hw"], 1):
+        cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+        proben = [(cx, cy)]
+        for fx, fy in ((0.3, 0.3), (0.7, 0.3), (0.3, 0.7), (0.7, 0.7)):
+            proben.append((x0 + (x1 - x0) * fx, y0 + (y1 - y0) * fy))
+        for (px, py) in proben:
+            hoch = []
+            for (p1, p2, p3) in tris:
+                (ax, ay, az), (bx, by, bz), (cx3, cy3, cz) = p1, p2, p3
+                d1 = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+                d2 = (cx3 - bx) * (py - by) - (cy3 - by) * (px - bx)
+                d3 = (ax - cx3) * (py - cy3) - (ay - cy3) * (px - cx3)
+                if not ((d1 >= 0 and d2 >= 0 and d3 >= 0)
+                        or (d1 <= 0 and d2 <= 0 and d3 <= 0)):
+                    continue
+                A = (by - ay) * (cz - az) - (bz - az) * (cy3 - ay)
+                B = (bz - az) * (cx3 - ax) - (bx - ax) * (cz - az)
+                C = (bx - ax) * (cy3 - ay) - (by - ay) * (cx3 - ax)
+                if abs(C) < 1e-9:
+                    continue
+                z = az + (A * (ax - px) + B * (ay - py)) / C
+                if z > 1.0:
+                    hoch.append(z)
+            if hoch:
+                treffer.append("Fach %d: Material bis z=%.1f bei (%.0f, %.0f)"
+                               % (nr, max(hoch), px, py))
+                break
+    return treffer
 
 
 def falzzone_pruefen(g, schalen):
@@ -1147,15 +1277,27 @@ def main():
           % (g["fachC_l"], g["fachC_t"], g["fachA_l"], g["fachA_t"], KLEMMWEG))
 
     fehler = 0
+    wanne = teil_wanne(g)          # setzt g["fuellung"] fuer die Pruefung
     hw_fehler = hw_faecher_pruefen(g)
     if hw_fehler:
         raise SystemExit("FEHLER: " + "; ".join(hw_fehler))
+    sfehler, tragend = scharnier_pruefen(g)
+    if sfehler:
+        raise SystemExit("FEHLER Scharnier: " + "; ".join(sfehler))
+    print("Scharnierband: %d Segmente a %.0f mm (Wanne %d / Deckel %d), "
+          "tragende Breite %.0f mm, Stift %.0f mm"
+          % (SCHARNIER_SEG, g["schar_breite"], len(g["schar_wanne"]),
+             len(g["schar_deckel"]), tragend, STIFT_D))
+
+    voll = hw_hohlraum_pruefen(g, wanne)
+    if voll:
+        raise SystemExit("FEHLER: Fach zugefuellt -- " + "; ".join(voll))
     hb, hl = g["hw_licht"]
-    print("Hot-Wheels-Faecher: %d Stueck, licht %.0f x %.0f x %.0f mm "
+    print("Hot-Wheels-Faecher: %d Stueck (Strahltest: innen frei), "
+          "licht %.0f x %.0f x %.0f mm "
           "(Auto bis %.0f x %.0f x %.0f, Stirnfeder %.0f mm)"
           % (len(g["hw"]), hb, hl, MULDE_HOEHE, HW_B, HW_L, HW_H, HW_FED_HUB))
 
-    wanne = teil_wanne(g)
     frei = falzzone_pruefen(g, wanne)
     if frei:
         raise SystemExit("FEHLER: %d Punkte der Wanne ragen in die Falzzone "
@@ -1177,7 +1319,12 @@ def main():
         os.remove(griff_datei)
         print("Griff-Variante aus: alte %s geloescht"
               % os.path.basename(griff_datei))
-    fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", teil_stift(g))
+    # Der Stift ist 89 mm lang -- stehend gedruckt laegen alle Lagen quer
+    # zur Achse und er braeche bei der ersten Biegung. Flach legen:
+    # (x,y,z) -> (z, x, y) plus Hub, damit die Fasern laengs laufen.
+    stift_flach = [[tuple((z_, x_, y_ + 5.0) for (x_, y_, z_) in tri)
+                    for tri in s_] for s_ in teil_stift(g)]
+    fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", stift_flach)
 
     if fehler:
         raise SystemExit("FEHLER: %d offene Kanten" % fehler)

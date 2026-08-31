@@ -95,7 +95,10 @@ KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 # Parameter: Koffer
 # ---------------------------------------------------------------------------
 
-WAND       = 2.8      # Wandstaerke aussen
+# Wandstaerke: 4.0 statt der sonst ueblichen 2.8, weil der Stufenfalz die
+# Wand oben teilt -- 2.0 mm bleiben an der Wanne stehen, 1.5 mm bekommt die
+# Deckellippe, dazwischen 0.5 mm Spiel.
+WAND       = 4.0      # Wandstaerke aussen
 BODEN      = 3.0
 ECKRADIUS  = 12.0     # Aussenecken (smooth!)
 TRENNWAND  = 3.0
@@ -104,7 +107,17 @@ RIPPE_DICK = 1.1      # Klemmrippen: duenn genug zum Federn
 RIPPE_TIEF = 5.0      # wie weit sie ins Fach ragen
 RIPPE_BREIT = 8.0     # Auflagebreite pro Rippe
 
-DECKEL_INNEN = 30.0   # lichte Hoehe im Deckel
+# Stufenfalz: der Deckel traegt eine umlaufende Lippe, die in eine
+# Aussparung an der Wanneninnenkante greift. Aussen bleibt die Fuge eine
+# saubere Linie (beide Waende buendig), innen ist der Deckel gefuehrt,
+# kann nicht seitlich verrutschen und die Fuge ist staubdicht.
+FALZ_H     = 9.0      # wie tief die Lippe in die Wanne greift
+FALZ_T     = 2.0      # Ruecksprung der Wanneninnenkante (Falzbreite)
+FALZ_SP    = 0.25     # Spiel je Seite zwischen Lippe und Falz
+
+# Der Controller ragt jetzt weniger in den Deckel (die Wanne ist um die
+# Falzzone hoeher), der Deckel darf also flacher werden.
+DECKEL_INNEN = 21.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
@@ -115,7 +128,7 @@ STIFT_D    = 4.0
 LOCH_DREH  = 4.3          # Wannenauge (drehbar)
 LOCH_PRESS = 3.8          # Deckelauge (Presssitz)
 
-ZUNGE_BREIT = 18.0    # Schnappzungen vorn
+ZUNGE_BREIT = 26.0    # Schnappzungen vorn (tragen den Deckel)
 ZUNGE_DICK  = 1.4
 ZUNGE_LANG  = 16.0
 HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
@@ -216,9 +229,13 @@ def abgeleitet():
 
     g["innen_x"] = g["fachC_l"] + TRENNWAND + g["fachA_l"]
     g["innen_y"] = max(g["fachC_t"], g["fachA_t"])
-    # Die Fuellschale fuellt die Wanne buendig aus -> Wanneninnenhoehe ist
-    # die Muldentiefe. Was darueber hinausragt, faengt der Deckel.
-    g["wanne_innen_h"] = MULDE_HOEHE
+    # Die Wanne besteht innen aus zwei Zonen: unten die Muldenzone (dort
+    # sitzen Fuellschale, Trennwand, Bloecke und Rippen), darueber die
+    # Falzzone, die vollstaendig frei bleiben MUSS -- dort greift die
+    # Deckellippe ein. Wuerde ein Innenteil in die Falzzone ragen, liesse
+    # sich der Deckel nicht schliessen.
+    g["wanne_innen_h"] = MULDE_HOEHE + FALZ_H
+    g["z_fach"] = MULDE_HOEHE
     g["innen_h"] = g["wanne_innen_h"] + DECKEL_INNEN
 
     g["aussen_x"] = g["innen_x"] + 2 * WAND
@@ -582,15 +599,23 @@ def teil_wanne(g):
                                ECKRADIUS)
     schalen.append(loften([boden_klein, aussen, aussen],
                           [-BODEN, -BODEN + 1.5, 0.5]))
-    # Wandring
-    schalen.append(loch_prisma(aussen, innen, 0.0, g["wanne_innen_h"]))
+    # Wandring, zweiteilig: unten volle Wandstaerke, oben die Falzstufe.
+    # In der Stufe (die obersten FALZ_H mm) springt die Innenkante um
+    # FALZ_T nach aussen -- genau dort sitzt spaeter die Deckellippe.
+    r_i = max(2.0, ECKRADIUS - WAND)
+    innen_falz = rundrechteck(g["innen_x"] + 2 * FALZ_T,
+                              g["innen_y"] + 2 * FALZ_T, r_i + FALZ_T)
+    schalen.append(loch_prisma(aussen, innen, 0.0, g["z_fach"]))
+    schalen.append(loch_prisma(aussen, innen_falz,
+                               g["z_fach"], g["wanne_innen_h"]))
 
     # Trennwand
     tw = [(g["fachC_x1"], -g["innen_y"] / 2), (g["fachC_x1"] + TRENNWAND, -g["innen_y"] / 2),
           (g["fachC_x1"] + TRENNWAND, g["innen_y"] / 2), (g["fachC_x1"], g["innen_y"] / 2)]
-    schalen.append(prisma(tw, 0.0, g["wanne_innen_h"]))
+    schalen.append(prisma(tw, 0.0, g["z_fach"]))
 
-    z1 = g["wanne_innen_h"]
+    z1 = g["z_fach"]          # Oberkante aller Innenteile
+    z_rand = g["wanne_innen_h"]   # Oberkante der Wannenwand
 
     # Fuellbloecke im Autofach (verkuerzen die Tiefe auf Boxmass + Rippenraum)
     fach_a_frei = g["fachA_t"]
@@ -638,7 +663,7 @@ def teil_wanne(g):
         schalen.append(rippe(ax + dx, ay, "-y", 0.0, z1))
 
     # Scharnieraugen hinten aussen (Achse X, Lochmitte 4 ueber Randkante)
-    z_achse = z1 + SCHARNIER_AUGE / 2.0 - 2.0
+    z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
     y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
     for x0 in (-58.0, 46.0):
         auge = scharnier_auge(LOCH_DREH, 12.0)
@@ -646,13 +671,14 @@ def teil_wanne(g):
         # Stuetzsteg vom Auge zur Rueckwand
         steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + 12.0, g["aussen_y"] / 2.0 - 1.0),
                 (x0 + 12.0, y_auge), (x0, y_auge)]
-        schalen.append(prisma(steg, z1 - 8.0, z_achse))
+        schalen.append(prisma(steg, z_rand - 8.0, z_achse))
 
     # Rastkeile vorn (halbe Raute quer): Zunge des Deckels schnappt darunter
     y_front = -g["aussen_y"] / 2.0
     for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
-        keil_profil = [(y_front, z1 - 6.0), (y_front - HAKEN, z1 - 6.0 + HAKEN),
-                       (y_front, z1 - 6.0 + 2 * HAKEN)]
+        keil_profil = [(y_front, z_rand - 6.0),
+                       (y_front - HAKEN, z_rand - 6.0 + HAKEN),
+                       (y_front, z_rand - 6.0 + 2 * HAKEN)]
         # Profil liegt in (y,z); entlang X extrudieren
         t = prisma(keil_profil, xm - ZUNGE_BREIT / 2.0, xm + ZUNGE_BREIT / 2.0)
         t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
@@ -689,6 +715,24 @@ def teil_deckel(g):
 
     # Wandring des Deckels
     schalen.append(loch_prisma(aussen, innen, BODEN, BODEN + DECKEL_INNEN))
+
+    # Stufenfalz-Lippe: ragt im Druck nach oben (im Gebrauch nach unten in
+    # die Wanne) und fuellt die Falzstufe. Aussen FALZ_SP Luft zur
+    # Wannenstufe, innen FALZ_SP zur Wanneninnenkontur -- damit zentriert
+    # sie den Deckel, ohne zu klemmen. Da sie im Druck senkrecht aufragt,
+    # entsteht kein Ueberhang.
+    r_i = max(2.0, ECKRADIUS - WAND)
+    lippe_a = rundrechteck(g["innen_x"] + 2 * (FALZ_T - FALZ_SP),
+                           g["innen_y"] + 2 * (FALZ_T - FALZ_SP),
+                           r_i + FALZ_T - FALZ_SP)
+    lippe_i = rundrechteck(g["innen_x"] + 2 * FALZ_SP,
+                           g["innen_y"] + 2 * FALZ_SP, r_i + FALZ_SP)
+    z_lippe = BODEN + DECKEL_INNEN
+    # 0.5 mm kuerzer als die Falzstufe tief ist: sonst koennte die Lippe am
+    # Stufengrund aufsetzen, bevor die Aussenfuge geschlossen ist -- der
+    # Deckel muss auf der Wannenwand aufliegen, nicht auf der Lippe.
+    schalen.append(loch_prisma(lippe_a, lippe_i, z_lippe - 1.0,
+                               z_lippe + FALZ_H - 0.5))
 
     # Blattfeder-Boegen: flache Boegen quer ueber jedes Fach, Fusspunkte
     # auf der Deckelplatte, Scheitel ragt FEDER_HUB in den Innenraum.
@@ -781,7 +825,7 @@ def teil_deckel(g):
         """Gebrauchs-z -> Druck-z des Deckels (gespiegelt)."""
         return (g["wanne_innen_h"] + DECKEL_INNEN + BODEN) - z_gebrauch
     y_wand = -g["aussen_y"] / 2.0
-    keil_unter = g["wanne_innen_h"] - 6.0            # Gebrauch
+    keil_unter = g["wanne_innen_h"] - 6.0            # Gebrauch (Wannenoberkante)
     y_zunge_i = y_wand - HAKEN - 0.4                 # Innenflaeche der Zunge
     for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
         x0, x1 = xm - ZUNGE_BREIT / 2.0, xm + ZUNGE_BREIT / 2.0
@@ -919,6 +963,37 @@ def teil_stift(g):
 
 # ---------------------------------------------------------------------------
 
+def falzzone_pruefen(g, schalen):
+    """Die Falzzone der Wanne muss frei bleiben.
+
+    Zwischen z_fach und der Wannenoberkante sitzt spaeter die Deckellippe.
+    Ragt dort ein Innenteil (Fuellschale, Trennwand, Block, Rippe) in den
+    Lippenquerschnitt, laesst sich der Deckel nicht schliessen -- und man
+    saehe es der STL nicht an. Deshalb hier gepruefte Geometrie statt
+    Vertrauen: jeder Eckpunkt in der Falzhoehe wird gegen die
+    Lippenaussenkontur getestet.
+    """
+    r_i = max(2.0, ECKRADIUS - WAND)
+    lippe_a = rundrechteck(g["innen_x"] + 2 * (FALZ_T - FALZ_SP),
+                           g["innen_y"] + 2 * (FALZ_T - FALZ_SP),
+                           r_i + FALZ_T - FALZ_SP)
+    z0 = g["z_fach"] + 0.1
+    z1 = g["wanne_innen_h"] - 0.1
+    # Nicht die Eckpunkte pruefen, sondern die z-INTERVALLE der Dreiecke:
+    # ein Prisma, das die Falzzone durchquert, hat dort gar keinen
+    # Eckpunkt und wuerde einem Punkt-Test entgehen.
+    treffer = 0
+    for eintrag in schalen:
+        sch = eintrag[0] if isinstance(eintrag, tuple) else eintrag
+        for tri in sch:
+            zs = [v[2] for v in tri]
+            if max(zs) <= z0 or min(zs) >= z1:
+                continue
+            if any(punkt_in_polygon((v[0], v[1]), lippe_a) for v in tri):
+                treffer += 1
+    return treffer
+
+
 def bauen(ziel, name, schalen):
     fehler = 0
     alle = []
@@ -951,7 +1026,14 @@ def main():
           % (g["fachC_l"], g["fachC_t"], g["fachA_l"], g["fachA_t"], KLEMMWEG))
 
     fehler = 0
-    fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", teil_wanne(g))
+    wanne = teil_wanne(g)
+    frei = falzzone_pruefen(g, wanne)
+    if frei:
+        raise SystemExit("FEHLER: %d Punkte der Wanne ragen in die Falzzone "
+                         "-- der Deckel liesse sich nicht schliessen" % frei)
+    print("Falzzone frei (Lippe %.1f mm tief, %.1f mm dick, %.2f mm Spiel)"
+          % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
+    fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
     fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
     griff = teil_griff(g)
     # flach legen: Buegelebene (YZ) aufs Bett -> (x,y,z) -> (y, z, x+8)

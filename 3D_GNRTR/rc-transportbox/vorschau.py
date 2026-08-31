@@ -68,6 +68,79 @@ def bild(pfad, teile, drehung, skala, titel, untertitel, tilt=math.radians(28)):
         f.write("\n".join(zeilen))
 
 
+def falz_detail(pfad, p):
+    """Massstaeblicher Schnitt durch die Stossfuge Wanne/Deckel.
+
+    Der Falz liegt in der Wandstaerke und ist von aussen unsichtbar --
+    deshalb hier als Schnitt statt als 3D-Ansicht. Gezeichnet wird in
+    (Wandrichtung, Hoehe); aussen ist rechts.
+    """
+    W, FT, FS, FH = g.WAND, g.FALZ_T, g.FALZ_SP, g.FALZ_H
+    z_fach = p["z_fach"]
+    z_rand = p["wanne_innen_h"]
+    # Wandkoordinaten: 0 = Wanneninnenkante, W = Aussenkante
+    x0, x1 = -19.0, W + 21.0
+    y0, y1 = z_fach - 7.0, z_rand + g.DECKEL_INNEN * 0.5
+    skala = 11.0
+    kopf, fuss = 4.5, 5.5
+    oy0, oy1 = -y1 - kopf, -y0 + fuss
+
+    def poly(pts, fill, stroke):
+        d = " ".join("%.3f,%.3f" % (x, -y) for x, y in pts)
+        return ('<polygon points="%s" fill="%s" fill-opacity="0.9" '
+                'stroke="%s" stroke-width="0.12"/>' % (d, fill, stroke))
+
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" '
+         'viewBox="%.2f %.2f %.2f %.2f">'
+         % ((x1 - x0) * skala, (oy1 - oy0) * skala, x0, oy0, x1 - x0, oy1 - oy0),
+         '<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#fbfbfa"/>'
+         % (x0, oy0, x1 - x0, oy1 - oy0),
+         '<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="1.7" '
+         'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
+         'Stufenfalz im Schnitt &#8212; aussen rechts</text>'
+         % ((x0 + x1) / 2.0, -y1 - 1.2)]
+
+    # Wanne: unten volle Wand, oben die Falzstufe (Innenkante um FT zurueck)
+    z.append(poly([(0, y0), (W, y0), (W, z_rand), (FT, z_rand),
+                   (FT, z_fach), (0, z_fach)], "#78818c", "#39414b"))
+    # Deckel: Wandring plus Lippe, die in die Stufe greift
+    dz = z_rand + g.DECKEL_INNEN * 0.5
+    z.append(poly([(0 + FS, z_fach + 0.5), (FT - FS, z_fach + 0.5),
+                   (FT - FS, z_rand), (W, z_rand), (W, dz), (0, dz),
+                   (0, z_rand), (0 + FS, z_rand)], "#3a6eb2", "#12294a"))
+
+    def label(x, y, t, anker="middle", farbe="#1a1a1a"):
+        z.append('<text x="%.2f" y="%.2f" font-family="sans-serif" '
+                 'font-size="1.15" text-anchor="%s" fill="%s">%s</text>'
+                 % (x, -y, anker, farbe, t))
+
+    def masslinie(xa, ya, xb, yb):
+        z.append('<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" '
+                 'stroke="#1a1a1a" stroke-width="0.09"/>' % (xa, -ya, xb, -yb))
+
+    masslinie(W + 1.5, z_fach, W + 1.5, z_rand)
+    label(W + 2.0, (z_fach + z_rand) / 2, "Falz %.0f tief" % FH, "start")
+    masslinie(FS, z_fach + 1.5, FT - FS, z_fach + 1.5)
+    label((FT) / 2, z_fach + 2.2, "Lippe %.1f" % (FT - 2 * FS))
+    masslinie(0, y0 + 1.0, W, y0 + 1.0)
+    label(W / 2, y0 + 1.7, "Wand %.1f" % W)
+    label(x1 - 0.5, z_rand + 1.4, "buendige Aussenfuge", "end", "#b03030")
+    z.append('<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="#b03030" '
+             'stroke-width="0.09" stroke-dasharray="0.7 0.5"/>'
+             % (FT, -z_rand, x1 - 0.5, -z_rand))
+    label(x0 + 0.5, z_fach + 3.0, "Kofferinneres", "start", "#666")
+    label(x0 + 0.5, z_rand + 5.0, "Deckel", "start", "#12294a")
+    label(x1 - 0.5, z_fach - 3.5, "Wanne", "end", "#39414b")
+    z.append('<text x="%.2f" y="%.2f" font-family="sans-serif" font-size="1.2" '
+             'text-anchor="middle" fill="#555">'
+             '%.2f mm Spiel je Flanke - Deckel liegt auf der Wannenwand auf, '
+             'nicht auf der Lippe</text>'
+             % ((x0 + x1) / 2.0, -y0 + 3.2, FS))
+    z.append('</svg>')
+    with open(pfad, "w") as f:
+        f.write("\n".join(z))
+
+
 def main():
     p = g.abgeleitet()
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
@@ -143,8 +216,10 @@ def main():
                     % (p["aussen_x"], p["aussen_y"], z_top + g.BODEN),
          tilt=math.radians(22))
 
+    falz_detail(os.path.join(ziel, "ansicht_falz_schnitt.svg"), p)
+
     for name in ("ansicht_wanne_offen.svg", "ansicht_deckel_innen.svg",
-                 "ansicht_koffer_zu.svg"):
+                 "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg"):
         print("%-28s %6.0f kB"
               % (name, os.path.getsize(os.path.join(ziel, name)) / 1024.0))
 

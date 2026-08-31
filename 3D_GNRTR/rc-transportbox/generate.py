@@ -135,6 +135,11 @@ MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 
+# Bauraum Bambu H2S. Nennmass 350 x 350; vorsichtshalber 350 x 320
+# gerechnet, und 20 mm Rand je Seite fuer Brim und Bettschiefe.
+BETT_X, BETT_Y = 350.0, 320.0
+BETT_RAND = 20.0
+
 # ---------------------------------------------------------------------------
 # Parameter: Koffer
 # ---------------------------------------------------------------------------
@@ -237,6 +242,7 @@ SCHWALBE_SP = 0.25    # Spiel der Griff-Schwalbe
 # Auto des Nutzers (gemessen 88 x 35 x 30); kuerzere Autos haelt die
 # Stirnfeder, schmalere die Klemmrippen.
 HW_L, HW_B, HW_H = 88.0, 35.0, 30.0
+HW_ANZAHL = 3        # eins im Controllerfach, zwei nebeneinander rechts
 HW_LUFT   = 1.5     # je Seite -> lichtes Fach = Auto + 2 x Luft
 HW_WAND   = 2.5     # Fachwand
 HW_ECKE   = 5.0     # Eckradius der Faecher (rund, wie gewuenscht)
@@ -487,7 +493,14 @@ def abgeleitet():
     g["rippen_idx"] = []
     g["fachC_l"] = max(xs) - min(xs) + 2 * steg
     g["fachC_t"] = max(ys) - min(ys) + 2 * steg
-    g["fachA_l"] = AUTOBOX_B + zuschlag          # Box liegt quer: B in X
+    # Rechter Streifen: er traegt die Auto-Box UND die Hot-Wheels-Faecher
+    # 2 und 3 nebeneinander. Zwei Faecher brauchen mehr Breite als die
+    # Box allein -- das kostet 30 mm Aussenmasz und ist der billigste Weg
+    # zum dritten Auto (hintereinander waeren es 70 mm, quer vorn 46).
+    hb_ = HW_B + 2 * HW_LUFT + 2 * HW_WAND
+    g["box_l"] = AUTOBOX_B + zuschlag            # Box liegt quer: B in X
+    g["fachA_l"] = max(g["box_l"], 2 * hb_ + HW_WAND) if HW_ANZAHL >= 3 \
+        else g["box_l"]
     g["fachA_t"] = AUTOBOX_L + zuschlag
 
     g["innen_x"] = g["fachC_l"] + TRENNWAND + g["fachA_l"]
@@ -511,6 +524,10 @@ def abgeleitet():
     g["fachC_x1"] = g["fachC_x0"] + g["fachC_l"]
     g["fachA_x1"] = g["innen_x"] / 2.0
     g["fachA_x0"] = g["fachA_x1"] - g["fachA_l"]
+    # Die Box sitzt an der Aussenwand; neben ihr bleibt der Rest des
+    # Streifens frei (Platz fuer Ladekabel und Kleinkram).
+    g["box_x1"] = g["fachA_x1"]
+    g["box_x0"] = g["box_x1"] - g["box_l"]
 
     # Die Auto-Box sitzt nicht mehr mittig, sondern ganz HINTEN im rechten
     # Fach. Damit wird aus den zwei ungenutzten Streifen (je 48 mm) vorn
@@ -544,11 +561,15 @@ def abgeleitet():
     ay0 = -iy + HW_WAND
     while ay0 + hl + HW_WAND < iy and not frei_bei(ay0):
         ay0 += 1.0
-    # Fach B: vorn im rechten Fach, vor der Auto-Box, in x mittig.
-    bxm = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
+    # Faecher B (und C): vorn im rechten Streifen, vor der Auto-Box.
     by1 = g["fachA_y0"] - HW_WAND
-    g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl),
-               (bxm - hb / 2.0, bxm + hb / 2.0, by1 - hl, by1)]
+    g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl)]
+    n_rechts = max(1, HW_ANZAHL - 1)
+    breite_ges = n_rechts * (hb + 2 * HW_WAND) + (n_rechts - 1) * HW_WAND
+    bx = (g["fachA_x0"] + g["fachA_x1"]) / 2.0 - breite_ges / 2.0 + HW_WAND
+    for _ in range(n_rechts):
+        g["hw"].append((bx, bx + hb, by1 - hl, by1))
+        bx += hb + 3 * HW_WAND
     g["hw_licht"] = (hb, hl)
 
     # Scharnierband: SCHARNIER_SEG gleich breite Segmente, abwechselnd
@@ -1693,13 +1714,25 @@ def teil_wanne(g):
         qx, qy = kontur_pos[idx]
         schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
 
+    # Trennwand links neben der Auto-Box. Der rechte Streifen ist wegen
+    # der zwei nebeneinanderliegenden Hot-Wheels-Faecher 88 mm breit, die
+    # Box braucht davon nur 58 -- ohne diese Wand stuende die linke
+    # Klemmrippe frei auf dem Boden (1,1 mm Blatt, 30 mm hoch: bricht ab)
+    # und die Box koennte seitlich auswandern. Mit ihr wird aus dem Rest
+    # ein sauberes Zubehoerfach (Ladekabel, Ersatzraeder).
+    zw = [(g["box_x0"] - TRENNWAND, g["fachA_y0"]),
+          (g["box_x0"], g["fachA_y0"]),
+          (g["box_x0"], g["fachA_y1"]),
+          (g["box_x0"] - TRENNWAND, g["fachA_y1"])]
+    schalen.append(prisma(zw, 0.0, g["z_fach"]))
+
     # Klemmrippen Autofach (Box sitzt jetzt hinten: fachA_y0..fachA_y1)
-    ax = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
+    ax = (g["box_x0"] + g["box_x1"]) / 2.0
     aym = (g["fachA_y0"] + g["fachA_y1"]) / 2.0
     for dy in (-g["fachA_t"] * 0.25, g["fachA_t"] * 0.25):
-        schalen.append(rippe(g["fachA_x0"] + TRENNWAND, aym + dy, "+x", 0.0, z1))
-        schalen.append(rippe(g["fachA_x1"], aym + dy, "-x", 0.0, z1))
-    for dx in (-g["fachA_l"] * 0.22, g["fachA_l"] * 0.22):
+        schalen.append(rippe(g["box_x0"], aym + dy, "+x", 0.0, z1))
+        schalen.append(rippe(g["box_x1"], aym + dy, "-x", 0.0, z1))
+    for dx in (-g["box_l"] * 0.22, g["box_l"] * 0.22):
         schalen.append(rippe(ax + dx, g["fachA_y0"], "+y", 0.0, z1))
         schalen.append(rippe(ax + dx, g["fachA_y1"], "-y", 0.0, z1))
 
@@ -1838,12 +1871,12 @@ def teil_deckel(g):
               48.0, hub_ctrl),
              (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1],
               48.0, hub_ctrl),
-             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0,
+             (-(g["box_x0"] + g["box_x1"]) / 2.0,
               (g["fachA_y0"] + g["fachA_y1"]) / 2.0 - g["fachA_t"] * 0.22,
-              g["fachA_l"] * 0.8, hub_box),
-             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0,
+              g["box_l"] * 0.8, hub_box),
+             (-(g["box_x0"] + g["box_x1"]) / 2.0,
               (g["fachA_y0"] + g["fachA_y1"]) / 2.0 + g["fachA_t"] * 0.22,
-              g["fachA_l"] * 0.8, hub_box)]
+              g["box_l"] * 0.8, hub_box)]
     for cx, y, spann, hub in ziele:
         profil = feder(cx, spann, hub)
         t = prisma(profil, y - 5.0, y + 5.0)
@@ -2102,7 +2135,7 @@ def hw_faecher_pruefen(g):
     mx0, my0 = g["fachC_x0"], -g["fachC_t"] / 2.0
     mulde = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    box = (g["fachA_x0"], g["fachA_x1"], g["fachA_y0"], g["fachA_y1"])
+    box = (g["box_x0"], g["box_x1"], g["fachA_y0"], g["fachA_y1"])
     fehler = []
     # Liegt ein Fach in einer Fuellschale, MUSS es dort als Loch stehen --
     # sonst ist es bis oben massiv und man sieht es der STL nicht an.
@@ -2202,6 +2235,25 @@ def hw_hohlraum_pruefen(g, schalen):
                                % (nr, max(hoch), px, py))
                 break
     return treffer
+
+
+def bauraum_pruefen(g):
+    """Passt der Koffer aufs Bett -- mit Rand fuer Brim und Bettschiefe?
+
+    Wanne und Deckel sind die groessten Teile und beide rechteckig, also
+    entscheidet die Grundflaeche. Gedreht wird nichts: ein Rechteck wird
+    durch Drehen nie schmaler als seine kurze Seite, und diagonal legen
+    kostet mehr Rand als es bringt. Die Hoehe kann nicht klemmen (66 mm).
+    Anlass fuer den Check: mit dem dritten Hot-Wheels-Fach wuchs der
+    Koffer um 30 mm in X -- solche Zuwaechse laufen sonst unbemerkt in
+    die Bettgrenze.
+    """
+    eng = []
+    for name, x, y in (("Wanne/Deckel", g["aussen_x"], g["aussen_y"]),):
+        if x + 2 * BETT_RAND > BETT_X or y + 2 * BETT_RAND > BETT_Y:
+            eng.append("%s %.0f x %.0f mm passt nicht mit %.0f mm Rand auf "
+                       "%.0f x %.0f" % (name, x, y, BETT_RAND, BETT_X, BETT_Y))
+    return eng
 
 
 def falzzone_pruefen(g, schalen):
@@ -2311,6 +2363,12 @@ def main():
                          "-- der Deckel liesse sich nicht schliessen" % frei)
     print("Falzzone frei (Lippe %.1f mm tief, %.1f mm dick, %.2f mm Spiel)"
           % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
+    eng = bauraum_pruefen(g)
+    if eng:
+        raise SystemExit("FEHLER Bauraum: " + "; ".join(eng))
+    print("Bauraum: %.0f x %.0f mm auf %.0f x %.0f -- Rand %.0f / %.0f mm"
+          % (g["aussen_x"], g["aussen_y"], BETT_X, BETT_Y,
+             (BETT_X - g["aussen_x"]) / 2.0, (BETT_Y - g["aussen_y"]) / 2.0))
     fehler += bauen(ziel, "rcbox_0_passlehre_zuerst_drucken.stl",
                     teil_lehre(g))
     fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)

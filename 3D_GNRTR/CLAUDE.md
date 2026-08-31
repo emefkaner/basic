@@ -238,6 +238,20 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Teil passt also sicher, und die Mulde wird nur etwas weiter (die
   Klemmrippen fangen das). Konkave Bereiche, die man BRAUCHT (die Kerbe,
   in der ein Zusatzfach liegt), davon ausnehmen.
+- **Ein Fach mehr kostet immer Aussenmasz — die billigste Richtung
+  ausrechnen, nicht die naechstliegende.** Fuer das dritte Hot-Wheels-Fach
+  im RC-Koffer standen drei Wege offen: Streifen verbreitern (+30 mm X),
+  Fach hinter die Auto-Box (+70 mm Y), Fach quer davor (+46 mm Y). Faktor
+  zwei zwischen erster und schlechtester Loesung. Und: sobald ein Gehaeuse
+  waechst, gehoert der **Bauraumcheck in den Generator** (Rechteck plus
+  20 mm Rand je Seite gegen 350 x 320), sonst laeuft der Zuwachs still in
+  die Bettgrenze.
+- **Verbreiterte Faecher lassen Reststreifen zurueck — Wand rein.** Wird
+  ein Streifen fuer zwei Faecher breiter gemacht, passt der alte Inhalt
+  nur noch zur Haelfte hinein. Der Rest braucht eine echte Trennwand, aus
+  zwei Gruenden: er wird zum brauchbaren Zubehoerfach, und die Klemmrippe
+  des Nachbarfachs bekommt wieder eine Wand unter sich. Eine Rippe ist ein
+  1,1-mm-Blatt; frei auf dem Boden stehend bricht sie ab.
 - **Klemmrippen nur dort, wo das Gegenstueck starr ist** — nie auf einem
   beweglichen Teil (das Drehrad des Controllers) und nie auf einer
   Flaeche, die in der Fachhoehe gar nicht anliegt.
@@ -281,4 +295,4 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
-| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 2 lose Autos | Crush-Ribs, Federbögen, Schnapper, Stufenfalz, Scharnier, T-Nut-Griff optional (`--mit-griff`) |
+| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

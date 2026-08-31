@@ -4,10 +4,11 @@
 
 | | |
 |---|---|
-| **Koffer außen** | 235 × 238 × 66 mm |
+| **Koffer außen** | 265 × 238 × 66 mm (Bett 350 × 320: 42/41 mm Rand) |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
 | **Auto-Box** | 100 × 50 × 50 mm |
-| **Hot Wheels (längstes)** | 88 × 35 × 30 mm, zwei Einzelfächer |
+| **Hot Wheels (längstes)** | 88 × 35 × 30 mm, **drei** Einzelfächer |
+| **Zubehörfach** | 28 × 108 mm neben der Auto-Box (Ladekabel, Ersatzräder) |
 | **Scharnierachse** | 179 mm rohes 1,75-mm-Filament |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
@@ -66,8 +67,8 @@ eine Krücke aus der Zeit, als die Kontur noch unbekannt war.
 ## Überblick
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
-Pistolengriff-Controller und **zwei lose Hot Wheels** in Einzelfächern.
-Außen **235 × 238 × 66 mm**, verschließbar, außen glatt — komplett
+Pistolengriff-Controller und **drei lose Hot Wheels** in Einzelfächern.
+Außen **265 × 238 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.
@@ -140,7 +141,7 @@ Kopfende den Controller gegen die Wand am Griffende — das ist eine echte
 Gehäusekante. Damit ist die Längslage definiert, egal wie der
 Radüberstand ausfällt. Randdehnung geprüft, unter 4 %.
 
-### Zwei Einzelfächer für lose Hot Wheels
+### Drei Einzelfächer für lose Hot Wheels
 
 Lichte Maße **38 × 91 × 30 mm** je Fach, runde Ecken (R5), ausgelegt auf
 das längste gemessene Auto (88 × 35 × 30). Gehalten wird jedes Auto
@@ -151,18 +152,34 @@ das Auto gar nicht erst kippen.
 
 - **Fach 1** liegt im Keil zwischen Rad- und Griffkontur des Controllers —
   genau die Stelle, an der im Original-Tray auch Luft ist.
-- **Fach 2** liegt vorn im rechten Fach. Dafür rückt die **Auto-Box nach
-  hinten** statt mittig zu sitzen: aus zwei ungenutzten Streifen von je
-  48 mm wird einer von 96 mm, und der reicht für ein Fach.
+- **Fach 2 und 3** liegen nebeneinander vorn im rechten Streifen. Dafür
+  rückt die **Auto-Box nach hinten** statt mittig zu sitzen: aus zwei
+  ungenutzten Streifen von je 48 mm wird einer von 96 mm.
 
-**Warum nur zwei?** Der Engpass ist die Breite, nicht die Länge: ein Fach
-braucht 35 mm Auto + 2 × 1,5 Luft + 2 × 2,5 Wand = **43 mm**. Der Keil
-läuft nach hinten spitz zu (bei y = +60 sind nur noch 28 mm frei), und der
-rechte Streifen ist 58 mm breit — für ein zweites Fach nebeneinander
-fehlen 28 mm. Ein Packtest über alle Winkel und Positionen findet für
-Autolängen von 55 bis 90 mm immer dieselbe Zahl: zwei. Kürzere Autos
-bringen also nichts; nur ein größerer Koffer würde mehr fassen (+83 mm in
-der Tiefe ergäbe hinten einen Streifen für fünf weitere).
+**Warum der Koffer für das dritte Auto 30 mm breiter wurde.** Der Engpass
+ist die Breite, nicht die Länge: ein Fach braucht 35 mm Auto + 2 × 1,5
+Luft + 2 × 2,5 Wand = **43 mm**. Der Keil links läuft nach hinten spitz zu
+(bei y = +60 sind nur noch 28 mm frei), der rechte Streifen war 58 mm
+breit — für zwei Fächer nebeneinander fehlten 28 mm. Ein Packtest über
+alle Winkel und Positionen fand im alten Gehäuse für Autolängen von 55 bis
+90 mm immer dieselbe Zahl: zwei. Kürzere Autos bringen also nichts, nur
+mehr Koffer. Drei Wege dorthin, gerechnet:
+
+| Variante | Kosten | |
+|---|---|---|
+| Streifen auf 88 mm verbreitern, Fächer nebeneinander | **+30 mm in X** | gewählt |
+| Fach hinter der Auto-Box | +70 mm in Y | mehr als doppelt so teuer |
+| Fach quer vor der Box | +46 mm in Y | teurer, und die Box verliert den Anschlag |
+
+Gewählt ist also die schmalste: **265 × 238 mm**, auf dem 350er Bett
+bleiben 42 bzw. 41 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
+Koffer wächst).
+
+Der Streifen ist damit 88 mm breit, die Auto-Box braucht davon 58. Die
+übrigen 28 mm sind kein Restmüll, sondern durch eine 3-mm-Trennwand ein
+**Zubehörfach 28 × 108 mm** (Ladekabel, Ersatzräder). Die Wand muss sein:
+ohne sie stünde die linke Klemmrippe der Box frei auf dem Boden — ein
+1,1 mm dünnes Blatt, 30 mm hoch, das beim ersten Anstoßen abbricht.
 
 Die Maße sind Parameter (`HW_L`, `HW_B`, `HW_H`, `HW_LUFT`, `HW_WAND`,
 `HW_ECKE`, `HW_FED_HUB`). `hw_faecher_pruefen()` testet den Rahmenrand

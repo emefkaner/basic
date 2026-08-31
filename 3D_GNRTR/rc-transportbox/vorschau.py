@@ -193,12 +193,25 @@ def draufsicht(pfad, p):
     txt(mx0 + p["schnauz_pos"][0] + 26, my0 + p["schnauz_pos"][1] - 26,
         "Controller", 11, "#fff", fett=True)
 
-    z.append(poly([(p["fachA_x0"], p["fachA_y0"]), (p["fachA_x1"], p["fachA_y0"]),
-                   (p["fachA_x1"], p["fachA_y1"]), (p["fachA_x0"], p["fachA_y1"])],
+    # Zubehoerfach links neben der Box (Rest des verbreiterten Streifens)
+    z.append(poly([(p["fachA_x0"], p["fachA_y0"]),
+                   (p["box_x0"] - g.TRENNWAND, p["fachA_y0"]),
+                   (p["box_x0"] - g.TRENNWAND, p["fachA_y1"]),
+                   (p["fachA_x0"], p["fachA_y1"])],
+                  "#ece7dd", "#a9a196", 1.0))
+    zmx = (p["fachA_x0"] + p["box_x0"] - g.TRENNWAND) / 2.0
+    zmy = (p["fachA_y0"] + p["fachA_y1"]) / 2.0
+    txt(zmx, zmy + 6, "Zubehoer", 9.5, "#5c5348", fett=True)
+    txt(zmx, zmy - 6, "%.0f x %.0f"
+        % (p["box_x0"] - g.TRENNWAND - p["fachA_x0"],
+           p["fachA_y1"] - p["fachA_y0"]), 8.5, "#7d766c")
+
+    z.append(poly([(p["box_x0"], p["fachA_y0"]), (p["fachA_x1"], p["fachA_y0"]),
+                   (p["fachA_x1"], p["fachA_y1"]), (p["box_x0"], p["fachA_y1"])],
                   "#b1483f", "#7d2a23", 1.0))
-    txt((p["fachA_x0"] + p["fachA_x1"]) / 2.0,
+    txt((p["box_x0"] + p["fachA_x1"]) / 2.0,
         (p["fachA_y0"] + p["fachA_y1"]) / 2.0 + 6, "Auto-Box", 10, "#fff", fett=True)
-    txt((p["fachA_x0"] + p["fachA_x1"]) / 2.0,
+    txt((p["box_x0"] + p["fachA_x1"]) / 2.0,
         (p["fachA_y0"] + p["fachA_y1"]) / 2.0 - 6, "100 x 50", 9, "#f4d7d2")
 
     hb, hl = p["hw_licht"]
@@ -219,7 +232,8 @@ def draufsicht(pfad, p):
     txt(0, iy + 12, "aussen %.0f x %.0f mm" % (p["aussen_x"], p["aussen_y"]),
         10, "#555")
     txt(0, -iy - 17, "Rest links: Keilform, unter 43 mm breit &#8212; kein "
-                     "zweites Auto. Rest rechts: 15 mm Streifen.", 9, "#777")
+                     "weiteres Auto. Rechts ist der Streifen voll belegt: "
+                     "Box, zwei Faecher, Zubehoer.", 9, "#777")
     z.append('</svg>')
     with open(pfad, "w") as f:
         f.write("\n".join(z))
@@ -536,7 +550,7 @@ def main():
          drehung=math.radians(28), skala=1.8,
          titel="Wanne: Konturmulde + Auto-Box (Attrappen rot)",
          untertitel="Gehaeuse (hell) in der Mulde, Drehrad (dunkel) frei "
-                    "nach oben, zwei Hot Wheels (violett) in Einzelfaechern",
+                    "nach oben, drei Hot Wheels (violett) in Einzelfaechern",
          tilt=math.radians(52))
 
     # 1b) Wanne leer, damit die Mulde selbst sichtbar ist

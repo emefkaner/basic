@@ -28,6 +28,9 @@ import warnings
 warnings.filterwarnings("ignore")
 
 LEHRE_X, LEHRE_Y = 144.0, 204.0        # Massze der roten Passlehre
+A4_X, A4_Y = 210.0, 297.0              # DIN A4
+
+REFERENZEN = {"lehre": (LEHRE_X, LEHRE_Y), "a4": (A4_X, A4_Y)}
 
 
 def bild_laden(pfad):
@@ -41,20 +44,30 @@ def bild_laden(pfad):
     return np.asarray(im, dtype=float)
 
 
-def platte_finden(rgb):
-    """Die rote Passlehre im Bild als Maske.
+def platte_finden(rgb, referenz="lehre"):
+    """Die Bezugsflaeche im Bild als Maske.
 
-    Rot heisst hier: R deutlich groesser als G und B. Das trennt die
-    Platte sowohl vom Controller (grau) als auch von Holz und Tisch.
+    "lehre": die rote Passlehre -- Rot heisst, R ist deutlich groesser
+    als G und B, das trennt sie von Controller, Holz und Tisch.
+    "a4": ein weisses Blatt -- hell und farbneutral. A4 ist die bessere
+    Wahl, sobald das Teil groesser ist als die Lehre: der Controller
+    muss GANZ auf der Bezugsflaeche liegen, sonst ist die Silhouette
+    abgeschnitten (genau daran ist der erste Versuch gescheitert).
     """
     import numpy as np
     from skimage import measure, morphology
     r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-    maske = (r > 90) & (r > g * 1.5) & (r > b * 1.5)
+    hell = rgb.mean(axis=2)
+    bunt = rgb.max(axis=2) - rgb.min(axis=2)
+    if referenz == "a4":
+        maske = (hell > 135) & (bunt < 70)
+    else:
+        maske = (r > 90) & (r > g * 1.5) & (r > b * 1.5)
     maske = morphology.remove_small_holes(maske, area_threshold=20000)
     maske = morphology.remove_small_objects(maske, min_size=20000)
     if maske.sum() < 5000:
-        raise SystemExit("FEHLER: keine rote Platte im Bild gefunden")
+        raise SystemExit("FEHLER: keine Bezugsflaeche (%s) im Bild "
+                         "gefunden" % referenz)
     # groesste zusammenhaengende Flaeche
     lab = measure.label(maske)
     groesste = max(measure.regionprops(lab), key=lambda p: p.area)
@@ -97,17 +110,33 @@ def anwenden(H, p):
     return (float(q[0] / q[2]), float(q[1] / q[2]))
 
 
-def controller_maske(rgb, platte):
-    """Alles, was auf der Platte liegt und nicht rot ist."""
+def controller_maske(rgb, platte, referenz="lehre"):
+    """Der Controller: die GRAUEN Flaechen auf der Platte.
+
+    "Alles was nicht rot ist" reicht nicht -- durch die Muldenoeffnung
+    der Lehre sieht man den dunklen Tisch, und der wuerde mitgemessen.
+    Der Controller ist dagegen neutralgrau und mittelhell. Das schwarze
+    Drehrad faellt dabei heraus, und das ist richtig so: es sitzt bei
+    z = 42..57 und gehoert gar nicht in die Mulde. Loecher innerhalb der
+    Silhouette (Beschriftung, Schattenkanten) werden gefuellt.
+    """
     import numpy as np
     from skimage import morphology, measure
     r, g, b = rgb[:, :, 0], rgb[:, :, 1], rgb[:, :, 2]
-    rot = (r > 90) & (r > g * 1.5) & (r > b * 1.5)
-    # Huelle der Platte, damit auch die Muldenoeffnung dazugehoert
+    hell = rgb.mean(axis=2)
+    bunt = rgb.max(axis=2) - rgb.min(axis=2)
+    if referenz == "a4":
+        # Auf weissem Papier ist die Trennung eindeutig: alles deutlich
+        # Dunklere ist das Teil.
+        grau = hell < 130
+    else:
+        rot = (r > 90) & (r > g * 1.4) & (r > b * 1.4)
+        grau = (~rot) & (hell > 52) & (bunt < 90)
     huelle = morphology.convex_hull_image(platte)
-    maske = huelle & (~rot)
-    maske = morphology.remove_small_objects(maske, min_size=3000)
-    maske = morphology.remove_small_holes(maske, area_threshold=3000)
+    maske = huelle & grau
+    maske = morphology.remove_small_objects(maske, min_size=4000)
+    maske = morphology.remove_small_holes(maske, area_threshold=60000)
+    maske = morphology.binary_closing(maske, morphology.disk(5))
     if maske.sum() < 2000:
         raise SystemExit("FEHLER: kein Controller auf der Platte erkannt")
     lab = measure.label(maske)
@@ -115,25 +144,26 @@ def controller_maske(rgb, platte):
     return (lab == groesste.label)
 
 
-def kontur_messen(pfad, zeige=False):
+def kontur_messen(pfad, referenz="lehre", zeige=False):
     import numpy as np
     from skimage import measure
+    kurz, lang = REFERENZEN[referenz]
     rgb = bild_laden(pfad)
-    platte = platte_finden(rgb)
+    platte = platte_finden(rgb, referenz)
     ecken = ecken_finden(platte)
-    # Zielrechteck: lange Seite der Platte = 204 mm
+    # Zielrechteck so drehen, wie die Flaeche im Bild liegt
     d1 = math.dist(ecken[0], ecken[1])
     d2 = math.dist(ecken[1], ecken[2])
     if d1 >= d2:
-        ziel = [(0, 0), (LEHRE_Y, 0), (LEHRE_Y, LEHRE_X), (0, LEHRE_X)]
+        ziel = [(0, 0), (lang, 0), (lang, kurz), (0, kurz)]
     else:
-        ziel = [(0, 0), (LEHRE_X, 0), (LEHRE_X, LEHRE_Y), (0, LEHRE_Y)]
+        ziel = [(0, 0), (kurz, 0), (kurz, lang), (0, lang)]
     H = homographie(ecken, ziel)
     print("Platte erkannt, Ecken im Bild: %s" %
           ", ".join("(%.0f,%.0f)" % e for e in ecken))
     print("Kalibriert auf %.0f x %.0f mm" % (ziel[2][0], ziel[2][1]))
 
-    maske = controller_maske(rgb, platte)
+    maske = controller_maske(rgb, platte, referenz)
     konturen = measure.find_contours(maske.astype(float), 0.5)
     if not konturen:
         raise SystemExit("FEHLER: keine Controllerkontur gefunden")
@@ -152,16 +182,19 @@ def kontur_messen(pfad, zeige=False):
         print("WARNUNG: %d Punkte liegen ausserhalb der Platte -- der "
               "Controller ragt ueber die Lehre hinaus, die Kontur ist dort "
               "abgeschnitten." % len(ueber))
-    return mm, ziel
+    return mm, ziel, maske, rgb
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("foto")
+    ap.add_argument("--referenz", choices=sorted(REFERENZEN), default="lehre",
+                    help="Bezugsflaeche: 'lehre' (rote Platte 144x204) "
+                         "oder 'a4' (weisses Blatt 210x297)")
     ap.add_argument("--zeige", action="store_true",
                     help="Kontrollbild als SVG danebenlegen")
     args = ap.parse_args()
-    mm, ziel = kontur_messen(args.foto)
+    mm, ziel, maske, rgb = kontur_messen(args.foto, args.referenz)
 
     print("\n# --- gemessene Kontur, in generate.py einsetzen ---")
     print("CTRL_KONTUR_GEMESSEN = [")
@@ -170,6 +203,14 @@ def main():
     print("]")
 
     if args.zeige:
+        # Maske als PNG neben das Foto legen -- so sieht man sofort, ob
+        # wirklich der Controller erkannt wurde und nicht der Tisch.
+        from PIL import Image
+        import numpy as np
+        ueber = rgb.copy()
+        ueber[maske] = ueber[maske] * 0.45 + np.array([255, 60, 0]) * 0.55
+        Image.fromarray(ueber.astype("uint8")).save(
+            os.path.splitext(args.foto)[0] + "_maske.png")
         pfad = os.path.splitext(args.foto)[0] + "_kontur.svg"
         xs = [p[0] for p in mm]
         ys = [p[1] for p in mm]

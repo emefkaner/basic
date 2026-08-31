@@ -110,7 +110,7 @@ def anwenden(H, p):
     return (float(q[0] / q[2]), float(q[1] / q[2]))
 
 
-def controller_maske(rgb, platte, referenz="lehre"):
+def controller_maske(rgb, platte, ecken, referenz="lehre"):
     """Der Controller: die GRAUEN Flaechen auf der Platte.
 
     "Alles was nicht rot ist" reicht nicht -- durch die Muldenoeffnung
@@ -132,8 +132,18 @@ def controller_maske(rgb, platte, referenz="lehre"):
     else:
         rot = (r > 90) & (r > g * 1.4) & (r > b * 1.4)
         grau = (~rot) & (hell > 52) & (bunt < 90)
-    huelle = morphology.convex_hull_image(platte)
-    maske = huelle & grau
+    # NICHT die konvexe Huelle der Blattmaske nehmen: liegt das Blatt
+    # schraeg im Bild, greift sie ueber die Blattkanten hinaus, und der
+    # dunkle Boden dort wird als Teil gezaehlt (genau so passiert:
+    # gemessen wurden 293 x 265 statt 215 x 151). Stattdessen exakt das
+    # Viereck der vier erkannten Ecken, ein paar Pixel nach innen.
+    from skimage.draw import polygon2mask
+    mitte = (sum(e[0] for e in ecken) / 4.0, sum(e[1] for e in ecken) / 4.0)
+    innen = [(e[0] + (mitte[0] - e[0]) * 0.012,
+              e[1] + (mitte[1] - e[1]) * 0.012) for e in ecken]
+    blatt = polygon2mask(rgb.shape[:2],
+                         [(y, x) for (x, y) in innen])
+    maske = blatt & grau
     maske = morphology.remove_small_objects(maske, min_size=4000)
     maske = morphology.remove_small_holes(maske, area_threshold=60000)
     maske = morphology.binary_closing(maske, morphology.disk(5))
@@ -163,7 +173,7 @@ def kontur_messen(pfad, referenz="lehre", zeige=False):
           ", ".join("(%.0f,%.0f)" % e for e in ecken))
     print("Kalibriert auf %.0f x %.0f mm" % (ziel[2][0], ziel[2][1]))
 
-    maske = controller_maske(rgb, platte, referenz)
+    maske = controller_maske(rgb, platte, ecken, referenz)
     konturen = measure.find_contours(maske.astype(float), 0.5)
     if not konturen:
         raise SystemExit("FEHLER: keine Controllerkontur gefunden")

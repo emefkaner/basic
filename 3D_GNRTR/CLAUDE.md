@@ -141,10 +141,19 @@ Formschluss-Prinzipien, die sich bewährt haben:
   nicht — die Segmente lagen uebereinander statt ineinander, unsichtbar
   in der STL. Verzahnungen deshalb als **Intervalle in Einbaulage**
   pruefen (`scharnier_pruefen`).
-- **Lange duenne Stifte liegend drucken.** Stehend liegen alle Lagen quer
-  zur Achse; ein 5-mm-Stift bricht bei der ersten Biegung. Und tragende
-  Scharniere breit aufteilen: zwei 12-mm-Nasen trugen einen 0,8-kg-Koffer
-  auf 24 mm — ein Klavierband mit 7 Segmenten bringt 101 mm.
+- **Scharnierachsen: rohes Filament statt gedrucktem Stift.** 1,75-mm-
+  Filament ist gezogen, homogen, rund und glatt — als Achse besser als
+  jeder Druck, und es kostet kein Bauteil. Bohrung 2,2 mm (Tropfen, weil
+  liegend), ein Aussensegment mit Ansenkung zum Einschieben, das andere
+  mit Blindende; Ueberstand mit dem Loetkolben zum Nietkopf verschmelzen,
+  der in der Senkung versinkt. Tragfaehig, weil ein vielfach gelagertes
+  Band die Last als **Scherung** durch die Uebergaenge leitet und die
+  freie Biegelaenge nur der Segmentspalt ist (Rechnung im README).
+  Muss doch gedruckt werden: lange duenne Stifte **liegend**, sonst
+  liegen alle Lagen quer zur Achse.
+- **Tragende Scharniere breit aufteilen:** zwei 12-mm-Nasen trugen einen
+  0,8-kg-Koffer auf 24 mm — ein Klavierband mit 7 Segmenten bringt
+  101 mm, bei kleineren Augen sogar mit weniger Ueberstand.
 - **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
   nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
   Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,

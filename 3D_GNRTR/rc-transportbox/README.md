@@ -17,7 +17,10 @@ er rotieren und schlagen könnte.
 |---|---|---|
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
-| Achsstift (89 mm) | `rcbox_4_achsstift_2x_drucken.stl` | **2 ×** |
+
+Als Scharnierachse dient **179 mm rohes 1,75-mm-Filament** — es wird
+nichts dafür gedruckt. Nur mit `--gedruckter-stift` entsteht zusätzlich
+`rcbox_4_achsstift_2x_drucken.stl` (2 ×).
 
 Der Griff (`rcbox_3_griff_1x_drucken.stl`) entsteht nur mit
 `python3 generate.py --mit-griff`; ohne die Option löscht der Generator
@@ -92,10 +95,23 @@ und Muldenluft (`MULDE_LUFT`) sind Parameter in `generate.py`.
   25 mm über 180 mm Breite, abwechselnd Wanne (4) und Deckel (3),
   Rautenprofil mit Tropfenbohrung. Die tragende Breite an der Wanne ist
   damit **101 mm statt 24 mm**, der Stift 5 statt 4 mm — zwei kurze Nasen
-  waren die Sollbruchstelle, wenn der volle Koffer am Deckel hängt. Zwei
-  Achsstifte (je 89 mm) werden von links und rechts eingeschoben und
-  treffen sich im mittleren Segment: Presssitz in den Deckelaugen,
-  Drehsitz in den Wannenaugen.
+  waren die Sollbruchstelle, wenn der volle Koffer am Deckel hängt.
+
+  **Die Achse ist ein Stück rohes Filament (1,75 mm)** — nicht gedruckt.
+  Gezogenes Filament ist homogen, rund und glatt: die bessere Achse, und
+  sie kostet nichts. Bohrung 2,2 mm als Tropfen (liegend gedruckt), das
+  linke Außensegment hat eine **Ansenkung** (Ø4, 2,5 mm tief), das rechte
+  ein **Blindende** (3 mm Restwand). Also: 179 mm ablängen, von links
+  einschieben bis es am Blindende ansteht, den Überstand in der Senkung
+  mit Lötkolben oder Feuerzeug zu einem kleinen Kopf verschmelzen — der
+  versinkt in der Senkung, außen bleibt alles bündig.
+
+  Tragfähig ist das, weil das Band vielfach gelagert ist: frei biegen kann
+  sich die Achse nur über die 0,5 mm Segmentspalte, die Last läuft als
+  **Scherung** durch die sechs Übergänge. Bei 0,85 kg sind das 1,4 N je
+  Stelle auf 2,4 mm² = 0,6 MPa, im Stoßfall 2,9 MPa — PLA/PETG halten
+  40–60 MPa. Wer trotzdem lieber druckt: `--gedruckter-stift` erzeugt
+  die alte Variante mit 5-mm-Stiften (2 × 89 mm, flach gedruckt).
 
   Der Deckel wird **gespiegelt** gedruckt ((x,y,z) → (−x,y,z_top−z)).
   Ein Segment, das im Gebrauch bei x liegen soll, muss deshalb im
@@ -149,9 +165,7 @@ rendert die passenden Ansichten.
   (spröder); PETG ist für Schnapper und Federn die erste Wahl.
 - **Alle Teile liegen druckfertig, keine Stützen.** Der Deckel wird mit
   der Innenseite nach oben gedruckt — die verrundete Außenkante liegt am
-  Bett. Die Achsstifte liegen **flach** (89 mm lang): stehend gedruckt
-  lägen alle Lagen quer zur Achse und der Stift bräche bei der ersten
-  Biegung. Der Griff (nur mit `--mit-griff`) liegt flach.
+  Bett. Der Griff (nur mit `--mit-griff`) liegt flach.
 - **Wände/Infill:** 3 Wandlinien, 10–12 % Infill. Die Füllschale der
   Konturmulde ist volumig — das niedrige Infill hält sie leicht, die
   4-mm-Außenwände bleiben trotzdem praktisch massiv.
@@ -164,8 +178,8 @@ rendert die passenden Ansichten.
 ## Zusammenbau
 
 1. Deckel hinten an die Wanne halten, die Bandsegmente ineinander
-   schieben, dann die beiden Achsstifte von links und rechts einschieben
-   bis der Kopf anliegt — sie treffen sich im mittleren Segment.
+   schieben, 179 mm Filament von links durchschieben bis es am Blindende
+   ansteht, Überstand in der Senkung zum Kopf verschmelzen.
 2. Controller **mit dem Drehrad nach oben** in die Mulde drücken (Rippen
    geben nach), Auto-Box ins kleine Fach.
 3. Deckel zu — die Lippe zentriert sich in den Falz, die Zungen schnappen

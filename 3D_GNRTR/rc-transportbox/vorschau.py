@@ -432,9 +432,10 @@ def scharnier_ansicht(pfad, p, wanne, deckel_zu):
          drehung=math.radians(180), skala=3.2,
          titel="Scharnierband von hinten (Wanne grau, Deckel blau)",
          untertitel="%d Segmente a %.0f mm, verzahnt - tragende Breite "
-                    "%.0f mm, Stift %.0f mm"
+                    "%.0f mm, Achse: %.2f mm Rohfilament"
                     % (g.SCHARNIER_SEG, p["schar_breite"],
-                       len(p["schar_wanne"]) * p["schar_breite"], g.STIFT_D),
+                       len(p["schar_wanne"]) * p["schar_breite"],
+                       g.FILAMENT_D),
          tilt=math.radians(72))
 
 

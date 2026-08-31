@@ -129,10 +129,25 @@ FEDER_HUB  = 18.0     # wie weit sie unter die Deckeldecke ragen
 # zweier kurzer Augen. Zwei 12-mm-Nasen trugen den Deckel auf 24 mm
 # Gesamtbreite -- zu wenig, wenn der volle Koffer am Deckel haengt. Jetzt
 # tragen vier Wannensegmente auf rund 100 mm, und der Stift ist dicker.
-SCHARNIER_AUGE = 15.0     # Augen-Aussenmass (Raute)
+SCHARNIER_AUGE = 11.0     # Augen-Aussenmass (Raute)
 SCHARNIER_SEG  = 7        # Segmente ueber die Breite (Wanne 4, Deckel 3)
 SCHARNIER_BAND = 180.0    # Gesamtbreite des Bands
 SCHARNIER_LUFT = 0.5      # Luft zwischen Wannen- und Deckelsegment
+
+# Achse: ein Stueck ROHES FILAMENT (1,75 mm) statt eines gedruckten
+# Stifts. Es ist gezogen und homogen, hat eine glatte runde Oberflaeche
+# (bessere Achse als jeder Druck) und kostet nichts. Tragfaehig ist es,
+# weil das Band vielfach gelagert ist: frei biegen kann sich die Achse
+# nur ueber die Segmentspalte von SCHARNIER_LUFT, die Last laeuft als
+# Scherung durch die Uebergaenge.
+FILAMENT_D  = 1.75
+LOCH_ACHSE  = 2.2         # Drehsitz fuer 1,75er Filament (liegend gedruckt)
+SENKUNG_D   = 4.0         # Ansenkung am Eintritt: dort versinkt der
+SENKUNG_T   = 2.5         # verschmolzene Filamentkopf
+SACK_T      = 3.0         # Restwand am Blindende (haelt die Achse)
+
+# Alternative, nur mit --gedruckter-stift:
+GEDRUCKTER_STIFT = False
 STIFT_D    = 5.0
 LOCH_DREH  = 5.3          # Wannenauge (drehbar)
 LOCH_PRESS = 4.8          # Deckelauge (Presssitz)
@@ -683,15 +698,25 @@ def rippe_frei(px, py, nx, ny, z0, z1):
                   [z0, z1 - 3.0, z1])
 
 
-def scharnier_auge(loch_d, laenge):
-    """Auge: Raute aussen, Tropfenloch innen, Achse entlang X,
-    Zentrum (0,0,0), erstreckt sich x = 0..laenge."""
+def scharnier_auge(loch_d, laenge, sack=0.0, senkung=0.0):
+    """Auge des Scharnierbands: Raute aussen, Tropfenloch innen, Achse
+    entlang X, x = 0..laenge. Gibt eine LISTE von Schalen zurueck.
+
+    sack > 0: die letzten `sack` mm bleiben massiv -- ein Blindende, gegen
+    das die Achse laeuft, damit sie nicht durchrutschen kann.
+    senkung > 0: die ersten `senkung` mm haben ein aufgeweitetes Loch;
+    dort versinkt der verschmolzene Kopf des Filaments, aussen bleibt die
+    Flaeche buendig."""
     a = raute(SCHARNIER_AUGE / 2.0)
-    i = tropfen(loch_d / 2.0)
-    t = loch_prisma(a, i, 0.0, laenge)            # Achse erst entlang Z
-    t = dreh_x90(t)                               # -> entlang -Y
-    t = dreh_z90(t)                               # -> entlang +X
-    return t
+    teile = []
+    x0 = 0.0
+    if senkung > 0.0:
+        teile.append(loch_prisma(a, tropfen(SENKUNG_D / 2.0), 0.0, senkung))
+        x0 = senkung
+    teile.append(loch_prisma(a, tropfen(loch_d / 2.0), x0, laenge - sack))
+    if sack > 0.0:
+        teile.append(prisma(a, laenge - sack, laenge))
+    return [dreh_z90(dreh_x90(t)) for t in teile]
 
 
 # ---------------------------------------------------------------------------
@@ -780,9 +805,18 @@ def teil_wanne(g):
     z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
     y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
     sb = g["schar_breite"]
-    for x0 in g["schar_wanne"]:
-        auge = scharnier_auge(LOCH_DREH, sb)
-        schalen.append(verschieben(auge, x0, y_auge, z_achse))
+    loch_w = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_DREH
+    for nr, x0 in enumerate(g["schar_wanne"]):
+        # Das linke Aussensegment bekommt die Ansenkung (dort wird die
+        # Achse eingeschoben), das rechte das Blindende.
+        erstes = (nr == 0)
+        letztes = (nr == len(g["schar_wanne"]) - 1)
+        auge = scharnier_auge(
+            loch_w, sb,
+            sack=SACK_T if (letztes and not GEDRUCKTER_STIFT) else 0.0,
+            senkung=SENKUNG_T if (erstes and not GEDRUCKTER_STIFT) else 0.0)
+        for teil in auge:
+            schalen.append(verschieben(teil, x0, y_auge, z_achse))
         # Stuetzsteg vom Auge zur Rueckwand, ueber die volle Segmentbreite
         steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
                 (x0 + sb, y_auge), (x0, y_auge)]
@@ -930,11 +964,12 @@ def teil_deckel(g):
     # Ohne diese Umrechnung landen Deckel- und Wannensegmente
     # uebereinander statt ineinander -- der Deckel liesse sich nicht
     # anscharnieren.
+    loch_d_ = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_PRESS
     for a in g["schar_deckel"]:
         x0 = -(a + sb)
-        auge = scharnier_auge(LOCH_PRESS, sb)
-        schalen.append(verschieben(auge, x0, y_auge,
-                                   z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
+        for teil in scharnier_auge(loch_d_, sb):
+            schalen.append(verschieben(teil, x0, y_auge,
+                                       z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
         steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
                 (x0 + sb, y_auge), (x0, y_auge)]
         schalen.append(prisma(steg, z_rand - 10.0,
@@ -1257,10 +1292,16 @@ def bauen(ziel, name, schalen):
 def main():
     global MIT_GRIFF
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--gedruckter-stift", action="store_true",
+                    help="Scharnierstifte drucken statt rohes 1,75er "
+                         "Filament als Achse zu verwenden")
     ap.add_argument("--mit-griff", action="store_true",
                     help="Steck-Tragegriff und die T-Nut-Bloecke am Deckel "
                          "mit erzeugen (Standard: ohne, saubere Aussenflaeche)")
-    MIT_GRIFF = ap.parse_args().mit_griff
+    global GEDRUCKTER_STIFT
+    args = ap.parse_args()
+    MIT_GRIFF = args.mit_griff
+    GEDRUCKTER_STIFT = args.gedruckter_stift
 
     g = abgeleitet()
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
@@ -1284,10 +1325,12 @@ def main():
     sfehler, tragend = scharnier_pruefen(g)
     if sfehler:
         raise SystemExit("FEHLER Scharnier: " + "; ".join(sfehler))
+    achse = "gedruckter Stift %.1f mm" % STIFT_D if GEDRUCKTER_STIFT \
+        else "Rohfilament %.2f mm" % FILAMENT_D
     print("Scharnierband: %d Segmente a %.0f mm (Wanne %d / Deckel %d), "
-          "tragende Breite %.0f mm, Stift %.0f mm"
+          "tragende Breite %.0f mm, Achse: %s"
           % (SCHARNIER_SEG, g["schar_breite"], len(g["schar_wanne"]),
-             len(g["schar_deckel"]), tragend, STIFT_D))
+             len(g["schar_deckel"]), tragend, achse))
 
     voll = hw_hohlraum_pruefen(g, wanne)
     if voll:
@@ -1319,12 +1362,23 @@ def main():
         os.remove(griff_datei)
         print("Griff-Variante aus: alte %s geloescht"
               % os.path.basename(griff_datei))
-    # Der Stift ist 89 mm lang -- stehend gedruckt laegen alle Lagen quer
-    # zur Achse und er braeche bei der ersten Biegung. Flach legen:
-    # (x,y,z) -> (z, x, y) plus Hub, damit die Fasern laengs laufen.
-    stift_flach = [[tuple((z_, x_, y_ + 5.0) for (x_, y_, z_) in tri)
-                    for tri in s_] for s_ in teil_stift(g)]
-    fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", stift_flach)
+    stift_datei = os.path.join(ziel, "rcbox_4_achsstift_2x_drucken.stl")
+    if GEDRUCKTER_STIFT:
+        # Stehend gedruckt laegen alle Lagen quer zur Achse; flach legen:
+        # (x,y,z) -> (z, x, y) plus Hub, damit die Fasern laengs laufen.
+        stift_flach = [[tuple((z_, x_, y_ + 5.0) for (x_, y_, z_) in tri)
+                        for tri in s_] for s_ in teil_stift(g)]
+        fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", stift_flach)
+    else:
+        if os.path.exists(stift_datei):
+            os.remove(stift_datei)
+        # Nutzbare Bohrung: vom Bandanfang bis zum Grund des Blindendes
+        x_a = g["schar_wanne"][0]
+        x_e = g["schar_wanne"][-1] + g["schar_breite"] - SACK_T
+        print("Achse: %.2f mm Rohfilament. Bohrung %.0f mm lang -- %.0f mm "
+              "ablaengen, einschieben, den Ueberstand in der Senkung "
+              "(%.1f mm tief) zum Kopf verschmelzen."
+              % (FILAMENT_D, x_e - x_a, x_e - x_a + 2.0, SENKUNG_T))
 
     if fehler:
         raise SystemExit("FEHLER: %d offene Kanten" % fehler)

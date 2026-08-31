@@ -1,8 +1,73 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
+## Projektstand (zuletzt: Lehrendruck läuft)
+
+| | |
+|---|---|
+| **Koffer außen** | 235 × 238 × 66 mm |
+| **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
+| **Auto-Box** | 100 × 50 × 50 mm |
+| **Hot Wheels (längstes)** | 88 × 35 × 30 mm, zwei Einzelfächer |
+| **Scharnierachse** | 179 mm rohes 1,75-mm-Filament |
+| **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
+
+**Als Nächstes:** Passlehre prüfen (`rcbox_0_passlehre_zuerst_drucken.stl`).
+Sitzt der Controller, sind Wanne, Deckel und die zwei Logoteile dran —
+rund 700 g. Klemmt etwas, die Stelle nennen; die Kontur steckt in
+`CTRL_KONTUR_ROH` und lässt sich punktweise nachziehen.
+
+### Wie die Kontur entstanden ist — und was vorher schiefging
+
+Die Silhouette wurde zuerst aus dem Foto der Original-Schaumschale
+abgenommen: **190 × 131 mm**. In der gedruckten Lehre passte nichts.
+Gemessen wurde dann mit `kontur_aus_foto.py` (Controller auf DIN A4,
+Foto von oben, über die vier Blattecken entzerrt): **215,1 × 151,1 mm** —
+25 mm länger, 20 mm breiter. Keine Formkorrektur hätte das gefunden, das
+Teil war schlicht größer als angenommen.
+
+Drei Fallen auf dem Weg, alle im Skript abgefangen:
+
+- **Die Bezugsfläche muss das Teil ganz tragen.** Auf der 144 × 204 mm
+  großen Lehre ragte der Controller über zwei Kanten hinaus — die
+  Silhouette war dort abgeschnitten. Deshalb A4.
+- **Nicht die konvexe Hülle der Bezugsfläche nehmen.** Liegt das Blatt
+  schräg im Bild, greift sie über die Blattkanten hinaus, und der dunkle
+  Boden dort zählt als Teil: gemessen wurden 293 × 265 statt 215 × 151.
+  Jetzt wird exakt auf das Viereck der vier erkannten Ecken begrenzt.
+- **Die Lehre taugt trotzdem als Bezug**, wenn das Teil daraufpasst: sie
+  ist 8 mm dick, das Teil liegt auf ihrer Oberseite — also genau in der
+  Ebene, über die kalibriert wird.
+
+### Was am Muldenrand passiert
+
+Die gemessene Kontur kommt aus einer Pixelmaske: maßlich richtig, aber
+mit lauter kleinen Treppen, die sich im Druck als Nubsis wiederfinden.
+Deshalb in dieser Reihenfolge:
+
+1. **Chaikin**, drei Durchläufe — jede Ecke wird durch zwei Punkte auf
+   der Kante ersetzt, die Kontur wird weich.
+2. **Kerben überbrücken** (`kerben_fuellen`): liegen zwei Punkte näher
+   als 16 mm beieinander, sind aber entlang der Kontur weiter als 40 mm
+   auseinander, wird der Bogen dazwischen durch die direkte Verbindung
+   ersetzt. So wird der Abzugsclip grob umschlossen statt formgetreu
+   ausgespart — formgetreu bekam man den Controller kaum eingefädelt.
+3. **0,6 mm nach außen versetzen** — die Mulde darf weiter werden, nie
+   enger.
+4. **Schlaufen entfernen** (`schlaufen_entfernen`): beim Versetzen
+   überschlagen sich die Kanten an engen konkaven Stellen zu Schlaufen,
+   und ein Polygon mit Schlaufe lässt sich nicht triangulieren.
+
+**Keine Klemmrippen in der Controllermulde.** Sie standen als Nubsis im
+Weg und werden nicht gebraucht, seit die Kontur gemessen ist. Das
+Restspiel nimmt eine kurze Blattfeder am Kopfende: 45 mm Sehne, 1,2 mm
+dick, 5 mm Hub, Randdehnung 0,4 %. Der erste Entwurf hatte 15 mm Hub —
+eine Krücke aus der Zeit, als die Kontur noch unbekannt war.
+
+## Überblick
+
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
 Pistolengriff-Controller und **zwei lose Hot Wheels** in Einzelfächern.
-Außen **213 × 212 × 66 mm**, verschließbar, außen glatt — komplett
+Außen **235 × 238 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.

@@ -203,6 +203,30 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
   war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt
   ihn gegen eine sichere Kante, und die Frage ist erledigt.
+- **Fremdmasze vom Nutzer koennen falsch sein -- Konturen MESSEN.**
+  Beim RC-Koffer waren die angesagten 190 x 131 in Wahrheit 215 x 151;
+  vermutlich war ein ausladender Teil nicht mitgemessen. Verfahren
+  (`rc-transportbox/kontur_aus_foto.py`): Teil flach auf DIN A4, Foto
+  senkrecht von oben, ueber die vier Blattecken per Homographie (DLT)
+  entzerren, dann die Silhouette segmentieren. Auf weissem Papier ist
+  die Trennung eindeutig, an einer roten Platte unter farbigem Licht
+  nicht. Drei Fallen: (1) die Bezugsflaeche muss das Teil GANZ tragen,
+  sonst ist die Silhouette abgeschnitten; (2) nie die konvexe Huelle der
+  Bezugsflaeche als Suchbereich nehmen -- bei schraeg liegendem Blatt
+  greift sie darueber hinaus und der dunkle Boden zaehlt als Teil
+  (gemessen wurden 293 x 265 statt 215 x 151); (3) das Teil in die Mitte
+  legen, am Bildrand verzerrt der schraege Blick zusaetzlich.
+- **Gemessene Pixelkonturen aufbereiten**, sonst stehen im Druck lauter
+  Nubsis in der Mulde: Chaikin glaetten (drei Durchlaeufe), schmale
+  Kerben ueberbruecken (`kerben_fuellen` -- ein formzutreu ausgesparter
+  Clip laesst sich kaum einfaedeln), um ein halbes Zehntel nach AUSSEN
+  versetzen (weiter ja, enger nie), danach `schlaufen_entfernen`: beim
+  Versetzen ueberschlagen sich die Kanten an engen konkaven Stellen, und
+  ein Polygon mit Schlaufe ist nicht triangulierbar.
+- **Klemmrippen weglassen, wo die Kontur gemessen ist.** Sie sind das
+  Mittel gegen unsichere Masze; ist die Form bekannt, stehen sie nur im
+  Weg. Das Restspiel nimmt eine kurze, weiche Blattfeder (Randdehnung
+  unter 1 %), keine 15-mm-Kruecke.
 - **Passlehre vor dem grossen Druck.** Wenn eine Kontur aus Fotos statt
   aus einer Zeichnung stammt, zuerst ein flaches Abbild davon drucken
   (Querschnitt als 8-mm-Platte mit den Klemmrippen, ~40 min) und das

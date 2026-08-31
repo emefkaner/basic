@@ -1,9 +1,10 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox** plus den
-Pistolengriff-Controller. Außen **213 × 212 × 66 mm** (plus Griffbügel),
-verschließbar, mit abnehmbarem Tragegriff — komplett gedruckt, keine
-Schrauben, keine Metallteile.
+Pistolengriff-Controller. Außen **213 × 212 × 66 mm**, verschließbar,
+außen glatt — komplett gedruckt, keine Schrauben, keine Metallteile.
+Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
+aber nicht zur Standardausgabe.
 
 Der Controller liegt in einer **pistolenförmigen Konturmulde** nach dem
 Vorbild des Original-Formfaser-Trays — nicht in einem Rechteckfach, in dem
@@ -15,8 +16,12 @@ er rotieren und schlagen könnte.
 |---|---|---|
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
-| Griff | `rcbox_3_griff_1x_drucken.stl` | 1 × |
 | Achsstift | `rcbox_4_achsstift_2x_drucken.stl` | **2 ×** |
+
+Der Griff (`rcbox_3_griff_1x_drucken.stl`) entsteht nur mit
+`python3 generate.py --mit-griff`; ohne die Option löscht der Generator
+eine alte Griff-STL wieder aus `stl/`, damit im Slicer nichts Falsches
+erwischt wird.
 
 ## Warum nichts wackelt
 
@@ -75,12 +80,25 @@ Querkraft auf, sodass sich der Deckel unter Last nicht aufbiegen und aus
 den Schnappern schälen kann. Zusammen hält der geschlossene Koffer
 kopfüber. Falls die Schnapper nach dem Testdruck zu leicht auslösen, sind
 `HAKEN` (Rasteingriff) und `ZUNGE_BREIT` Parameter.
-- **Griff:** Bügel mit T-Füßen, wird von unten in zwei vertikale T-Nuten
-  außen am Deckelring geschoben. Die Nuten haben oben ein Blindende — beim
-  Tragen ziehen die Füße dagegen, die Last läuft also über Formschluss,
-  nicht über Reibung. Griff abziehbar (nach unten), z. B. fürs Regal.
 - Der Controller liegt auf der Seite (Rad nach oben) in seiner Mulde,
   die Auto-Box daneben — Deckel auf, beides greifbar.
+
+### Warum standardmäßig kein Tragegriff
+
+Der Koffer ist 213 × 212 × 66 mm groß und beladen rund 0,8 kg schwer —
+das ist eine Größe, die man mit einer Hand seitlich umfasst; die
+verrundeten Ecken (R12) sind dafür angenehmer als jeder Bügel. Der
+Griff kostet dagegen sichtbar Bauform: die beiden T-Nut-Blöcke stehen
+7 mm über die Deckelseiten hinaus und machen den Koffer 18 mm tiefer,
+der Bügel selbst nochmal 36 mm höher. Das widerspricht dem „von außen
+sauber abgeschlossen und clean". Deshalb ist der Standard glatt.
+
+Wer den Bügel doch will: `python3 generate.py --mit-griff` erzeugt
+Nuten und Griff wie zuvor (Bügel mit T-Füßen, von unten in zwei
+vertikale T-Nuten am Deckelring geschoben; die Nuten haben oben ein
+Blindende, beim Tragen ziehen die Füße dagegen — Formschluss statt
+Reibung, Griff nach unten abziehbar). `python3 vorschau.py --mit-griff`
+rendert die passenden Ansichten.
 
 ## Drucken
 
@@ -88,11 +106,12 @@ kopfüber. Falls die Schnapper nach dem Testdruck zu leicht auslösen, sind
   (spröder); PETG ist für Schnapper und Federn die erste Wahl.
 - **Alle Teile liegen druckfertig, keine Stützen.** Der Deckel wird mit
   der Innenseite nach oben gedruckt — die verrundete Außenkante liegt am
-  Bett. Der Griff liegt flach.
+  Bett. Der Griff (nur mit `--mit-griff`) liegt flach.
 - **Wände/Infill:** 3 Wandlinien, 10–12 % Infill. Die Füllschale der
   Konturmulde ist volumig — das niedrige Infill hält sie leicht, die
   4-mm-Außenwände bleiben trotzdem praktisch massiv.
-- **Schichthöhe:** 0,2 mm. Materialbedarf gesamt grob 430–490 g.
+- **Schichthöhe:** 0,2 mm. Materialbedarf gesamt grob 390–440 g
+  (mit Griff rund 30 g mehr).
 - **Der Falz ist die einzige Passung, die beim Druck sitzen muss.** Wenn
   dein Drucker breit extrudiert, kann die Lippe stramm gehen: dann
   `FALZ_SP` auf 0,35 setzen und den Deckel neu erzeugen.
@@ -101,10 +120,9 @@ kopfüber. Falls die Schnapper nach dem Testdruck zu leicht auslösen, sind
 
 1. Deckel hinten an die Wanne halten, Augen fluchten lassen, beide
    Achsstifte von außen durchstecken und eindrücken.
-2. Griff von unten in die T-Nuten des Deckels schieben.
-3. Controller **mit dem Drehrad nach oben** in die Mulde drücken (Rippen
+2. Controller **mit dem Drehrad nach oben** in die Mulde drücken (Rippen
    geben nach), Auto-Box ins kleine Fach.
-4. Deckel zu — die Lippe zentriert sich in den Falz, die Zungen schnappen
+3. Deckel zu — die Lippe zentriert sich in den Falz, die Zungen schnappen
    hörbar ein.
 
 ## Technik

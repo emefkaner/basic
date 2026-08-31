@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ansichten der RC-Transportbox (Renderer wie in den Nachbarprojekten)."""
 
+import argparse
 import math
 import os
 
@@ -142,6 +143,11 @@ def falz_detail(pfad, p):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mit-griff", action="store_true",
+                    help="Ansichten mit Steck-Tragegriff rendern")
+    g.MIT_GRIFF = ap.parse_args().mit_griff
+
     p = g.abgeleitet()
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
 
@@ -160,7 +166,7 @@ def main():
 
     wanne = flach(g.teil_wanne(p))
     deckel = flach(g.teil_deckel(p))
-    griff = flach(g.teil_griff(p))
+    griff = flach(g.teil_griff(p)) if g.MIT_GRIFF else []
 
     # 1) Wanne offen, Blick in die Faecher; Attrappen des Inhalts
     box_att = g.prisma([(p["fachA_x0"] + 4, -g.AUTOBOX_L / 2),
@@ -200,7 +206,8 @@ def main():
          drehung=math.radians(205), skala=2.0,
          titel="Deckel in Drucklage (Innenseite oben)",
          untertitel="Federboegen halten den Inhalt nieder - vorn "
-                    "Schnappzungen - hinten Scharnieraugen - aussen T-Nuten",
+                    "Schnappzungen - hinten Scharnieraugen"
+                    + (" - aussen T-Nuten" if g.MIT_GRIFF else ""),
          tilt=math.radians(42))
 
     # 3) Geschlossener Koffer mit Griff
@@ -208,11 +215,16 @@ def main():
     deckel_zu = [tuple((-x, y, z_top - z) for (x, y, z) in tri)
                  for tri in deckel]
     griff_zu = [tuple((x, y, z + z_top) for (x, y, z) in tri) for tri in griff]
+    lagen = [(wanne, grau), (deckel_zu, blau)]
+    if griff_zu:
+        lagen.append((griff_zu, orange))
     bild(os.path.join(ziel, "ansicht_koffer_zu.svg"),
-         [(wanne, grau), (deckel_zu, blau), (griff_zu, orange)],
+         lagen,
          drehung=math.radians(32), skala=2.0,
-         titel="Geschlossen, mit eingeschobenem Griff",
-         untertitel="aussen %.0f x %.0f x %.0f mm plus Griff"
+         titel=("Geschlossen, mit eingeschobenem Griff" if griff_zu
+                else "Geschlossen - glatte Aussenflaeche, nur die Falzfuge"),
+         untertitel=("aussen %.0f x %.0f x %.0f mm plus Griff" if griff_zu
+                     else "aussen %.0f x %.0f x %.0f mm")
                     % (p["aussen_x"], p["aussen_y"], z_top + g.BODEN),
          tilt=math.radians(22))
 

@@ -2,19 +2,20 @@
 """
 Transportkoffer fuer das Hot Wheels RC 1:64 (Lamborghini Temerario):
 Auto in der Originalbox + Pistolengriff-Controller, so kompakt wie
-moeglich, verschliessbar, mit Steck-Tragegriff.
+moeglich, verschliessbar; Steck-Tragegriff optional (--mit-griff).
 
-Vier Teile:
+Drei Teile (vier mit Griff):
   1. WANNE   -- Unterteil mit zwei Faechern (Controller liegend, Auto-Box
                 liegend), Klemmrippen, Scharnieraugen hinten, Rastkeilen
                 vorn.
   2. DECKEL  -- mit Blattfeder-Boegen (halten den Inhalt nieder),
-                Schnappzungen vorn, Scharnieraugen hinten und zwei
-                T-Nut-Bloecke aussen am Wandring fuer den Griff.
-  3. GRIFF   -- Buegel mit T-Fuessen, wird von unten in die Nuten
-                geschoben; beim Tragen ziehen die Fuesse gegen das
-                Blindende der Nut (Formschluss).
-  4. ACHSSTIFT (2x) -- Scharnierstifte.
+                Schnappzungen vorn, Scharnieraugen hinten -- aussen
+                glatt. Nur mit --mit-griff kommen zwei T-Nut-Bloecke
+                an den Wandring.
+  3. ACHSSTIFT (2x) -- Scharnierstifte.
+  4. GRIFF (optional) -- Buegel mit T-Fuessen, wird von unten in die
+                Nuten geschoben; beim Tragen ziehen die Fuesse gegen
+                das Blindende der Nut (Formschluss).
 
 Masz-Strategie: Die Originalbox ist gemessen (100 x 50 x 50), der
 Controller ist eine begruendete Schaetzung (Pistolengriff der 1:64-Serie,
@@ -33,6 +34,7 @@ der Mitte des Innenraums am Wannenboden (Innenboden = z 0).
 Alle Masse in Millimetern.
 """
 
+import argparse
 import math
 import os
 import struct
@@ -133,6 +135,11 @@ ZUNGE_DICK  = 1.4
 ZUNGE_LANG  = 16.0
 HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 
+# Tragegriff: standardmaessig AUS. Die T-Nut-Bloecke stehen aussen am
+# Deckelring vor und machen den Koffer 18 mm tiefer -- der geschlossene
+# Koffer ist mit 213 x 212 x 66 mm und rund 0,8 kg bequem an den Seiten
+# zu greifen. Mit --mit-griff werden Nuten und Buegel wieder erzeugt.
+MIT_GRIFF = False
 GRIFF_BREIT = 90.0    # lichte Grifflaenge
 GRIFF_HOCH  = 24.0
 GRIFF_PROFIL = 12.0   # Querschnitt des Buegels
@@ -849,6 +856,9 @@ def teil_deckel(g):
             t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
             schalen.append(t)
 
+    if not MIT_GRIFF:
+        return schalen
+
     # Griff-Taschen: zwei Nutbloecke aussen am Wandring, an den
     # Langseiten mittig (x=0). Vertikale T-Nut, deren Hals die
     # Blockaussenseite schlitzt; oben (im Druck) 3 mm Blindende.
@@ -1013,10 +1023,19 @@ def bauen(ziel, name, schalen):
 
 
 def main():
+    global MIT_GRIFF
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--mit-griff", action="store_true",
+                    help="Steck-Tragegriff und die T-Nut-Bloecke am Deckel "
+                         "mit erzeugen (Standard: ohne, saubere Aussenflaeche)")
+    MIT_GRIFF = ap.parse_args().mit_griff
+
     g = abgeleitet()
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
     os.makedirs(ziel, exist_ok=True)
 
+    print("Griff: %s" % ("Buegel + T-Nuten" if MIT_GRIFF
+                         else "keiner (Aussenflaeche glatt)"))
     print("Koffer aussen: %.0f x %.0f x %.0f mm (ohne Griff), innen %.0f x %.0f x %.0f"
           % (g["aussen_x"], g["aussen_y"],
              BODEN + g["wanne_innen_h"] + DECKEL_INNEN + BODEN,
@@ -1035,11 +1054,19 @@ def main():
           % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
     fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
     fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
-    griff = teil_griff(g)
-    # flach legen: Buegelebene (YZ) aufs Bett -> (x,y,z) -> (y, z, x+8)
-    griff_flach = [[tuple((y_, z_, x_ + 8.0) for (x_, y_, z_) in tri)
-                    for tri in s_] for s_ in griff]
-    fehler += bauen(ziel, "rcbox_3_griff_1x_drucken.stl", griff_flach)
+    griff_datei = os.path.join(ziel, "rcbox_3_griff_1x_drucken.stl")
+    if MIT_GRIFF:
+        griff = teil_griff(g)
+        # flach legen: Buegelebene (YZ) aufs Bett -> (x,y,z) -> (y, z, x+8)
+        griff_flach = [[tuple((y_, z_, x_ + 8.0) for (x_, y_, z_) in tri)
+                        for tri in s_] for s_ in griff]
+        fehler += bauen(ziel, "rcbox_3_griff_1x_drucken.stl", griff_flach)
+    elif os.path.exists(griff_datei):
+        # Keine Alternativ-Variante im Ordner liegen lassen -- sonst wird
+        # im Slicer ein Teil gedruckt, das nirgends hineinpasst.
+        os.remove(griff_datei)
+        print("Griff-Variante aus: alte %s geloescht"
+              % os.path.basename(griff_datei))
     fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", teil_stift(g))
 
     if fehler:

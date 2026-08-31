@@ -109,7 +109,16 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - **Eine STL pro Bauteil-Variante, Stückzahl in den Dateinamen**
   (`..._5x_drucken.stl`). Keine Alternativ-Varianten im Ordner ablegen —
   im Slicer wird sonst die falsche erwischt und Ausschuss gedruckt
-  (genau so ein Segment zu viel entstanden). Alternativen nur per Flag.
+  (genau so ein Segment zu viel entstanden). Alternativen nur per Flag —
+  und wenn ein Flag ein Teil abschaltet, die alte STL beim Erzeugen
+  **löschen**, sonst bleibt sie als Falle im Ordner liegen.
+- **Anbauten kosten Außenmaß.** Vor jedem Zusatzteil ausrechnen, was es
+  an der Hülle anrichtet, und gegen die Stil-Anforderung halten: der
+  T-Nut-Griff machte den RC-Koffer 18 mm tiefer (Nutblöcke) plus 36 mm
+  höher (Bügel) — bei 0,8 kg Traggewicht und griffigen Rundecken war
+  „außen clean" mehr wert als der Bügel. Solche Umkehrungen einer
+  früheren Nutzer-Vorgabe nicht still machen, sondern mit Zahlen
+  vorschlagen und als Schalter anbieten.
 - **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
   nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
   Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,
@@ -150,4 +159,4 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
-| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 | Crush-Ribs, Federbögen, Schnapper, T-Nut-Griff, Scharnier |
+| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 | Crush-Ribs, Federbögen, Schnapper, Stufenfalz, Scharnier, T-Nut-Griff optional (`--mit-griff`) |

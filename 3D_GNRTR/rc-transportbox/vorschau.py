@@ -96,14 +96,20 @@ def main():
                         (p["fachA_x0"] + 4, g.AUTOBOX_L / 2)], 0.0, g.AUTOBOX_H)
     mx0 = p["fachC_x0"]
     my0 = -p["fachC_t"] / 2.0
+    # Attrappe zweiteilig: Gehaeuse bis CTRL_GEHAEUSE_D, darueber das
+    # Drehrad -- so ist sichtbar, dass das Rad nach OBEN frei ausragt
     ctrl_att = g.prisma([(x + mx0, y + my0) for (x, y) in p["kontur"]],
-                        1.0, g.CTRL_H)
+                        1.0, g.CTRL_GEHAEUSE_D)
+    rad_att = g.prisma(g.kreis(22.0, mx0 + p["rad_pos"][0],
+                               my0 + p["rad_pos"][1], 32),
+                       g.CTRL_GEHAEUSE_D, g.CTRL_H)
     bild(os.path.join(ziel, "ansicht_wanne_offen.svg"),
-         [(wanne, grau), (box_att, rot), (ctrl_att, (200, 90, 60))],
+         [(wanne, grau), (box_att, rot), (ctrl_att, (200, 90, 60)),
+          (rad_att, (40, 40, 44))],
          drehung=math.radians(28), skala=1.8,
          titel="Wanne: Konturmulde + Auto-Box (Attrappen rot)",
-         untertitel="Controllerfach als Pistolen-Mulde nach Tray-Vorbild, "
-                    "Klemmrippen an der Kontur",
+         untertitel="Gehaeuse (hell) in der Mulde, Drehrad (dunkel) ragt "
+                    "nach oben frei in den Deckelraum",
          tilt=math.radians(52))
 
     # 1b) Wanne leer, damit die Mulde selbst sichtbar ist

@@ -45,7 +45,15 @@ AUTOBOX_L  = 100.0    # gemessene Originalbox des Autos
 AUTOBOX_B  = 50.0
 AUTOBOX_H  = 50.0
 
-CTRL_H     = 50.0     # Controller-Dicke liegend (gemessen)
+# Der Controller hat ZWEI relevante Dicken: das Gehaeuse und das seitlich
+# ueberstehende Drehrad. Er wird mit dem Rad NACH OBEN eingelegt -- dann
+# liegt das Gehaeuse flach auf, das Rad ragt frei in den Deckelraum.
+# Andersherum laege er auf dem Rad und wuerde kippeln. Die Mulde fuehrt
+# deshalb nur das Gehaeuse; ihre asymmetrische Pistolenform laesst die
+# gespiegelte (falsche) Lage ohnehin nicht zu.
+CTRL_GEHAEUSE_D = 42.0    # Gehaeusedicke ohne Rad (gemessen)
+CTRL_RAD_UEBER  = 15.0    # Radueberstand ueber die Gehaeuseseite (57 - 42)
+CTRL_H = CTRL_GEHAEUSE_D + CTRL_RAD_UEBER    # Gesamthoehe liegend = 57
 
 # Controller-Silhouette (Draufsicht, liegend wie im Original-Tray), aus dem
 # Foto des Formfaser-Trays vermessen; Massstab ueber die bekannte 100-mm-
@@ -69,7 +77,7 @@ RAD_CX, RAD_CY, RAD_R = 68.2, 20.0, 20.0
 CTRL_FOTO_LAENGE = 169.8   # y-Spanne der Foto-Silhouette (Radkante-Griffende)
 CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
 MULDE_LUFT = 4.0           # Offset der Mulde um die Silhouette (Rippenraum)
-MULDE_HOEHE = 26.0         # Tiefe der Konturmulde (wie das Original-Tray)
+MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 
@@ -86,7 +94,7 @@ RIPPE_DICK = 1.1      # Klemmrippen: duenn genug zum Federn
 RIPPE_TIEF = 5.0      # wie weit sie ins Fach ragen
 RIPPE_BREIT = 8.0     # Auflagebreite pro Rippe
 
-DECKEL_INNEN = 26.0   # lichte Hoehe im Deckel
+DECKEL_INNEN = 30.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
@@ -188,6 +196,9 @@ def abgeleitet():
                     sum(y for _, y in radpts) / len(radpts))
     g["griff_pos"] = (sum(x for x, _ in griffpts) / len(griffpts),
                       sum(y for _, y in griffpts) / len(griffpts))
+    schnauzpts = [g["kontur"][0], g["kontur"][1], g["kontur"][-1]]
+    g["schnauz_pos"] = (sum(x for x, _ in schnauzpts) / len(schnauzpts),
+                        sum(y for _, y in schnauzpts) / len(schnauzpts))
     g["fachC_l"] = max(xs) - min(xs) + 2 * steg
     g["fachC_t"] = max(ys) - min(ys) + 2 * steg
     g["fachA_l"] = AUTOBOX_B + zuschlag          # Box liegt quer: B in X
@@ -195,7 +206,9 @@ def abgeleitet():
 
     g["innen_x"] = g["fachC_l"] + TRENNWAND + g["fachA_l"]
     g["innen_y"] = max(g["fachC_t"], g["fachA_t"])
-    g["wanne_innen_h"] = CTRL_H - 10.0           # Controller ragt in den Deckel
+    # Die Fuellschale fuellt die Wanne buendig aus -> Wanneninnenhoehe ist
+    # die Muldentiefe. Was darueber hinausragt, faengt der Deckel.
+    g["wanne_innen_h"] = MULDE_HOEHE
     g["innen_h"] = g["wanne_innen_h"] + DECKEL_INNEN
 
     g["aussen_x"] = g["innen_x"] + 2 * WAND
@@ -669,18 +682,18 @@ def teil_deckel(g):
 
     # Blattfeder-Boegen: flache Boegen quer ueber jedes Fach, Fusspunkte
     # auf der Deckelplatte, Scheitel ragt FEDER_HUB in den Innenraum.
-    def feder(cx, spann):
+    def feder(cx, spann, hub=FEDER_HUB):
         n = 24
         aussen_pts, innen_pts = [], []
         for i in range(n + 1):
             t = i / n
             x = cx - spann / 2.0 + spann * t
-            z = BODEN + math.sin(math.pi * t) * FEDER_HUB
+            z = BODEN + math.sin(math.pi * t) * hub
             aussen_pts.append((x, z))
         for i in range(n + 1):
             t = 1.0 - i / n
             x = cx - spann / 2.0 + spann * t
-            z = BODEN + math.sin(math.pi * t) * FEDER_HUB - FEDER_DICK
+            z = BODEN + math.sin(math.pi * t) * hub - FEDER_DICK
             innen_pts.append((x, max(BODEN - 0.5, z)))
         profil = aussen_pts + innen_pts
         return profil
@@ -691,17 +704,35 @@ def teil_deckel(g):
     # x-Positionen der Wanne erscheinen im Deckel daher negiert.
     mx0 = g["fachC_x0"]
     my0 = -g["fachC_t"] / 2.0
-    ziele = [(-(mx0 + g["rad_pos"][0]), my0 + g["rad_pos"][1], 64.0),
-             (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1], 64.0),
+
+    # Wie weit ragt der jeweilige Inhalt in den Deckel? Daraus folgt der
+    # noetige Federhub. Ueber dem Drehrad darf KEINE Feder stehen -- das
+    # Rad ragt am hoechsten und wuerde geklemmt statt gehalten.
+    ueber_gehaeuse = CTRL_GEHAEUSE_D - g["wanne_innen_h"]
+    ueber_rad = CTRL_H - g["wanne_innen_h"]
+    ueber_box = AUTOBOX_H - g["wanne_innen_h"]
+    hub_ctrl = max(3.0, DECKEL_INNEN - ueber_gehaeuse - 1.0)
+    hub_box = max(3.0, DECKEL_INNEN - ueber_box - 1.0)
+
+    ziele = [(-(mx0 + g["schnauz_pos"][0]), my0 + g["schnauz_pos"][1],
+              48.0, hub_ctrl),
+             (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1],
+              48.0, hub_ctrl),
              (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, -g["fachA_t"] * 0.22,
-              g["fachA_l"] * 0.8),
+              g["fachA_l"] * 0.8, hub_box),
              (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, g["fachA_t"] * 0.22,
-              g["fachA_l"] * 0.8)]
-    for cx, y, spann in ziele:
-        profil = feder(cx, spann)
+              g["fachA_l"] * 0.8, hub_box)]
+    for cx, y, spann, hub in ziele:
+        profil = feder(cx, spann, hub)
         t = prisma(profil, y - 5.0, y + 5.0)
         t = [tuple((x, z, y_) for (x, y_, z) in tri) for tri in t]
         schalen.append(t)
+
+    # Kontrolle: das Rad muss im Deckel frei bleiben
+    if ueber_rad > DECKEL_INNEN - 1.0:
+        raise SystemExit("FEHLER: Drehrad ragt %.1f mm in den Deckel, dort "
+                         "sind nur %.1f mm -- DECKEL_INNEN erhoehen"
+                         % (ueber_rad, DECKEL_INNEN))
 
     # Scharnieraugen (versetzt zu denen der Wanne, Presssitz)
     z_rand = BODEN + DECKEL_INNEN

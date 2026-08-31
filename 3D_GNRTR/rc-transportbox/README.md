@@ -62,6 +62,18 @@ mit Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die Sicheru
   **nicht** über dem Drehrad: drücken beim Schließen von oben nach, ohne
   das Rad zu klemmen. Der Hub wird je Stelle aus der Einbauhöhe gerechnet.
 
+### Längsfeder am Kopfende
+
+Das Drehrad sitzt **oben auf** dem Gehäuse (z = 42 bis 57) und ragt in
+Längsrichtung über die Gehäusekante hinaus. In der Muldenzone (0 bis
+30 mm) ist dort also nur Gehäuse — die Mulde reicht aber bis zur
+Radkante, der Controller könnte um den Radüberstand nach vorn wandern.
+Wie weit das Rad genau übersteht, ist aus Fotos nicht sicher zu messen.
+Statt zu raten, drückt eine **Blattfeder** (1,4 mm dünn, 15 mm Hub) am
+Kopfende den Controller gegen die Wand am Griffende — das ist eine echte
+Gehäusekante. Damit ist die Längslage definiert, egal wie der
+Radüberstand ausfällt. Randdehnung geprüft, unter 4 %.
+
 ### Zwei Einzelfächer für lose Hot Wheels
 
 Lichte Maße **38 × 91 × 30 mm** je Fach, runde Ecken (R5), ausgelegt auf
@@ -106,6 +118,29 @@ Luft), und dass keine Deckelfeder über dem Radkreis steht.
 Silhouette, Maße (`CTRL_LAENGE`, `CTRL_BREITE`, `CTRL_GEHAEUSE_D`,
 `CTRL_RAD_UEBER`, `AUTOBOX_*`)
 und Muldenluft (`MULDE_LUFT`) sind Parameter in `generate.py`.
+
+## Logo auf dem Deckel (eingebrannt)
+
+Liegt eine Bilddatei `logo.png` neben `generate.py`, wird sie **bündig in
+die erste Schicht** der Deckelaußenfläche gestanzt: alles Nicht-Weiße
+wird 0,2 mm tief ausgespart, also genau eine Lage. Auf einer
+**texturierten Druckplatte** (Carbon, Schiefer …) nimmt die Deckelfläche
+das Plattenmuster an — die Logofläche liegt eine Lage höher, berührt die
+Platte nicht und bleibt glatt. Das ergibt das invertierte, „eingebrannte"
+Logo im strukturierten Grund, ohne zweites Filament und ohne Einleger.
+
+- Anforderungen an die Datei: **weißer Hintergrund**, Logo in dunkel oder
+  farbig, möglichst scharfkantig (PNG, ab etwa 600 px Breite).
+- `LOGO_BREITE` (Standard 130 mm) und `LOGO_TIEFE` (0,2 mm = eine Lage
+  bei 0,2 mm Schichthöhe) sind Parameter.
+- Fehlt die Datei, bleibt der Deckel glatt — der Generator läuft durch.
+- Die Konturen kommen aus einer Marching-Squares-Extraktion mit
+  Douglas-Peucker-Vereinfachung; Löcher im Logo (das O in HOT) werden
+  über ihre **Verschachtelung** erkannt, nicht über das Vorzeichen der
+  Fläche — die Bildkoordinaten werden in y gespiegelt, dabei kippt jede
+  Orientierung. Sie bleiben als eigene Prismen stehen.
+- Ein Markenlogo gehört seinem Inhaber: fürs eigene Regal in Ordnung,
+  nicht zum Verkaufen oder Weitergeben.
 
 ## Mechanik
 

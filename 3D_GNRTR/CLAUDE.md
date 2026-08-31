@@ -154,6 +154,18 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - **Tragende Scharniere breit aufteilen:** zwei 12-mm-Nasen trugen einen
   0,8-kg-Koffer auf 24 mm — ein Klavierband mit 7 Segmenten bringt
   101 mm, bei kleineren Augen sogar mit weniger Ueberstand.
+- **Logo/Grafik buendig in die erste Schicht stanzen** (Bild -> Marching
+  Squares -> Douglas-Peucker -> Loch in der untersten Scheibe, eine Lage
+  tief). Auf texturierter Platte bleibt die ausgesparte Flaeche glatt,
+  weil sie die Platte nicht beruehrt -- invertiert "eingebrannt", ohne
+  zweites Filament. Erhaben geht bei einem Teil, das mit dieser Flaeche
+  am Bett liegt, NICHT. Innenloecher ueber die **Verschachtelung**
+  erkennen, nicht ueber das Flaechenvorzeichen: beim Spiegeln der
+  Bildkoordinaten kippt die Orientierung.
+- **Unsichere Fremdmasze durch eine Feder ersetzen, nicht durch eine
+  Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
+  war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt
+  ihn gegen eine sichere Kante, und die Frage ist erledigt.
 - **Passlehre vor dem grossen Druck.** Wenn eine Kontur aus Fotos statt
   aus einer Zeichnung stammt, zuerst ein flaches Abbild davon drucken
   (Querschnitt als 8-mm-Platte mit den Klemmrippen, ~40 min) und das

@@ -123,6 +123,17 @@ FALZ_SP    = 0.25     # Spiel je Seite zwischen Lippe und Falz
 DECKEL_INNEN = 21.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
+# Deckellogo: Bilddatei neben generate.py. Alles Nicht-Weisse wird in die
+# ERSTE Schicht der Deckelaussenflaeche gestanzt (buendig, invertiert).
+# Auf einer texturierten Platte gedruckt bleibt die Logoflaeche glatt,
+# weil sie die Platte nicht beruehrt -- der Grund bekommt das Muster.
+LOGO_DATEI  = "logo.png"
+LOGO_BREITE = 130.0   # mm ueber die Deckelmitte
+LOGO_TIEFE  = 0.2     # genau eine Lage bei 0,2 mm Schichthoehe
+
+CTRL_FED_DICK = 1.4   # Laengsfeder am Kopfende der Controllermulde
+CTRL_FED_HUB  = 15.0  # Hub -- deckt den unbekannten Radueberstand ab
+
 FEDER_DICK = 1.0      # Blattfeder-Boegen im Deckel
 FEDER_HUB  = 18.0     # wie weit sie unter die Deckeldecke ragen
 
@@ -665,6 +676,126 @@ def hw_feder(x0, x1, y_wand, s, z1):
     return prisma(vorn + hint, 0.0, z1)
 
 
+def logo_flaechen(g):
+    """Logokonturen fuer den Deckel, oder None wenn keine Datei da ist.
+
+    Die Bilddatei liegt neben generate.py (LOGO_DATEI). Fehlt sie, wird
+    der Deckel schlicht glatt -- der Generator laeuft trotzdem durch."""
+    pfad = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        LOGO_DATEI)
+    if not os.path.exists(pfad):
+        return None
+    return logo_konturen(pfad, LOGO_BREITE)
+
+
+def logo_konturen(pfad, breite_mm, mitte=(0.0, 0.0), glaettung=0.9):
+    """Bilddatei -> Polygone fuer das eingebrannte Deckellogo.
+
+    Alles, was nicht (nahezu) weiss ist, gilt als Logo. Die Konturen
+    kommen aus einer Marching-Squares-Extraktion und werden per
+    Douglas-Peucker vereinfacht -- sonst haette jede Pixelkante einen
+    Punkt und die STL Hunderttausende Dreiecke.
+
+    Rueckgabe: (flaechen, inseln). `flaechen` sind die Umrisse der
+    Logoteile (sie werden in die erste Schicht des Deckels als
+    Aussparung gestanzt), `inseln` die Loecher darin -- etwa im O von
+    HOT --, die als eigene Prismen wieder aufgefuellt werden.
+    """
+    from PIL import Image
+    import numpy as np
+    from skimage import measure
+
+    bild = Image.open(pfad).convert("L")
+    a = np.asarray(bild, dtype=float)
+    maske = (a < 235).astype(float)          # nicht-weiss = Logo
+    if maske.sum() < 50:
+        raise SystemExit("FEHLER: %s enthaelt kaum dunkle Pixel" % pfad)
+    roh = measure.find_contours(maske, 0.5)
+    hoehe, breite = maske.shape
+    skala = breite_mm / float(breite)
+    polys = []
+    for k in roh:
+        k = measure.approximate_polygon(k, tolerance=glaettung)
+        if len(k) < 4:
+            continue
+        # (Zeile, Spalte) -> (x, y), y nach oben, um die Mitte zentriert
+        poly = [((c - breite / 2.0) * skala + mitte[0],
+                 (hoehe / 2.0 - r) * skala + mitte[1]) for (r, c) in k]
+        if poly[0] == poly[-1]:
+            poly = poly[:-1]
+        if abs(flaeche_signiert(poly)) < 4.0:      # Rauschen
+            continue
+        polys.append(poly)
+    # Aussen oder Insel ueber die VERSCHACHTELUNG bestimmen, nicht ueber
+    # das Vorzeichen der Flaeche: die Bildkoordinaten werden in y
+    # gespiegelt, damit kippt jede Orientierung.
+    flaechen, inseln = [], []
+    for i, p in enumerate(polys):
+        tiefe = sum(1 for j, q in enumerate(polys)
+                    if j != i and punkt_in_polygon(p[0], q))
+        (inseln if tiefe % 2 else flaechen).append(p)
+    if not flaechen:
+        raise SystemExit("FEHLER: keine Logokontur in %s gefunden" % pfad)
+    return flaechen, inseln
+
+
+def sehnenfeder(pa, pb, richtpunkt, hub, dick, z0, z1):
+    """Blattfeder als Bogen ueber der Sehne pa->pb, Scheitel um `hub` in
+    Richtung `richtpunkt` ausgelenkt. Die Fuesse liegen `dick` tief in der
+    Wand, damit sie angebunden sind. Biegung in der Lagenebene."""
+    dx, dy = pb[0] - pa[0], pb[1] - pa[1]
+    L = math.hypot(dx, dy) or 1.0
+    nx, ny = -dy / L, dx / L
+    mx, my = (pa[0] + pb[0]) / 2.0, (pa[1] + pb[1]) / 2.0
+    if (richtpunkt[0] - mx) * nx + (richtpunkt[1] - my) * ny < 0:
+        nx, ny = -nx, -ny
+    n = 24
+    vorn, hint = [], []
+    for i in range(n + 1):
+        t = i / n
+        b = math.sin(math.pi * t) * hub
+        vorn.append((pa[0] + dx * t + nx * b, pa[1] + dy * t + ny * b))
+    for i in range(n + 1):
+        t = 1.0 - i / n
+        b = math.sin(math.pi * t) * hub - dick
+        hint.append((pa[0] + dx * t + nx * b, pa[1] + dy * t + ny * b))
+    return prisma(vorn + hint, z0, z1)
+
+
+def ctrl_feder(g, z1, mx0=None, my0=None):
+    """Laengsfeder am Kopfende der Controllermulde.
+
+    Das Drehrad sitzt OBEN auf dem Gehaeuse (z = 42..57) und ragt in
+    Laengsrichtung ueber die Gehaeusekante hinaus. In der Muldenzone
+    (z = 0..30) ist dort also nur Gehaeuse -- die Mulde reicht aber bis
+    zur Radkante, der Controller koennte um den Radueberstand nach vorn
+    wandern. Wie weit das Rad genau uebersteht, ist aus Fotos nicht
+    sicher zu messen; statt es zu raten, drueckt diese Feder den
+    Controller gegen die Wand am Griffende. Die ist eine echte
+    Gehaeusekante -- damit ist die Laengslage definiert, egal wie der
+    Radueberstand ausfaellt."""
+    if mx0 is None:
+        mx0, my0 = g["fachC_x0"], -g["fachC_t"] / 2.0
+    mulde = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
+    ys = [p[1] for p in mulde]
+    grenze = min(ys) + 0.80 * (max(ys) - min(ys))
+    kopf = [p for p in mulde if p[1] > grenze]
+    if len(kopf) < 2:
+        return []
+    pa = min(kopf, key=lambda p: p[0])
+    pb = max(kopf, key=lambda p: p[0])
+    mitte = (sum(p[0] for p in mulde) / len(mulde),
+             sum(p[1] for p in mulde) / len(mulde))
+    L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
+    dehnung = 3.0 * CTRL_FED_DICK * CTRL_FED_HUB / (2.0 * L * L)
+    if dehnung > 0.04:
+        raise SystemExit("FEHLER: Controllerfeder %.1f %% Randdehnung "
+                         "(max 4) -- Hub verkleinern oder Sehne verlaengern"
+                         % (100 * dehnung))
+    return [sehnenfeder(pa, pb, mitte, CTRL_FED_HUB, CTRL_FED_DICK,
+                        0.0, z1)]
+
+
 def hw_kontur(x0, x1, y0, y1):
     """Lichte Fachkontur (Rundrechteck) an ihrer Einbaustelle."""
     cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
@@ -828,6 +959,10 @@ def teil_wanne(g):
                                         0.0, MULDE_HOEHE), True))
     g["fuellung"] = (fachrect, loecher)
 
+    # Laengsfeder am Kopfende: drueckt den Controller gegen die Wand am
+    # Griffende, damit die Laengslage vom Radueberstand unabhaengig ist.
+    schalen.extend(ctrl_feder(g, MULDE_HOEHE))
+
     # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil).
     # Nicht am Radbogen -- dort wuerde die Rippe das Drehrad klemmen.
     for idx in g["rippen_idx"]:
@@ -904,7 +1039,25 @@ def teil_deckel(g):
         hoehen.append(z)
     profile.append(profile[-1])
     hoehen.append(BODEN + 0.5)
-    schalen.append(loften(profile, hoehen))
+
+    logo = logo_flaechen(g)
+    if logo:
+        # Logo buendig in die ERSTE SCHICHT stanzen: die unterste Scheibe
+        # bekommt das Logo als Loch, darueber laeuft der Loft normal
+        # weiter. Auf einer texturierten Platte gedruckt nimmt die
+        # Deckelflaeche das Plattenmuster an -- die Logoflaeche liegt eine
+        # Lage hoeher, beruehrt die Platte nicht und bleibt glatt. Genau
+        # der invertierte "eingebrannte" Effekt.
+        flaechen, inseln = logo
+        schalen.append((prisma_mit_loechern(profile[0], flaechen,
+                                            0.0, LOGO_TIEFE), True))
+        for insel in inseln:
+            schalen.append(prisma(insel, 0.0, LOGO_TIEFE))
+        rest_profile = [profile[0]] + profile[1:]
+        rest_hoehen = [LOGO_TIEFE] + [max(h, LOGO_TIEFE) for h in hoehen[1:]]
+        schalen.append(loften(rest_profile, rest_hoehen))
+    else:
+        schalen.append(loften(profile, hoehen))
 
     # Wandring des Deckels
     schalen.append(loch_prisma(aussen, innen, BODEN, BODEN + DECKEL_INNEN))
@@ -1168,6 +1321,7 @@ def teil_lehre(g):
     platte = [(0.0, 0.0), (g["fachC_l"], 0.0),
               (g["fachC_l"], g["fachC_t"]), (0.0, g["fachC_t"])]
     schalen = [(prisma_mit_loechern(platte, [g["mulde"]], 0.0, h), True)]
+    schalen.extend(ctrl_feder(g, h, 0.0, 0.0))
     for idx in g["rippen_idx"]:
         px, py = g["mulde"][idx]
         qx, qy = g["kontur"][idx]

@@ -177,6 +177,22 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Farben). Pfad-Parser (M/L/H/V/C/S/Q/T/Z, absolut und relativ, Beziers
   abtasten) in `rc-transportbox/generate.py`; fuer Pixelbilder Marching
   Squares + Douglas-Peucker.
+  **Auto-vektorisierte Dateien sind schmutzig** -- vier Fallen, alle in
+  `rc-transportbox/generate.py` abgefangen: (1) doppelte Konturen
+  (Buchstabe einmal als evenodd-Loch im Grundpfad, einmal als eigene
+  Farbflaeche) ueber die Ueberdeckung der HUELLRECHTECKE zusammenfassen,
+  Schwerpunkte taugen nicht; (2) Punkte aus dem Pixelraster, die nach
+  dem Skalieren aufeinanderliegen -> Kante der Laenge 0 laesst das
+  Ear-Clipping haengen (`polygon_saeubern`); (3) Splitter von 1-3 mm2 in
+  Zwischentoenen an den Farbkanten wegfiltern; (4) Selbstueberschneidungen
+  -> Notausgang, der die Kontur schrittweise per Douglas-Peucker
+  vereinfacht. Und die Bruecke fuer ein Loch ueber einen echten
+  **Sichtbarkeitstest** suchen (keine Kante kreuzen, Mitte im Material),
+  Loecher von rechts nach links einbauen -- die Heuristik "naechstes
+  Punktpaar, dann Triangulierung probieren" scheitert ab etwa fuenf
+  Loechern in einer Flaeche.
+  Gegenprobe: Zufallspunkte ueber der Grafik werfen und zaehlen, wieviele
+  Koerper jeden decken -- es muss ueberall genau einer sein.
 - **Unsichere Fremdmasze durch eine Feder ersetzen, nicht durch eine
   Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
   war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt

@@ -430,7 +430,7 @@ def triangulieren(poly):
     return out
 
 
-def prisma(poly, z0, z1):
+def _prisma_roh(poly, z0, z1):
     if flaeche_signiert(poly) < 0:
         poly = poly[::-1]
     n = len(poly)
@@ -509,15 +509,50 @@ def punkt_in_polygon(pt, poly):
     return drin
 
 
-def _bruecke_einbauen(aussen, loch):
-    """Loch ueber eine Bruecke in die Aussenkontur einschneiden (Technik
-    aus dem Hochzeitsornament-Projekt)."""
+def _schneidet(a, b, c, d):
+    """Echte Kreuzung der Strecken a-b und c-d (gemeinsame Endpunkte
+    zaehlen nicht)."""
+    def ori(p, q, r):
+        v = (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+        return 0 if abs(v) < 1e-9 else (1 if v > 0 else -1)
+    if a in (c, d) or b in (c, d):
+        return False
+    o1, o2 = ori(a, b, c), ori(a, b, d)
+    o3, o4 = ori(c, d, a), ori(c, d, b)
+    if o1 != o2 and o3 != o4:
+        return True
+    return False
+
+
+def _bruecke_einbauen(aussen, loch, weitere=()):
+    """Loch ueber eine Bruecke in die Aussenkontur einschneiden.
+
+    Gesucht wird das kuerzeste Punktpaar, dessen Verbindung frei liegt:
+    sie darf keine Kante der Aussenkontur, des Lochs oder der noch
+    einzubauenden Loecher kreuzen, und ihre Mitte muss im Material
+    liegen. Ein reiner "nimm das naechste Paar und probier die
+    Triangulierung"-Ansatz scheitert, sobald eine Flaeche viele Loecher
+    hat -- beim Hot-Wheels-Logo sind es 15 in der Flamme.
+    """
+    kanten = [(aussen[i], aussen[(i + 1) % len(aussen)])
+              for i in range(len(aussen))]
+    kanten += [(loch[i], loch[(i + 1) % len(loch)]) for i in range(len(loch))]
+    for w in weitere:
+        kanten += [(w[i], w[(i + 1) % len(w)]) for i in range(len(w))]
     paare = sorted(((ax - lx) ** 2 + (ay - ly) ** 2, i, j)
                    for i, (ax, ay) in enumerate(aussen)
                    for j, (lx, ly) in enumerate(loch))
-    for _, i, j in paare[:40]:
+    for _, i, j in paare:
+        a, b = aussen[i], loch[j]
+        mitte = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0)
+        if not punkt_in_polygon(mitte, aussen) or punkt_in_polygon(mitte, loch):
+            continue
+        if any(punkt_in_polygon(mitte, w) for w in weitere):
+            continue
+        if any(_schneidet(a, b, c, d) for (c, d) in kanten):
+            continue
         loch_um = loch[j:] + loch[:j]
-        kombi = (aussen[:i + 1] + loch_um + [loch_um[0]] + aussen[i:])
+        kombi = aussen[:i + 1] + loch_um + [loch_um[0]] + aussen[i:]
         try:
             triangulieren(kombi)
             return kombi
@@ -526,7 +561,42 @@ def _bruecke_einbauen(aussen, loch):
     raise RuntimeError("keine brauchbare Bruecke gefunden")
 
 
+def prisma(poly, z0, z1):
+    """Prisma mit Notausgang: bleibt das Ear-Clipping an einer
+    vektorisierten Kontur stecken (Selbstueberschneidung aus dem Trace),
+    wird sie schrittweise vereinfacht, bis sie sich triangulieren
+    laesst."""
+    try:
+        return _prisma_roh(poly, z0, z1)
+    except RuntimeError:
+        for tol in (0.05, 0.12, 0.25, 0.5, 1.0):
+            try:
+                return _prisma_roh(polygon_saeubern(
+                    polygon_vereinfachen(poly, tol)), z0, z1)
+            except RuntimeError:
+                continue
+        raise
+
+
 def prisma_mit_loechern(aussen, loecher, z0, z1):
+    """Wie _prisma_mit_loechern_roh, aber mit Notausgang: findet sich
+    fuer ein Loch keine Bruecke, werden die Konturen schrittweise
+    vereinfacht."""
+    try:
+        return _prisma_mit_loechern_roh(aussen, loecher, z0, z1)
+    except RuntimeError:
+        for tol in (0.08, 0.2, 0.4, 0.8):
+            try:
+                return _prisma_mit_loechern_roh(
+                    polygon_saeubern(polygon_vereinfachen(aussen, tol)),
+                    [polygon_saeubern(polygon_vereinfachen(l, tol))
+                     for l in loecher], z0, z1)
+            except RuntimeError:
+                continue
+        raise
+
+
+def _prisma_mit_loechern_roh(aussen, loecher, z0, z1):
     """Prisma mit beliebigen Loechern: Deckel/Boden aus der Bruecken-
     Triangulierung, Mantel aus den Originalkonturen. Bruecken erzeugen in
     den Deckflaechen koinzidente Doppelkanten -> Kantencheck dort mit
@@ -534,9 +604,12 @@ def prisma_mit_loechern(aussen, loecher, z0, z1):
     if flaeche_signiert(aussen) < 0:
         aussen = aussen[::-1]
     loecher = [l[::-1] if flaeche_signiert(l) > 0 else l for l in loecher]
+    # Von rechts nach links einbauen -- so liegt jede neue Bruecke
+    # ausserhalb der schon eingebauten und kreuzt sie nicht.
+    loecher = sorted(loecher, key=lambda l: -max(p[0] for p in l))
     kombi = aussen
-    for l in loecher:
-        kombi = _bruecke_einbauen(kombi, l)
+    for nr, l in enumerate(loecher):
+        kombi = _bruecke_einbauen(kombi, l, loecher[nr + 1:])
     t = []
     for (a, b, c) in triangulieren(kombi):
         pa, pb, pc = kombi[a], kombi[b], kombi[c]
@@ -903,6 +976,89 @@ def logo_flaechen(g):
     return treffer
 
 
+def polygon_saeubern(poly, min_abstand=0.06, min_flaeche=0.002):
+    """Auto-vektorisierte Konturen entschaerfen.
+
+    Ein Trace setzt Punkte im Pixelraster; nach dem Skalieren liegen
+    manche praktisch aufeinander. Eine Kante der Laenge ~0 oder drei
+    kollineare Punkte lassen das Ear-Clipping steckenbleiben. Beides
+    wird hier entfernt -- die Form aendert sich dabei um weniger als
+    eine Duesenbreite.
+    """
+    if len(poly) < 3:
+        return poly
+    aus = []
+    for q in poly:
+        if not aus or math.dist(q, aus[-1]) >= min_abstand:
+            aus.append(q)
+    while len(aus) > 3 and math.dist(aus[0], aus[-1]) < min_abstand:
+        aus.pop()
+    # kollineare Punkte raus
+    i = 0
+    while i < len(aus) and len(aus) > 3:
+        a, b, c = aus[i - 1], aus[i], aus[(i + 1) % len(aus)]
+        flaeche = abs((b[0] - a[0]) * (c[1] - a[1])
+                      - (b[1] - a[1]) * (c[0] - a[0])) / 2.0
+        if flaeche < min_flaeche:
+            aus.pop(i)
+        else:
+            i += 1
+    return aus
+
+
+def _schwerpunkt(poly):
+    return (sum(q[0] for q in poly) / len(poly),
+            sum(q[1] for q in poly) / len(poly))
+
+
+def _deckungsgleich(a, b):
+    """Zwei Konturen beschreiben praktisch dieselbe Flaeche.
+
+    Kommt bei vektorisierten Logos staendig vor: der rote Pfad enthaelt
+    die Buchstaben als Loecher (fill-rule evenodd), und derselbe Umriss
+    steht nochmal als gelbe Flaeche da. Beide als Loch einzubauen macht
+    die Bruecken-Triangulierung unloesbar. Gemessen wird ueber die
+    Ueberdeckung der Huellrechtecke -- die Schwerpunkte zweier
+    Trace-Varianten derselben Form koennen ein, zwei Millimeter
+    auseinanderliegen, die Huellen nicht.
+    """
+    fa, fb = abs(flaeche_signiert(a)), abs(flaeche_signiert(b))
+    if fa < 1e-9 or fb < 1e-9:
+        return False
+    if not 0.65 <= fa / fb <= 1.55:
+        return False
+
+    def box(p):
+        return (min(q[0] for q in p), min(q[1] for q in p),
+                max(q[0] for q in p), max(q[1] for q in p))
+
+    ax0, ay0, ax1, ay1 = box(a)
+    bx0, by0, bx1, by1 = box(b)
+    ueb_x = max(0.0, min(ax1, bx1) - max(ax0, bx0))
+    ueb_y = max(0.0, min(ay1, by1) - max(ay0, by0))
+    ueb = ueb_x * ueb_y
+    fla = (ax1 - ax0) * (ay1 - ay0)
+    flb = (bx1 - bx0) * (by1 - by0)
+    if min(fla, flb) < 1e-9:
+        return False
+    return ueb / min(fla, flb) > 0.75
+
+
+def polygon_vereinfachen(poly, toleranz):
+    """Douglas-Peucker ueber die geschlossene Kontur."""
+    try:
+        from skimage import measure
+        import numpy as np
+    except ImportError:
+        return poly
+    a = np.array(list(poly) + [poly[0]], dtype=float)
+    k = measure.approximate_polygon(a, tolerance=toleranz)
+    aus = [tuple(q) for q in k]
+    if len(aus) > 3 and aus[0] == aus[-1]:
+        aus = aus[:-1]
+    return aus if len(aus) >= 3 else poly
+
+
 def logo_zerlegen(flaechen, echte_loecher):
     """Farbige Flaechen + echte Loecher -> saubere, ueberlappungsfreie Teile.
 
@@ -919,6 +1075,17 @@ def logo_zerlegen(flaechen, echte_loecher):
     Rueckgabe: (gruppen, aussen, inseln) -- gruppen wie svg_farbgruppen,
     aussen/inseln fuer die Aussparung im Traeger.
     """
+    flaechen = [(polygon_saeubern(p), f) for (p, f) in flaechen]
+    echte_loecher = [polygon_saeubern(p) for p in echte_loecher]
+    # Trace-Splitter unter 3 mm2 sind Rauschen, keine Gestaltung
+    flaechen = [(p, f) for (p, f) in flaechen
+                if len(p) >= 3 and abs(flaeche_signiert(p)) >= 3.0]
+    echte_loecher = [p for p in echte_loecher
+                     if len(p) >= 3 and abs(flaeche_signiert(p)) >= 3.0]
+    # Ein "Loch", das deckungsgleich mit einer Farbflaeche ist, ist kein
+    # eigenes Loch -- die Flaeche fuellt es ja aus.
+    echte_loecher = [h for h in echte_loecher
+                     if not any(_deckungsgleich(h, f) for (f, _) in flaechen)]
     alle = [(p, f) for (p, f) in flaechen] + [(p, None) for p in echte_loecher]
     n = len(alle)
     umgibt = [[j for j in range(n)
@@ -932,7 +1099,11 @@ def logo_zerlegen(flaechen, echte_loecher):
     for i, (poly, farbe) in enumerate(alle):
         if farbe is None:
             continue
-        loecher = [alle[j][0] for j in kinder[i]]
+        loecher = []
+        for j in kinder[i]:
+            if any(_deckungsgleich(alle[j][0], h) for h in loecher):
+                continue          # schon als deckungsgleiches Loch drin
+            loecher.append(alle[j][0])
         if farbe not in gruppen:
             gruppen[farbe] = []
             reihenfolge.append(farbe)

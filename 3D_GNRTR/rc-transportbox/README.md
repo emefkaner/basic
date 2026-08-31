@@ -163,7 +163,36 @@ beginnt das Deckelmaterial bei z = 0,60 und der rote Körper füllt
 vorhanden; in einer roten Punze innerhalb der Schrift wieder Rot,
 kein Gelb.
 
-- **SVG ist die Quelle der Wahl:** keine Pixeltreppen, und nur dort
+- **Was an einer auto-vektorisierten SVG schiefgeht** (und jetzt
+abgefangen wird):
+
+- **Doppelte Konturen.** Der rote Pfad enthält die Buchstaben als Löcher
+  (`fill-rule="evenodd"`), und derselbe Umriss steht nochmal als gelbe
+  Fläche da. Beide als Loch einzubauen macht die Brücken-Triangulierung
+  unlösbar. Deckungsgleiche Konturen werden über die Überdeckung ihrer
+  Hüllrechtecke erkannt und zusammengefasst — Schwerpunkte taugen dafür
+  nicht, zwei Trace-Varianten derselben Form liegen ein bis zwei
+  Millimeter auseinander.
+- **Punkte im Pixelraster.** Nach dem Skalieren liegen manche praktisch
+  aufeinander; eine Kante der Länge ~0 lässt das Ear-Clipping
+  steckenbleiben. `polygon_saeubern()` entfernt sie und kollineare
+  Punkte.
+- **Splitter.** Der Trace hinterlässt an Farbkanten Fragmente von
+  1–3 mm² in Zwischentönen (`#ff9800`, `#ff4700` …). Alles unter 3 mm²
+  fliegt raus.
+- **Selbstüberschneidungen.** Geht eine Kontur trotzdem nicht durch,
+  wird sie schrittweise per Douglas-Peucker vereinfacht, bis sie sich
+  triangulieren lässt.
+- **Viele Löcher in einer Fläche.** Die Flamme hat neun. Die Brücke wird
+  jetzt über einen echten Sichtbarkeitstest gesucht (keine Kante kreuzen,
+  Mitte im Material), und die Löcher werden von rechts nach links
+  eingebaut.
+
+Geprüft mit 300 Zufallspunkten über dem Logo: **jeder Punkt der ersten
+Schicht wird von genau einem Körper gedeckt** — keine Lücke, keine
+Überlappung.
+
+**SVG ist die Quelle der Wahl:** keine Pixeltreppen, und nur dort
   stehen die Farben drin. Der Parser versteht M/L/H/V/C/S/Q/T/Z absolut
   und relativ und tastet die Béziers ab; die Füllfarbe kommt aus `fill`
   oder aus `style="fill:…"`.

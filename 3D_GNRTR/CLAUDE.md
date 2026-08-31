@@ -154,14 +154,18 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - **Tragende Scharniere breit aufteilen:** zwei 12-mm-Nasen trugen einen
   0,8-kg-Koffer auf 24 mm — ein Klavierband mit 7 Segmenten bringt
   101 mm, bei kleineren Augen sogar mit weniger Ueberstand.
-- **Logo/Grafik buendig in die erste Schicht stanzen** (Bild -> Marching
-  Squares -> Douglas-Peucker -> Loch in der untersten Scheibe, eine Lage
-  tief). Auf texturierter Platte bleibt die ausgesparte Flaeche glatt,
-  weil sie die Platte nicht beruehrt -- invertiert "eingebrannt", ohne
-  zweites Filament. Erhaben geht bei einem Teil, das mit dieser Flaeche
-  am Bett liegt, NICHT. Innenloecher ueber die **Verschachtelung**
-  erkennen, nicht ueber das Flaechenvorzeichen: beim Spiegeln der
-  Bildkoordinaten kippt die Orientierung.
+- **Zweifarbige Logos: Tasche + eigenes Bauteil, nicht erhaben.** Das
+  Logo als Loch in der untersten Scheibe des Traegers (LOGO_TIEFE, 3
+  Lagen decken sauber) und als zweite STL mit exakt denselben Konturen
+  und demselben Ursprung. In Bambu Studio beide zusammen laden,
+  "mehrteiliges Objekt?" -> Ja, dem Logoteil Filament 2 geben. Erhaben
+  geht nicht, wenn das Teil mit dieser Flaeche am Bett liegt.
+  Quelle: SVG schlaegt PNG (keine Pixeltreppen). Ein eigener Pfad-Parser
+  (M/L/H/V/C/S/Q/T/Z, absolut und relativ, Beziers abtasten) steht in
+  `rc-transportbox/generate.py`; fuer Pixelbilder Marching Squares +
+  Douglas-Peucker. Innenloecher ueber die **Verschachtelung** erkennen,
+  nicht ueber das Flaechenvorzeichen: beim Spiegeln der Bildkoordinaten
+  kippt die Orientierung.
 - **Unsichere Fremdmasze durch eine Feder ersetzen, nicht durch eine
   Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
   war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt

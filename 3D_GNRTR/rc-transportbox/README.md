@@ -18,6 +18,7 @@ er rotieren und schlagen könnte.
 | **Passlehre (zuerst!)** | `rcbox_0_passlehre_zuerst_drucken.stl` | 1 × |
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
+| Deckellogo (Farbe 2, nur mit `logo.svg`) | `rcbox_2b_deckellogo_farbe2_1x_drucken.stl` | 1 × |
 
 Als Scharnierachse dient **179 mm rohes 1,75-mm-Filament** — es wird
 nichts dafür gedruckt. Nur mit `--gedruckter-stift` entsteht zusätzlich
@@ -119,26 +120,39 @@ Silhouette, Maße (`CTRL_LAENGE`, `CTRL_BREITE`, `CTRL_GEHAEUSE_D`,
 `CTRL_RAD_UEBER`, `AUTOBOX_*`)
 und Muldenluft (`MULDE_LUFT`) sind Parameter in `generate.py`.
 
-## Logo auf dem Deckel (eingebrannt)
+## Logo auf dem Deckel (bündig, zweifarbig)
 
-Liegt eine Bilddatei `logo.png` neben `generate.py`, wird sie **bündig in
-die erste Schicht** der Deckelaußenfläche gestanzt: alles Nicht-Weiße
-wird 0,2 mm tief ausgespart, also genau eine Lage. Auf einer
-**texturierten Druckplatte** (Carbon, Schiefer …) nimmt die Deckelfläche
-das Plattenmuster an — die Logofläche liegt eine Lage höher, berührt die
-Platte nicht und bleibt glatt. Das ergibt das invertierte, „eingebrannte"
-Logo im strukturierten Grund, ohne zweites Filament und ohne Einleger.
+Liegt `logo.svg` (oder `logo.png`) neben `generate.py`, entsteht das Logo
+als **eigenes Bauteil, bündig in die Deckelaußenfläche eingelassen** —
+gleiche Höhe, andere Farbe, kein Absatz. Der Deckel bekommt eine 0,6 mm
+tiefe Tasche in Logoform, das Bauteil füllt sie exakt aus.
 
-- Anforderungen an die Datei: **weißer Hintergrund**, Logo in dunkel oder
-  farbig, möglichst scharfkantig (PNG, ab etwa 600 px Breite).
-- `LOGO_BREITE` (Standard 130 mm) und `LOGO_TIEFE` (0,2 mm = eine Lage
-  bei 0,2 mm Schichthöhe) sind Parameter.
-- Fehlt die Datei, bleibt der Deckel glatt — der Generator läuft durch.
-- Die Konturen kommen aus einer Marching-Squares-Extraktion mit
-  Douglas-Peucker-Vereinfachung; Löcher im Logo (das O in HOT) werden
-  über ihre **Verschachtelung** erkannt, nicht über das Vorzeichen der
-  Fläche — die Bildkoordinaten werden in y gespiegelt, dabei kippt jede
-  Orientierung. Sie bleiben als eigene Prismen stehen.
+**Import in Bambu Studio:**
+
+1. `rcbox_2_deckel_1x_drucken.stl` **und**
+   `rcbox_2b_deckellogo_farbe2_1x_drucken.stl` zusammen auswählen und
+   laden.
+2. Die Frage *„Mehrere Objekte erkannt — als ein einzelnes Objekt mit
+   mehreren Teilen laden?"* mit **Ja** beantworten. Beide STLs haben
+   denselben Ursprung, sie liegen dadurch passgenau übereinander.
+3. Im Objektbaum dem Logoteil **Filament 2** zuweisen.
+
+Auf einer texturierten Platte (Carbon) bekommen Grund und Logo dasselbe
+Muster — der Unterschied ist nur die Farbe.
+
+- **SVG ist die bessere Quelle** als PNG: keine Pixeltreppen, die Kanten
+  kommen aus den Kurven selbst. Der Parser versteht M/L/H/V/C/S/Q/T/Z in
+  absoluter und relativer Form und tastet die Béziers ab.
+- Bei PNG gilt: **weißer Hintergrund**, Logo dunkel oder farbig, ab etwa
+  600 px Breite. Die Konturen kommen dann aus Marching Squares mit
+  Douglas-Peucker-Vereinfachung.
+- Löcher im Logo (das O in HOT) werden über ihre **Verschachtelung**
+  erkannt, nicht über das Vorzeichen der Fläche — die Bildkoordinaten
+  werden in y gespiegelt, dabei kippt jede Orientierung. Sie bleiben in
+  der Grundfarbe stehen.
+- `LOGO_BREITE` (130 mm) und `LOGO_TIEFE` (0,6 mm = 3 Lagen, deckt
+  sauber) sind Parameter. Fehlt die Datei, bleibt der Deckel glatt und
+  es entsteht kein Logoteil — der Generator läuft durch.
 - Ein Markenlogo gehört seinem Inhaber: fürs eigene Regal in Ordnung,
   nicht zum Verkaufen oder Weitergeben.
 

@@ -123,13 +123,15 @@ FALZ_SP    = 0.25     # Spiel je Seite zwischen Lippe und Falz
 DECKEL_INNEN = 21.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
-# Deckellogo: Bilddatei neben generate.py. Alles Nicht-Weisse wird in die
-# ERSTE Schicht der Deckelaussenflaeche gestanzt (buendig, invertiert).
-# Auf einer texturierten Platte gedruckt bleibt die Logoflaeche glatt,
-# weil sie die Platte nicht beruehrt -- der Grund bekommt das Muster.
+# Deckellogo: SVG (bevorzugt) oder Bilddatei neben generate.py. Das Logo
+# wird als eigenes Bauteil buendig in die Deckelaussenflaeche eingelassen
+# -- gleiche Hoehe, andere Farbe. Deckel und Logo kommen als zwei STLs
+# mit identischem Ursprung: in Bambu Studio beide laden, die Frage nach
+# dem mehrteiligen Objekt mit JA beantworten, dem Logoteil Filament 2
+# zuweisen. Auf texturierter Platte bekommen beide dasselbe Muster.
 LOGO_DATEI  = "logo.png"
 LOGO_BREITE = 130.0   # mm ueber die Deckelmitte
-LOGO_TIEFE  = 0.2     # genau eine Lage bei 0,2 mm Schichthoehe
+LOGO_TIEFE  = 0.6     # 3 Lagen bei 0,2 mm -- deckt sauber in Farbe 2
 
 CTRL_FED_DICK = 1.4   # Laengsfeder am Kopfende der Controllermulde
 CTRL_FED_HUB  = 15.0  # Hub -- deckt den unbekannten Radueberstand ab
@@ -676,16 +678,185 @@ def hw_feder(x0, x1, y_wand, s, z1):
     return prisma(vorn + hint, 0.0, z1)
 
 
+def _svg_pfad_punkte(d, feinheit=0.35):
+    """SVG-Pfaddaten in Punktlisten wandeln (eine je Subpath).
+
+    Unterstuetzt M/L/H/V/C/S/Q/T/Z in Gross- und Kleinschreibung. Beziers
+    werden abgetastet; `feinheit` ist der Zielabstand der Stuetzpunkte in
+    Nutzereinheiten. Bogenbefehle (A) kommen in Logos praktisch nicht vor
+    und werden als Gerade genaehert -- der Aufrufer bekommt eine Warnung.
+    """
+    import re
+    zahlen = re.compile(r"[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?")
+    befehle = re.findall(r"([MmLlHhVvCcSsQqTtAaZz])([^MmLlHhVvCcSsQqTtAaZz]*)",
+                         d)
+    pfade, akt = [], []
+    x = y = 0.0
+    start = (0.0, 0.0)
+    letzter_c = letzter_q = None
+    warnung = [False]
+
+    def bez(p0, p1, p2, p3):
+        laenge = (math.dist(p0, p1) + math.dist(p1, p2) + math.dist(p2, p3))
+        n = max(4, min(80, int(laenge / max(feinheit, 0.05))))
+        for i in range(1, n + 1):
+            t = i / n
+            u = 1.0 - t
+            akt.append((u * u * u * p0[0] + 3 * u * u * t * p1[0]
+                        + 3 * u * t * t * p2[0] + t * t * t * p3[0],
+                        u * u * u * p0[1] + 3 * u * u * t * p1[1]
+                        + 3 * u * t * t * p2[1] + t * t * t * p3[1]))
+
+    for kmd, rest in befehle:
+        w = [float(v) for v in zahlen.findall(rest)]
+        rel = kmd.islower()
+        k = kmd.upper()
+        if k == "Z":
+            if len(akt) > 2:
+                pfade.append(akt)
+            akt = []
+            x, y = start
+            continue
+        i = 0
+        while i < len(w) or (k == "M" and i == 0 and not w):
+            if k == "M":
+                nx, ny = w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0)
+                if len(akt) > 2:
+                    pfade.append(akt)
+                akt = [(nx, ny)]
+                x, y, start = nx, ny, (nx, ny)
+                i += 2
+                k = "L"           # weitere Paare nach M sind Linien
+            elif k == "L":
+                x, y = w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0)
+                akt.append((x, y))
+                i += 2
+            elif k == "H":
+                x = w[i] + (x if rel else 0.0)
+                akt.append((x, y))
+                i += 1
+            elif k == "V":
+                y = w[i] + (y if rel else 0.0)
+                akt.append((x, y))
+                i += 1
+            elif k in ("C", "S"):
+                if k == "C":
+                    p1 = (w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0))
+                    p2 = (w[i + 2] + (x if rel else 0.0), w[i + 3] + (y if rel else 0.0))
+                    p3 = (w[i + 4] + (x if rel else 0.0), w[i + 5] + (y if rel else 0.0))
+                    i += 6
+                else:
+                    p1 = (2 * x - letzter_c[0], 2 * y - letzter_c[1]) \
+                        if letzter_c else (x, y)
+                    p2 = (w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0))
+                    p3 = (w[i + 2] + (x if rel else 0.0), w[i + 3] + (y if rel else 0.0))
+                    i += 4
+                bez((x, y), p1, p2, p3)
+                letzter_c, letzter_q = p2, None
+                x, y = p3
+            elif k in ("Q", "T"):
+                if k == "Q":
+                    q = (w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0))
+                    p3 = (w[i + 2] + (x if rel else 0.0), w[i + 3] + (y if rel else 0.0))
+                    i += 4
+                else:
+                    q = (2 * x - letzter_q[0], 2 * y - letzter_q[1]) \
+                        if letzter_q else (x, y)
+                    p3 = (w[i] + (x if rel else 0.0), w[i + 1] + (y if rel else 0.0))
+                    i += 2
+                # quadratisch -> kubisch
+                bez((x, y), (x + 2.0 / 3 * (q[0] - x), y + 2.0 / 3 * (q[1] - y)),
+                    (p3[0] + 2.0 / 3 * (q[0] - p3[0]),
+                     p3[1] + 2.0 / 3 * (q[1] - p3[1])), p3)
+                letzter_q, letzter_c = q, None
+                x, y = p3
+            elif k == "A":
+                warnung[0] = True
+                x, y = w[i + 5] + (x if rel else 0.0), w[i + 6] + (y if rel else 0.0)
+                akt.append((x, y))
+                i += 7
+            else:
+                break
+    if len(akt) > 2:
+        pfade.append(akt)
+    if warnung[0]:
+        print("  Hinweis: Bogenbefehle (A) im SVG wurden als Gerade "
+              "genaehert -- Kontur pruefen.")
+    return pfade
+
+
+def svg_konturen(pfad, breite_mm, mitte=(0.0, 0.0)):
+    """SVG -> Konturen fuer das Deckellogo.
+
+    Sauberer als der Bildweg: keine Pixeltreppen, die Kanten kommen aus
+    den Kurven selbst. Es zaehlt nur die Geometrie, Farben sind egal --
+    das Logo wird ja einfarbig in die erste Schicht gestanzt.
+    """
+    import re
+    import xml.etree.ElementTree as ET
+
+    baum = ET.parse(pfad)
+    wurzel = baum.getroot()
+    ns = "{http://www.w3.org/2000/svg}"
+    roh = []
+    for el in wurzel.iter():
+        tag = el.tag.replace(ns, "")
+        if tag == "path" and el.get("d"):
+            roh += _svg_pfad_punkte(el.get("d"))
+        elif tag == "polygon" and el.get("points"):
+            zahlen = [float(v) for v in
+                      re.findall(r"[-+]?(?:\d*\.\d+|\d+\.?)", el.get("points"))]
+            roh.append(list(zip(zahlen[0::2], zahlen[1::2])))
+        elif tag == "rect":
+            x0 = float(el.get("x", 0)); y0 = float(el.get("y", 0))
+            b = float(el.get("width", 0)); h = float(el.get("height", 0))
+            roh.append([(x0, y0), (x0 + b, y0), (x0 + b, y0 + h), (x0, y0 + h)])
+    if not roh:
+        raise SystemExit("FEHLER: keine Pfade in %s" % pfad)
+
+    xs = [p[0] for k in roh for p in k]
+    ys = [p[1] for k in roh for p in k]
+    skala = breite_mm / (max(xs) - min(xs))
+    cx, cy = (max(xs) + min(xs)) / 2.0, (max(ys) + min(ys)) / 2.0
+    # SVG hat y nach unten -> spiegeln
+    polys = []
+    for k in roh:
+        p = [((x - cx) * skala + mitte[0], (cy - y) * skala + mitte[1])
+             for (x, y) in k]
+        if len(p) > 2 and math.dist(p[0], p[-1]) < 0.05:
+            p = p[:-1]
+        if len(p) > 2 and abs(flaeche_signiert(p)) >= 4.0:
+            polys.append(p)
+    flaechen, inseln = [], []
+    for i, p in enumerate(polys):
+        tiefe = sum(1 for j, q in enumerate(polys)
+                    if j != i and punkt_in_polygon(p[0], q))
+        (inseln if tiefe % 2 else flaechen).append(p)
+    return flaechen, inseln
+
+
+_LOGO_CACHE = []
+
+
 def logo_flaechen(g):
     """Logokonturen fuer den Deckel, oder None wenn keine Datei da ist.
 
     Die Bilddatei liegt neben generate.py (LOGO_DATEI). Fehlt sie, wird
     der Deckel schlicht glatt -- der Generator laeuft trotzdem durch."""
-    pfad = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        LOGO_DATEI)
-    if not os.path.exists(pfad):
-        return None
-    return logo_konturen(pfad, LOGO_BREITE)
+    if _LOGO_CACHE:
+        return _LOGO_CACHE[0]
+    ordner = os.path.dirname(os.path.abspath(__file__))
+    treffer = None
+    for name in (LOGO_DATEI, "logo.svg", "logo.png", "logo.jpg"):
+        pfad = os.path.join(ordner, name)
+        if os.path.exists(pfad):
+            treffer = (svg_konturen(pfad, LOGO_BREITE)
+                       if pfad.lower().endswith(".svg")
+                       else logo_konturen(pfad, LOGO_BREITE))
+            g["logo_datei"] = os.path.basename(pfad)
+            break
+    _LOGO_CACHE.append(treffer)
+    return treffer
 
 
 def logo_konturen(pfad, breite_mm, mitte=(0.0, 0.0), glaettung=0.9):
@@ -1042,12 +1213,9 @@ def teil_deckel(g):
 
     logo = logo_flaechen(g)
     if logo:
-        # Logo buendig in die ERSTE SCHICHT stanzen: die unterste Scheibe
-        # bekommt das Logo als Loch, darueber laeuft der Loft normal
-        # weiter. Auf einer texturierten Platte gedruckt nimmt die
-        # Deckelflaeche das Plattenmuster an -- die Logoflaeche liegt eine
-        # Lage hoeher, beruehrt die Platte nicht und bleibt glatt. Genau
-        # der invertierte "eingebrannte" Effekt.
+        # Logotasche: die unterste Scheibe bekommt das Logo als Loch.
+        # Gefuellt wird sie vom eigenen Bauteil (teil_logo) in Farbe 2 --
+        # buendig, kein Absatz, keine Stufe.
         flaechen, inseln = logo
         schalen.append((prisma_mit_loechern(profile[0], flaechen,
                                             0.0, LOGO_TIEFE), True))
@@ -1306,6 +1474,29 @@ def teil_griff(g):
         kopfq = [(-kopf / 2.0, lo), (kopf / 2.0, lo),
                  (kopf / 2.0, hi), (-kopf / 2.0, hi)]
         schalen.append(prisma(kopfq, -28.0, -9.0))
+    return schalen
+
+
+def teil_logo(g):
+    """Das Logo als eigenes Bauteil -- passgenau in die Tasche des
+    Deckels, gleiche Hoehe, andere Farbe.
+
+    Die Konturen sind exakt dieselben wie die der Tasche, es bleibt also
+    kein Spalt. Loecher im Logo (das O in HOT) gehoeren zum Deckel und
+    werden hier als Loch ausgespart, damit dort die Grundfarbe steht.
+    """
+    logo = logo_flaechen(g)
+    if not logo:
+        return []
+    flaechen, inseln = logo
+    schalen = []
+    for f in flaechen:
+        drin = [i for i in inseln if punkt_in_polygon(i[0], f)]
+        if drin:
+            schalen.append((prisma_mit_loechern(f, drin, 0.0, LOGO_TIEFE),
+                            True))
+        else:
+            schalen.append(prisma(f, 0.0, LOGO_TIEFE))
     return schalen
 
 
@@ -1568,6 +1759,17 @@ def main():
                     teil_lehre(g))
     fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
     fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
+    logo_datei = os.path.join(ziel, "rcbox_2b_deckellogo_farbe2_1x_drucken.stl")
+    logo_teil = teil_logo(g)
+    if logo_teil:
+        fehler += bauen(ziel, "rcbox_2b_deckellogo_farbe2_1x_drucken.stl",
+                        logo_teil)
+        print("Logo: %s, %.0f mm breit, %.1f mm dick -- in Bambu Studio "
+              "zusammen mit dem Deckel laden ('mehrteiliges Objekt?' -> Ja) "
+              "und Filament 2 zuweisen."
+              % (g.get("logo_datei", LOGO_DATEI), LOGO_BREITE, LOGO_TIEFE))
+    elif os.path.exists(logo_datei):
+        os.remove(logo_datei)
     griff_datei = os.path.join(ziel, "rcbox_3_griff_1x_drucken.stl")
     if MIT_GRIFF:
         griff = teil_griff(g)

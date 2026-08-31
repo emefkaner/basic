@@ -61,6 +61,7 @@ CTRL_H = CTRL_GEHAEUSE_D + CTRL_RAD_UEBER    # Gesamthoehe liegend = 57
 # und Laengsposition sind bis zur Messung aus dem Foto geschaetzt; sie
 # steuern nur, wo im Deckel Freiraum bleiben muss.
 RAD_D = 45.0              # Durchmesser des Drehrads (gemessen)
+RAD_RAND_LINKS = 77.0     # Radkante von links in der Breitenachse (gemessen)
 RAD_FREI = 4.0            # Sicherheitsabstand der Federn zum Radrand
 
 # Controller-Silhouette (Draufsicht, liegend wie im Original-Tray), aus dem
@@ -210,7 +211,35 @@ def ctrl_kontur():
     sx = CTRL_BREITE / (max(xs) - min(xs))
     sy = CTRL_LAENGE / (max(ys) - min(ys))
     ymax = max(ys)
-    return [((x - min(xs)) * sx, (ymax - y) * sy) for (x, y) in pts]
+    pts = [((x - min(xs)) * sx, (ymax - y) * sy) for (x, y) in pts]
+    return kopf_glaetten(pts)
+
+
+def kopf_glaetten(pts, bis=16):
+    """Kopfbereich (Gehaeusekopf + Drehrad) durch seine konvexe Huelle
+    ersetzen.
+
+    Aus dem Tray-Foto abgenommen hatte die Kontur zwischen Radbogen und
+    Gehaeusekopf eine Taille -- das Rad stand als Nase ab. Auf den Fotos
+    des Controllers sitzt es buendig am Kopf. Die Huelle trifft das
+    besser als eine geratene Einschnuerung und macht die Mulde dort nur
+    weiter, nie enger. Die Kerbe zwischen Rad und Griff bleibt
+    unangetastet -- dort liegt das Hot-Wheels-Fach.
+    """
+    kopf, rest = pts[:bis + 1], pts[bis + 1:]
+
+    def kreuz(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    kette = []
+    for q in sorted(kopf):
+        while len(kette) >= 2 and kreuz(kette[-2], kette[-1], q) >= 0:
+            kette.pop()
+        kette.append(q)
+    # obere Kette, von links nach rechts = Umlaufrichtung der Kontur
+    if kette[0] != kopf[0]:
+        kette = kette[::-1]
+    return kette + rest
 
 
 def offset_polygon(poly, d):
@@ -252,15 +281,29 @@ def abgeleitet():
     steg = 3.0
     g["mulde"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in mulde]
     g["kontur"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in kontur]
-    radpts = g["kontur"][2:15]                   # Radbogen-Punkte
-    griffpts = g["kontur"][17:21]                # Griffende
-    g["rad_pos"] = (sum(x for x, _ in radpts) / len(radpts),
-                    sum(y for _, y in radpts) / len(radpts))
+    # Bezugspunkte ueber ihre LAGE bestimmen, nicht ueber Konturindizes:
+    # das Glaetten des Kopfes aendert die Punktzahl, Indizes waeren still
+    # falsch geworden.
+    k = g["kontur"]
+    kx = [x for (x, _) in k]
+    ky = [y for (_, y) in k]
+    x0k, y0k = min(kx), min(ky)
+    # Radmitte aus den GEMESSENEN Werten: Radrand 77 mm von links, 10 mm
+    # von rechts, Durchmesser 45; in der Laengsachse gibt das Rad das
+    # Ende vor (die 190 wurden ab Radkante gemessen).
+    g["rad_pos"] = (x0k + RAD_RAND_LINKS + RAD_D / 2.0,
+                    y0k + CTRL_LAENGE - RAD_D / 2.0)
+    griffpts = [q for q in k if q[1] < y0k + 0.16 * CTRL_LAENGE]
     g["griff_pos"] = (sum(x for x, _ in griffpts) / len(griffpts),
                       sum(y for _, y in griffpts) / len(griffpts))
-    schnauzpts = [g["kontur"][0], g["kontur"][1], g["kontur"][-1]]
+    schnauzpts = [q for q in k if q[0] < x0k + 0.22 * CTRL_BREITE]
     g["schnauz_pos"] = (sum(x for x, _ in schnauzpts) / len(schnauzpts),
                         sum(y for _, y in schnauzpts) / len(schnauzpts))
+    # Klemmrippen: an allen Konturpunkten AUSSER im Radbereich. Das Rad
+    # reicht von z=12 bis 57 -- eine Rippe wuerde dort auf das Drehrad
+    # druecken statt auf das Gehaeuse.
+    g["rippen_idx"] = [i for i, q in enumerate(k)
+                       if q[1] < y0k + 0.78 * CTRL_LAENGE]
     g["fachC_l"] = max(xs) - min(xs) + 2 * steg
     g["fachC_t"] = max(ys) - min(ys) + 2 * steg
     g["fachA_l"] = AUTOBOX_B + zuschlag          # Box liegt quer: B in X
@@ -785,8 +828,9 @@ def teil_wanne(g):
                                         0.0, MULDE_HOEHE), True))
     g["fuellung"] = (fachrect, loecher)
 
-    # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil)
-    for idx in (0, 7, 15, 17, 18, 19, 20, 22):
+    # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil).
+    # Nicht am Radbogen -- dort wuerde die Rippe das Drehrad klemmen.
+    for idx in g["rippen_idx"]:
         px, py = mulde_pos[idx]
         qx, qy = kontur_pos[idx]
         schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
@@ -1112,6 +1156,25 @@ def teil_griff(g):
     return schalen
 
 
+def teil_lehre(g):
+    """Passlehre: der Muldenquerschnitt als flache Platte mit Klemmrippen.
+
+    Zuerst drucken (rund 40 Minuten statt der halben Nacht fuer die
+    Wanne), Controller einlegen, Passung pruefen. Die Silhouette stammt
+    aus Fotos -- eine Lehre ist billiger als ein Fehldruck. Passt sie
+    nicht, misst man den Restspalt und korrigiert CTRL_BREITE /
+    CTRL_LAENGE / MULDE_LUFT."""
+    h = 8.0
+    platte = [(0.0, 0.0), (g["fachC_l"], 0.0),
+              (g["fachC_l"], g["fachC_t"]), (0.0, g["fachC_t"])]
+    schalen = [(prisma_mit_loechern(platte, [g["mulde"]], 0.0, h), True)]
+    for idx in g["rippen_idx"]:
+        px, py = g["mulde"][idx]
+        qx, qy = g["kontur"][idx]
+        schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, h))
+    return schalen
+
+
 def teil_stift(g):
     """Achsstift fuer das Scharnierband. Zwei Stueck: von links und von
     rechts eingeschoben, sie treffen sich im mittleren Segment. Je Stift
@@ -1347,6 +1410,8 @@ def main():
                          "-- der Deckel liesse sich nicht schliessen" % frei)
     print("Falzzone frei (Lippe %.1f mm tief, %.1f mm dick, %.2f mm Spiel)"
           % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
+    fehler += bauen(ziel, "rcbox_0_passlehre_zuerst_drucken.stl",
+                    teil_lehre(g))
     fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
     fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
     griff_datei = os.path.join(ziel, "rcbox_3_griff_1x_drucken.stl")

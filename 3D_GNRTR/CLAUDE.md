@@ -154,6 +154,20 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - **Tragende Scharniere breit aufteilen:** zwei 12-mm-Nasen trugen einen
   0,8-kg-Koffer auf 24 mm — ein Klavierband mit 7 Segmenten bringt
   101 mm, bei kleineren Augen sogar mit weniger Ueberstand.
+- **Passlehre vor dem grossen Druck.** Wenn eine Kontur aus Fotos statt
+  aus einer Zeichnung stammt, zuerst ein flaches Abbild davon drucken
+  (Querschnitt als 8-mm-Platte mit den Klemmrippen, ~40 min) und das
+  Original einlegen lassen. Billiger als ein Fehldruck des Hauptteils,
+  und die Rueckmeldung ist ein gemessener Restspalt statt einer
+  Vermutung.
+- **Aus Fotos abgenommene Konturen konvex glaetten,** wo die genaue Form
+  unsicher ist: die konvexe Huelle ist nie enger als das Original, das
+  Teil passt also sicher, und die Mulde wird nur etwas weiter (die
+  Klemmrippen fangen das). Konkave Bereiche, die man BRAUCHT (die Kerbe,
+  in der ein Zusatzfach liegt), davon ausnehmen.
+- **Klemmrippen nur dort, wo das Gegenstueck starr ist** — nie auf einem
+  beweglichen Teil (das Drehrad des Controllers) und nie auf einer
+  Flaeche, die in der Fachhoehe gar nicht anliegt.
 - **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
   nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
   Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,

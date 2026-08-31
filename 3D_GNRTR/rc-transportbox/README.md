@@ -15,6 +15,7 @@ er rotieren und schlagen könnte.
 
 | Teil | Datei | Drucken |
 |---|---|---|
+| **Passlehre (zuerst!)** | `rcbox_0_passlehre_zuerst_drucken.stl` | 1 × |
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
 
@@ -27,6 +28,16 @@ Der Griff (`rcbox_3_griff_1x_drucken.stl`) entsteht nur mit
 eine alte Griff-STL wieder aus `stl/`, damit im Slicer nichts Falsches
 erwischt wird.
 
+## Zuerst die Passlehre drucken
+
+`rcbox_0_passlehre_zuerst_drucken.stl` ist der Muldenquerschnitt als
+8 mm flache Platte mit den Klemmrippen — 144 × 204 mm, rund 40 Minuten
+Druckzeit. **Controller einlegen und prüfen, bevor die 600-g-Wanne
+gedruckt wird.** Die Silhouette stammt aus Fotos, nicht aus einer
+Zeichnung: eine Lehre ist billiger als ein Fehldruck. Klemmt es, den
+Restspalt messen und `CTRL_BREITE`, `CTRL_LAENGE` oder `MULDE_LUFT`
+anpassen und neu erzeugen.
+
 ## Warum nichts wackelt
 
 Die Controller-Silhouette wurde aus dem Foto des Original-Trays vermessen
@@ -36,8 +47,15 @@ mit Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die Sicheru
 
 - **Konturmulde** (30 mm tief): die Fachfüllung hat ein pistolenförmiges
   Loch mit 4 mm Luft — der Controller kann weder verrutschen noch
-  rotieren, genau wie im Original-Tray.
-- **8 Klemmrippen** entlang der Kontur (Schnauze, Rad, Rücken, Griff):
+  rotieren, genau wie im Original-Tray. Der **Kopfbereich** (Gehäusekopf
+  plus Drehrad) ist auf seine konvexe Hülle geglättet: die aus dem
+  Tray-Foto abgenommene Kontur hatte dort eine Taille, das Rad stand als
+  Nase ab. Auf den Fotos des Controllers sitzt es bündig am Kopf. Die
+  Hülle ist nie enger als die Originalkontur — der Controller passt
+  also sicher, die Mulde ist dort nur etwas weiter.
+- **Klemmrippen** entlang der Kontur — aber **keine am Radbogen**: das
+  Rad reicht von z=12 bis 57, eine Rippe dort würde auf das Drehrad
+  drücken statt auf das Gehäuse. Sie sind:
   1,1 mm dünn, federnd, mit Anlauffase — sie nehmen die Resttoleranz der
   Foto-Kontur von ±3–4 mm auf.
 - **Federbögen im Deckel**, gezielt über Schnauze, Griffende und Auto-Box —

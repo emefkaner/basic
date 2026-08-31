@@ -18,7 +18,7 @@ er rotieren und schlagen könnte.
 | **Passlehre (zuerst!)** | `rcbox_0_passlehre_zuerst_drucken.stl` | 1 × |
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
-| Deckellogo (Farbe 2, nur mit `logo.svg`) | `rcbox_2b_deckellogo_farbe2_1x_drucken.stl` | 1 × |
+| Deckellogo je Farbe (nur mit `logo.svg`) | `rcbox_2b…filament2…`, `rcbox_2c…filament3…` | je 1 × |
 
 Als Scharnierachse dient **179 mm rohes 1,75-mm-Filament** — es wird
 nichts dafür gedruckt. Nur mit `--gedruckter-stift` entsteht zusätzlich
@@ -120,39 +120,48 @@ Silhouette, Maße (`CTRL_LAENGE`, `CTRL_BREITE`, `CTRL_GEHAEUSE_D`,
 `CTRL_RAD_UEBER`, `AUTOBOX_*`)
 und Muldenluft (`MULDE_LUFT`) sind Parameter in `generate.py`.
 
-## Logo auf dem Deckel (bündig, zweifarbig)
+## Logo auf dem Deckel (mehrfarbig, AMS)
 
-Liegt `logo.svg` (oder `logo.png`) neben `generate.py`, entsteht das Logo
-als **eigenes Bauteil, bündig in die Deckelaußenfläche eingelassen** —
-gleiche Höhe, andere Farbe, kein Absatz. Der Deckel bekommt eine 0,6 mm
-tiefe Tasche in Logoform, das Bauteil füllt sie exakt aus.
+Liegt `logo.svg` neben `generate.py`, entstehen **zusätzliche Bauteile,
+eines je Füllfarbe des Logos** — beim Hot-Wheels-Logo also zwei (Flamme
+und Schriftzug). Keine Tasche, kein Einleger, kein Absatz: die Körper
+liegen bündig in der Deckelfläche und sind genauso hoch. Gedruckt wird
+alles in einem Zug, der Farbwechsel passiert in der Ebene.
+
+Die Farbe reicht `LOGO_TIEFE` = 0,6 mm tief (3 Lagen — deckt sauber);
+darüber läuft der Deckel in der Grundfarbe weiter. Das hält die Zahl der
+Filamentwechsel und damit den Purge klein.
 
 **Import in Bambu Studio:**
 
-1. `rcbox_2_deckel_1x_drucken.stl` **und**
-   `rcbox_2b_deckellogo_farbe2_1x_drucken.stl` zusammen auswählen und
-   laden.
-2. Die Frage *„Mehrere Objekte erkannt — als ein einzelnes Objekt mit
-   mehreren Teilen laden?"* mit **Ja** beantworten. Beide STLs haben
-   denselben Ursprung, sie liegen dadurch passgenau übereinander.
-3. Im Objektbaum dem Logoteil **Filament 2** zuweisen.
+1. Alle Deckel-STLs zusammen auswählen und laden:
+   `rcbox_2_deckel…`, `rcbox_2b_deckellogo_filament2…`,
+   `rcbox_2c_deckellogo_filament3…`
+2. *„Als ein einzelnes Objekt mit mehreren Teilen laden?"* → **Ja**.
+   Alle STLs haben denselben Ursprung und liegen dadurch passgenau.
+3. Im Objektbaum je Teil das Filament setzen — die Dateinamen sagen,
+   welches. Der Generator gibt beim Lauf aus, welche Logofarbe zu
+   welchem Filament gehört.
 
-Auf einer texturierten Platte (Carbon) bekommen Grund und Logo dasselbe
-Muster — der Unterschied ist nur die Farbe.
+**Warum das sauber aufgeht:** Innerhalb eines Pfades trennen die
+Subpaths über ihre Verschachtelung Fläche und Loch. Zwischen Pfaden gilt
+die Zeichenreihenfolge — was später kommt, liegt oben, und seine Flächen
+werden aus den früheren Farben **herausgestanzt**. Sonst lägen zwei
+Körper im selben Raum und der Slicer müsste raten. Nachgemessen an den
+fertigen STLs: in der Flamme beginnt das Deckelmaterial bei z = 0,60 und
+der rote Körper füllt 0,00–0,60; in der Schrift dasselbe mit dem gelben,
+und Rot ist dort nicht vorhanden; im Inneren des O steht ab z = 0,00
+Deckelmaterial in der Grundfarbe.
 
-- **SVG ist die bessere Quelle** als PNG: keine Pixeltreppen, die Kanten
-  kommen aus den Kurven selbst. Der Parser versteht M/L/H/V/C/S/Q/T/Z in
-  absoluter und relativer Form und tastet die Béziers ab.
-- Bei PNG gilt: **weißer Hintergrund**, Logo dunkel oder farbig, ab etwa
-  600 px Breite. Die Konturen kommen dann aus Marching Squares mit
-  Douglas-Peucker-Vereinfachung.
-- Löcher im Logo (das O in HOT) werden über ihre **Verschachtelung**
-  erkannt, nicht über das Vorzeichen der Fläche — die Bildkoordinaten
-  werden in y gespiegelt, dabei kippt jede Orientierung. Sie bleiben in
-  der Grundfarbe stehen.
-- `LOGO_BREITE` (130 mm) und `LOGO_TIEFE` (0,6 mm = 3 Lagen, deckt
-  sauber) sind Parameter. Fehlt die Datei, bleibt der Deckel glatt und
-  es entsteht kein Logoteil — der Generator läuft durch.
+- **SVG ist die Quelle der Wahl:** keine Pixeltreppen, und nur dort
+  stehen die Farben drin. Der Parser versteht M/L/H/V/C/S/Q/T/Z absolut
+  und relativ und tastet die Béziers ab; die Füllfarbe kommt aus `fill`
+  oder aus `style="fill:…"`.
+- Eine PNG geht auch (Marching Squares + Douglas-Peucker), ergibt aber
+  **ein** einfarbiges Teil: weißer Hintergrund, ab etwa 600 px Breite.
+- `LOGO_BREITE` (130 mm) und `LOGO_TIEFE` (0,6 mm) sind Parameter.
+  Fehlt die Datei, bleibt der Deckel glatt und es entstehen keine
+  Logoteile — alte werden dabei gelöscht.
 - Ein Markenlogo gehört seinem Inhaber: fürs eigene Regal in Ordnung,
   nicht zum Verkaufen oder Weitergeben.
 

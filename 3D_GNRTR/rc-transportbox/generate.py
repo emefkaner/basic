@@ -36,6 +36,7 @@ Alle Masse in Millimetern.
 
 import argparse
 import math
+import re
 import os
 import struct
 
@@ -785,54 +786,115 @@ def _svg_pfad_punkte(d, feinheit=0.35):
     return pfade
 
 
-def svg_konturen(pfad, breite_mm, mitte=(0.0, 0.0)):
-    """SVG -> Konturen fuer das Deckellogo.
+def _svg_fuellfarbe(el, ns):
+    """Fuellfarbe eines Elements: fill-Attribut oder style="fill:..."."""
+    f = (el.get("fill") or "").strip().lower()
+    if not f:
+        stil = el.get("style") or ""
+        tref = re.search(r"fill\s*:\s*([^;]+)", stil)
+        f = tref.group(1).strip().lower() if tref else ""
+    if f in ("", "none", "currentcolor"):
+        return None
+    return f
 
-    Sauberer als der Bildweg: keine Pixeltreppen, die Kanten kommen aus
-    den Kurven selbst. Es zaehlt nur die Geometrie, Farben sind egal --
-    das Logo wird ja einfarbig in die erste Schicht gestanzt.
+
+def svg_farbgruppen(pfad, breite_mm, mitte=(0.0, 0.0)):
+    """SVG -> Bauteile je Fuellfarbe, fuer den AMS-Druck.
+
+    Jeder Pfad behaelt seine Farbe. Innerhalb eines Pfades trennen die
+    Subpaths ueber ihre Verschachtelung Flaeche und Loch. Zwischen
+    Pfaden gilt die Zeichenreihenfolge: was spaeter kommt, liegt oben --
+    seine Flaechen werden deshalb aus den frueheren Farben
+    HERAUSGESTANZT. Sonst lagen zwei Koerper im selben Raum und der
+    Slicer muesste raten, welche Farbe gewinnt.
+
+    Rueckgabe: Liste von (farbe, [(flaeche, [loecher]), ...]) in
+    Zeichenreihenfolge.
     """
-    import re
     import xml.etree.ElementTree as ET
 
     baum = ET.parse(pfad)
-    wurzel = baum.getroot()
     ns = "{http://www.w3.org/2000/svg}"
-    roh = []
-    for el in wurzel.iter():
+    gruppen = []          # (farbe, [subpath, ...]) in Zeichenreihenfolge
+    for el in baum.getroot().iter():
         tag = el.tag.replace(ns, "")
+        teile = []
         if tag == "path" and el.get("d"):
-            roh += _svg_pfad_punkte(el.get("d"))
+            teile = _svg_pfad_punkte(el.get("d"))
         elif tag == "polygon" and el.get("points"):
             zahlen = [float(v) for v in
                       re.findall(r"[-+]?(?:\d*\.\d+|\d+\.?)", el.get("points"))]
-            roh.append(list(zip(zahlen[0::2], zahlen[1::2])))
+            teile = [list(zip(zahlen[0::2], zahlen[1::2]))]
         elif tag == "rect":
             x0 = float(el.get("x", 0)); y0 = float(el.get("y", 0))
             b = float(el.get("width", 0)); h = float(el.get("height", 0))
-            roh.append([(x0, y0), (x0 + b, y0), (x0 + b, y0 + h), (x0, y0 + h)])
-    if not roh:
+            teile = [[(x0, y0), (x0 + b, y0), (x0 + b, y0 + h), (x0, y0 + h)]]
+        if teile:
+            gruppen.append((_svg_fuellfarbe(el, ns) or "#000000", teile))
+    if not gruppen:
         raise SystemExit("FEHLER: keine Pfade in %s" % pfad)
 
-    xs = [p[0] for k in roh for p in k]
-    ys = [p[1] for k in roh for p in k]
+    alle = [p for (_, t) in gruppen for p in t]
+    xs = [q[0] for k in alle for q in k]
+    ys = [q[1] for k in alle for q in k]
     skala = breite_mm / (max(xs) - min(xs))
     cx, cy = (max(xs) + min(xs)) / 2.0, (max(ys) + min(ys)) / 2.0
-    # SVG hat y nach unten -> spiegeln
-    polys = []
-    for k in roh:
+
+    def um(k):
         p = [((x - cx) * skala + mitte[0], (cy - y) * skala + mitte[1])
              for (x, y) in k]
         if len(p) > 2 and math.dist(p[0], p[-1]) < 0.05:
             p = p[:-1]
-        if len(p) > 2 and abs(flaeche_signiert(p)) >= 4.0:
-            polys.append(p)
-    flaechen, inseln = [], []
-    for i, p in enumerate(polys):
-        tiefe = sum(1 for j, q in enumerate(polys)
-                    if j != i and punkt_in_polygon(p[0], q))
-        (inseln if tiefe % 2 else flaechen).append(p)
-    return flaechen, inseln
+        return p if len(p) > 2 and abs(flaeche_signiert(p)) >= 2.0 else None
+
+    # Schritt 1: je Farbgruppe Flaechen und eigene Loecher
+    roh = []
+    for farbe, teile in gruppen:
+        polys = [q for q in (um(k) for k in teile) if q]
+        flaechen, loecher = [], []
+        for i, q in enumerate(polys):
+            tiefe = sum(1 for j, r in enumerate(polys)
+                        if j != i and punkt_in_polygon(q[0], r))
+            (loecher if tiefe % 2 else flaechen).append(q)
+        if flaechen:
+            roh.append((farbe, flaechen, loecher))
+
+    # Schritt 2: spaetere Farben aus frueheren stanzen
+    ergebnis = []
+    for i, (farbe, flaechen, loecher) in enumerate(roh):
+        spaeter = [f for (_, fs, _) in roh[i + 1:] for f in fs]
+        teile = []
+        for f in flaechen:
+            drin = [h for h in loecher if punkt_in_polygon(h[0], f)]
+            drin += [sp for sp in spaeter if punkt_in_polygon(sp[0], f)]
+            teile.append((f, drin))
+        ergebnis.append((farbe, teile))
+    return ergebnis
+
+
+def svg_konturen(pfad, breite_mm, mitte=(0.0, 0.0)):
+    """Die Aussparung fuer den Deckel: aeussere Umrisse und echte Loecher.
+
+    Ausgespart wird die Silhouette des ganzen Logos -- also nur die
+    Konturen, die in keiner anderen Flaeche liegen. Eine zweite Farbe
+    liegt IN der ersten und darf hier nicht als eigenes Loch auftauchen,
+    sonst muesste die Brueckentriangulierung ein Loch im Loch bauen.
+    Stehen bleibt Deckelmaterial nur in Loechern, die keine Farbe fuellt
+    -- etwa im O von HOT.
+    """
+    gruppen = svg_farbgruppen(pfad, breite_mm, mitte)
+    alle = [f for (_, teile) in gruppen for (f, _) in teile]
+    aussen = [f for f in alle
+              if not any(punkt_in_polygon(f[0], q) for q in alle if q is not f)]
+    inseln = []
+    for (_, teile) in gruppen:
+        for (f, loecher) in teile:
+            for h in loecher:
+                if any(h is q for q in alle):
+                    continue                     # das ist eine andere Farbe
+                if not any(punkt_in_polygon(q[0], h) for q in alle if q is not f):
+                    inseln.append(h)
+    return aussen, inseln
 
 
 _LOGO_CACHE = []
@@ -850,9 +912,15 @@ def logo_flaechen(g):
     for name in (LOGO_DATEI, "logo.svg", "logo.png", "logo.jpg"):
         pfad = os.path.join(ordner, name)
         if os.path.exists(pfad):
-            treffer = (svg_konturen(pfad, LOGO_BREITE)
-                       if pfad.lower().endswith(".svg")
-                       else logo_konturen(pfad, LOGO_BREITE))
+            if pfad.lower().endswith(".svg"):
+                g["logo_gruppen"] = svg_farbgruppen(pfad, LOGO_BREITE)
+                treffer = svg_konturen(pfad, LOGO_BREITE)
+            else:
+                treffer = logo_konturen(pfad, LOGO_BREITE)
+                g["logo_gruppen"] = [("#000000",
+                                      [(f, [h for h in treffer[1]
+                                            if punkt_in_polygon(h[0], f)])
+                                       for f in treffer[0]])]
             g["logo_datei"] = os.path.basename(pfad)
             break
     _LOGO_CACHE.append(treffer)
@@ -1478,26 +1546,30 @@ def teil_griff(g):
 
 
 def teil_logo(g):
-    """Das Logo als eigenes Bauteil -- passgenau in die Tasche des
-    Deckels, gleiche Hoehe, andere Farbe.
+    """Das Logo als Bauteile je Farbe -- fuer den AMS-Druck in einem Zug.
 
-    Die Konturen sind exakt dieselben wie die der Tasche, es bleibt also
-    kein Spalt. Loecher im Logo (das O in HOT) gehoeren zum Deckel und
-    werden hier als Loch ausgespart, damit dort die Grundfarbe steht.
+    Keine Tasche, kein Einleger: die Koerper liegen buendig in der
+    Deckelflaeche, exakt in deren Aussparung, und sind genauso hoch.
+    Gedruckt wird alles zusammen, der Wechsel passiert in der Ebene.
+    Ueberlappungen gibt es nicht -- eine spaeter gezeichnete Farbe ist
+    aus den frueheren herausgestanzt.
+
+    Rueckgabe: Liste von (farbe, schalen), Reihenfolge = Filament 2, 3, ...
     """
-    logo = logo_flaechen(g)
-    if not logo:
+    if logo_flaechen(g) is None:
         return []
-    flaechen, inseln = logo
-    schalen = []
-    for f in flaechen:
-        drin = [i for i in inseln if punkt_in_polygon(i[0], f)]
-        if drin:
-            schalen.append((prisma_mit_loechern(f, drin, 0.0, LOGO_TIEFE),
-                            True))
-        else:
-            schalen.append(prisma(f, 0.0, LOGO_TIEFE))
-    return schalen
+    teile = []
+    for farbe, flaechen in g["logo_gruppen"]:
+        schalen = []
+        for (f, loecher) in flaechen:
+            if loecher:
+                schalen.append((prisma_mit_loechern(f, loecher,
+                                                    0.0, LOGO_TIEFE), True))
+            else:
+                schalen.append(prisma(f, 0.0, LOGO_TIEFE))
+        if schalen:
+            teile.append((farbe, schalen))
+    return teile
 
 
 def teil_lehre(g):
@@ -1759,17 +1831,24 @@ def main():
                     teil_lehre(g))
     fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
     fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
-    logo_datei = os.path.join(ziel, "rcbox_2b_deckellogo_farbe2_1x_drucken.stl")
-    logo_teil = teil_logo(g)
-    if logo_teil:
-        fehler += bauen(ziel, "rcbox_2b_deckellogo_farbe2_1x_drucken.stl",
-                        logo_teil)
-        print("Logo: %s, %.0f mm breit, %.1f mm dick -- in Bambu Studio "
-              "zusammen mit dem Deckel laden ('mehrteiliges Objekt?' -> Ja) "
-              "und Filament 2 zuweisen."
-              % (g.get("logo_datei", LOGO_DATEI), LOGO_BREITE, LOGO_TIEFE))
-    elif os.path.exists(logo_datei):
-        os.remove(logo_datei)
+    for alt_nr in range(2, 6):
+        alt_pfad = os.path.join(
+            ziel, "rcbox_2%s_deckellogo_filament%d_1x_drucken.stl"
+            % ("bcde"[alt_nr - 2], alt_nr))
+        if os.path.exists(alt_pfad):
+            os.remove(alt_pfad)
+    logo_teile = teil_logo(g)
+    for nr, (farbe, schalen) in enumerate(logo_teile, start=2):
+        name = ("rcbox_2%s_deckellogo_filament%d_1x_drucken.stl"
+                % ("bcde"[nr - 2], nr))
+        fehler += bauen(ziel, name, schalen)
+        print("   Farbe %s -> Filament %d" % (farbe, nr))
+    if logo_teile:
+        print("Logo: %s, %.0f mm breit, %.1f mm hoch, %d Farbteile. In Bambu "
+              "Studio ALLE Deckel-STLs zusammen laden ('mehrteiliges "
+              "Objekt?' -> Ja), dann je Teil das Filament setzen."
+              % (g.get("logo_datei", LOGO_DATEI), LOGO_BREITE, LOGO_TIEFE,
+                 len(logo_teile)))
     griff_datei = os.path.join(ziel, "rcbox_3_griff_1x_drucken.stl")
     if MIT_GRIFF:
         griff = teil_griff(g)

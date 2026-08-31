@@ -154,18 +154,24 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - **Tragende Scharniere breit aufteilen:** zwei 12-mm-Nasen trugen einen
   0,8-kg-Koffer auf 24 mm — ein Klavierband mit 7 Segmenten bringt
   101 mm, bei kleineren Augen sogar mit weniger Ueberstand.
-- **Zweifarbige Logos: Tasche + eigenes Bauteil, nicht erhaben.** Das
-  Logo als Loch in der untersten Scheibe des Traegers (LOGO_TIEFE, 3
-  Lagen decken sauber) und als zweite STL mit exakt denselben Konturen
-  und demselben Ursprung. In Bambu Studio beide zusammen laden,
-  "mehrteiliges Objekt?" -> Ja, dem Logoteil Filament 2 geben. Erhaben
-  geht nicht, wenn das Teil mit dieser Flaeche am Bett liegt.
-  Quelle: SVG schlaegt PNG (keine Pixeltreppen). Ein eigener Pfad-Parser
-  (M/L/H/V/C/S/Q/T/Z, absolut und relativ, Beziers abtasten) steht in
-  `rc-transportbox/generate.py`; fuer Pixelbilder Marching Squares +
-  Douglas-Peucker. Innenloecher ueber die **Verschachtelung** erkennen,
-  nicht ueber das Flaechenvorzeichen: beim Spiegeln der Bildkoordinaten
-  kippt die Orientierung.
+- **Mehrfarbige Logos fuer AMS: ein Bauteil je Farbe, buendig.** Kein
+  Relief, keine Tasche, kein Einleger -- der Traeger bekommt die
+  Silhouette als Aussparung (LOGO_TIEFE 0,6 mm = 3 Lagen decken sauber,
+  darueber laeuft die Grundfarbe weiter und spart Purge), und je
+  Fuellfarbe entsteht eine STL mit demselben Ursprung. In Bambu Studio
+  alle zusammen laden, "mehrteiliges Objekt?" -> Ja, je Teil das
+  Filament setzen. Erhaben geht nicht, wenn das Teil mit dieser Flaeche
+  am Bett liegt.
+  Semantik beim Zerlegen: innerhalb eines SVG-Pfades trennt die
+  **Verschachtelung** Flaeche und Loch; zwischen Pfaden gilt die
+  **Zeichenreihenfolge** -- spaetere Farben aus den frueheren
+  herausstanzen, sonst liegen zwei Koerper im selben Raum. Fuer die
+  Aussparung im Traeger nur die aeussersten Konturen nehmen: ein Loch
+  im Loch bringt die Brueckentriangulierung zu Fall.
+  Quelle: SVG schlaegt PNG (keine Pixeltreppen, und nur dort stehen die
+  Farben). Pfad-Parser (M/L/H/V/C/S/Q/T/Z, absolut und relativ, Beziers
+  abtasten) in `rc-transportbox/generate.py`; fuer Pixelbilder Marching
+  Squares + Douglas-Peucker.
 - **Unsichere Fremdmasze durch eine Feder ersetzen, nicht durch eine
   Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
   war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt

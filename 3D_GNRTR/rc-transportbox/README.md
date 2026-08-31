@@ -143,22 +143,34 @@ Filamentwechsel und damit den Purge klein.
    welches. Der Generator gibt beim Lauf aus, welche Logofarbe zu
    welchem Filament gehört.
 
-**Warum das sauber aufgeht:** Innerhalb eines Pfades trennen die
-Subpaths über ihre Verschachtelung Fläche und Loch. Zwischen Pfaden gilt
-die Zeichenreihenfolge — was später kommt, liegt oben, und seine Flächen
-werden aus den früheren Farben **herausgestanzt**. Sonst lägen zwei
-Körper im selben Raum und der Slicer müsste raten. Nachgemessen an den
-fertigen STLs: in der Flamme beginnt das Deckelmaterial bei z = 0,60 und
-der rote Körper füllt 0,00–0,60; in der Schrift dasselbe mit dem gelben,
-und Rot ist dort nicht vorhanden; im Inneren des O steht ab z = 0,00
-Deckelmaterial in der Grundfarbe.
+**Warum das sauber aufgeht:** Maßgeblich ist die **Verschachtelung über
+alle Farben hinweg**, nicht die Reihenfolge der Pfade. Jede Kontur wird
+ein Körper ihrer Farbe und bekommt als Löcher genau die Konturen, die
+direkt in ihr liegen — gleich welcher Farbe. Damit stimmt auch der Fall,
+an dem eine reine Reihenfolge-Regel scheitert: **rote Punzen mitten in
+der gelben Schrift**, die wieder die Farbe der Flamme zeigen.
+
+Bei Pixelbildern kommt dazu: echte Löcher werden **nicht** aus den
+Farbmasken genommen. An einer Farbgrenze liefern zwei Masken praktisch
+deckungsgleiche Konturen, die sich in der Verschachtelung gegenseitig
+blockieren (die Brückentriangulierung bricht dann ab). Ein Loch ist nur
+dort, wo der **Hintergrund** durchscheint — seine Kontur kommt aus der
+Vordergrundmaske.
+
+Nachgemessen an den fertigen STLs, an drei Punkten: in der Flamme
+beginnt das Deckelmaterial bei z = 0,60 und der rote Körper füllt
+0,00–0,60; in der Schrift dasselbe mit dem gelben, Rot ist dort nicht
+vorhanden; in einer roten Punze innerhalb der Schrift wieder Rot,
+kein Gelb.
 
 - **SVG ist die Quelle der Wahl:** keine Pixeltreppen, und nur dort
   stehen die Farben drin. Der Parser versteht M/L/H/V/C/S/Q/T/Z absolut
   und relativ und tastet die Béziers ab; die Füllfarbe kommt aus `fill`
   oder aus `style="fill:…"`.
-- Eine PNG geht auch (Marching Squares + Douglas-Peucker), ergibt aber
-  **ein** einfarbiges Teil: weißer Hintergrund, ab etwa 600 px Breite.
+- **PNG geht genauso mehrfarbig:** die dominanten Farbtöne werden
+  geclustert (Marching Squares + Douglas-Peucker je Cluster), danach
+  läuft dieselbe Zerlegung. Anforderungen: weißer Hintergrund, klare
+  Farbflächen, ab etwa 600 px Breite.
 - `LOGO_BREITE` (130 mm) und `LOGO_TIEFE` (0,6 mm) sind Parameter.
   Fehlt die Datei, bleibt der Deckel glatt und es entstehen keine
   Logoteile — alte werden dabei gelöscht.

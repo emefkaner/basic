@@ -162,12 +162,17 @@ Formschluss-Prinzipien, die sich bewährt haben:
   alle zusammen laden, "mehrteiliges Objekt?" -> Ja, je Teil das
   Filament setzen. Erhaben geht nicht, wenn das Teil mit dieser Flaeche
   am Bett liegt.
-  Semantik beim Zerlegen: innerhalb eines SVG-Pfades trennt die
-  **Verschachtelung** Flaeche und Loch; zwischen Pfaden gilt die
-  **Zeichenreihenfolge** -- spaetere Farben aus den frueheren
-  herausstanzen, sonst liegen zwei Koerper im selben Raum. Fuer die
-  Aussparung im Traeger nur die aeussersten Konturen nehmen: ein Loch
-  im Loch bringt die Brueckentriangulierung zu Fall.
+  Semantik beim Zerlegen: die **Verschachtelung ueber alle Farben
+  hinweg** entscheidet, nicht die Pfadreihenfolge. Jede Kontur wird ein
+  Koerper ihrer Farbe und bekommt als Loecher die Konturen, die DIREKT
+  in ihr liegen -- gleich welcher Farbe. Nur so stimmt der Fall, an dem
+  eine Reihenfolge-Regel scheitert: rote Punzen mitten in der gelben
+  Schrift. Fuer die Aussparung im Traeger nur die aeussersten Konturen
+  nehmen: ein Loch im Loch bringt die Brueckentriangulierung zu Fall.
+  Bei Pixelbildern echte Loecher NICHT aus den Farbmasken holen -- an
+  einer Farbgrenze liefern zwei Masken deckungsgleiche Konturen, die
+  sich gegenseitig blockieren. Loecher kommen aus der
+  Vordergrundmaske (dort scheint der Hintergrund durch).
   Quelle: SVG schlaegt PNG (keine Pixeltreppen, und nur dort stehen die
   Farben). Pfad-Parser (M/L/H/V/C/S/Q/T/Z, absolut und relativ, Beziers
   abtasten) in `rc-transportbox/generate.py`; fuer Pixelbilder Marching

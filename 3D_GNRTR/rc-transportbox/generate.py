@@ -847,53 +847,28 @@ def svg_farbgruppen(pfad, breite_mm, mitte=(0.0, 0.0)):
             p = p[:-1]
         return p if len(p) > 2 and abs(flaeche_signiert(p)) >= 2.0 else None
 
-    # Schritt 1: je Farbgruppe Flaechen und eigene Loecher
-    roh = []
+    # Subpaths je Pfad in Flaechen und Loecher trennen, dann zentral
+    # ueber die Verschachtelung zerlegen.
+    flaechen, kandidaten = [], []
     for farbe, teile in gruppen:
         polys = [q for q in (um(k) for k in teile) if q]
-        flaechen, loecher = [], []
         for i, q in enumerate(polys):
             tiefe = sum(1 for j, r in enumerate(polys)
                         if j != i and punkt_in_polygon(q[0], r))
-            (loecher if tiefe % 2 else flaechen).append(q)
-        if flaechen:
-            roh.append((farbe, flaechen, loecher))
-
-    # Schritt 2: spaetere Farben aus frueheren stanzen
-    ergebnis = []
-    for i, (farbe, flaechen, loecher) in enumerate(roh):
-        spaeter = [f for (_, fs, _) in roh[i + 1:] for f in fs]
-        teile = []
-        for f in flaechen:
-            drin = [h for h in loecher if punkt_in_polygon(h[0], f)]
-            drin += [sp for sp in spaeter if punkt_in_polygon(sp[0], f)]
-            teile.append((f, drin))
-        ergebnis.append((farbe, teile))
-    return ergebnis
+            if tiefe % 2:
+                kandidaten.append(q)
+            else:
+                flaechen.append((q, farbe))
+    if not flaechen:
+        raise SystemExit("FEHLER: keine Flaechen in %s" % pfad)
+    echte = [h for h in kandidaten
+             if not any(punkt_in_polygon(f[0], h) for (f, _) in flaechen)]
+    return logo_zerlegen(flaechen, echte)
 
 
 def svg_konturen(pfad, breite_mm, mitte=(0.0, 0.0)):
-    """Die Aussparung fuer den Deckel: aeussere Umrisse und echte Loecher.
-
-    Ausgespart wird die Silhouette des ganzen Logos -- also nur die
-    Konturen, die in keiner anderen Flaeche liegen. Eine zweite Farbe
-    liegt IN der ersten und darf hier nicht als eigenes Loch auftauchen,
-    sonst muesste die Brueckentriangulierung ein Loch im Loch bauen.
-    Stehen bleibt Deckelmaterial nur in Loechern, die keine Farbe fuellt
-    -- etwa im O von HOT.
-    """
-    gruppen = svg_farbgruppen(pfad, breite_mm, mitte)
-    alle = [f for (_, teile) in gruppen for (f, _) in teile]
-    aussen = [f for f in alle
-              if not any(punkt_in_polygon(f[0], q) for q in alle if q is not f)]
-    inseln = []
-    for (_, teile) in gruppen:
-        for (f, loecher) in teile:
-            for h in loecher:
-                if any(h is q for q in alle):
-                    continue                     # das ist eine andere Farbe
-                if not any(punkt_in_polygon(q[0], h) for q in alle if q is not f):
-                    inseln.append(h)
+    """Nur die Aussparung fuer den Traeger (aeussere Umrisse, echte Loecher)."""
+    _, aussen, inseln = svg_farbgruppen(pfad, breite_mm, mitte)
     return aussen, inseln
 
 
@@ -906,25 +881,157 @@ def logo_flaechen(g):
     Die Bilddatei liegt neben generate.py (LOGO_DATEI). Fehlt sie, wird
     der Deckel schlicht glatt -- der Generator laeuft trotzdem durch."""
     if _LOGO_CACHE:
+        if _LOGO_CACHE[0] is not None:
+            g["logo_gruppen"] = _LOGO_CACHE[1]
+            g["logo_datei"] = _LOGO_CACHE[2]
         return _LOGO_CACHE[0]
     ordner = os.path.dirname(os.path.abspath(__file__))
-    treffer = None
+    treffer, gruppen, datei = None, None, None
     for name in (LOGO_DATEI, "logo.svg", "logo.png", "logo.jpg"):
         pfad = os.path.join(ordner, name)
         if os.path.exists(pfad):
-            if pfad.lower().endswith(".svg"):
-                g["logo_gruppen"] = svg_farbgruppen(pfad, LOGO_BREITE)
-                treffer = svg_konturen(pfad, LOGO_BREITE)
-            else:
-                treffer = logo_konturen(pfad, LOGO_BREITE)
-                g["logo_gruppen"] = [("#000000",
-                                      [(f, [h for h in treffer[1]
-                                            if punkt_in_polygon(h[0], f)])
-                                       for f in treffer[0]])]
-            g["logo_datei"] = os.path.basename(pfad)
+            zerlegt = (svg_farbgruppen(pfad, LOGO_BREITE)
+                       if pfad.lower().endswith(".svg")
+                       else bild_farbgruppen(pfad, LOGO_BREITE))
+            gruppen, aussen, inseln = zerlegt
+            treffer = (aussen, inseln)
+            datei = os.path.basename(pfad)
+            g["logo_gruppen"] = gruppen
+            g["logo_datei"] = datei
             break
-    _LOGO_CACHE.append(treffer)
+    _LOGO_CACHE.extend([treffer, gruppen, datei])
     return treffer
+
+
+def logo_zerlegen(flaechen, echte_loecher):
+    """Farbige Flaechen + echte Loecher -> saubere, ueberlappungsfreie Teile.
+
+    Gemeinsame Logik fuer SVG und Pixelbild. Massgeblich ist die
+    VERSCHACHTELUNG ueber alle Farben hinweg, nicht die Reihenfolge der
+    Pfade: jede Kontur wird ein Koerper ihrer Farbe, und als Loecher
+    bekommt sie genau die Konturen, die DIREKT in ihr liegen -- gleich
+    welcher Farbe. Damit stimmt auch der Fall, an dem eine reine
+    Reihenfolge-Regel scheitert: rote Punzen mitten in der gelben
+    Schrift, die wieder die Grundfarbe der Flamme zeigen.
+
+    flaechen: [(poly, farbe)], echte_loecher: [poly] (dort bleibt der
+    Traeger in seiner eigenen Farbe stehen).
+    Rueckgabe: (gruppen, aussen, inseln) -- gruppen wie svg_farbgruppen,
+    aussen/inseln fuer die Aussparung im Traeger.
+    """
+    alle = [(p, f) for (p, f) in flaechen] + [(p, None) for p in echte_loecher]
+    n = len(alle)
+    umgibt = [[j for j in range(n)
+               if j != i and punkt_in_polygon(alle[i][0][0], alle[j][0])]
+              for i in range(n)]
+    tiefe = [len(u) for u in umgibt]
+    eltern = [max(u, key=lambda j: tiefe[j]) if u else None for u in umgibt]
+    kinder = {i: [j for j in range(n) if eltern[j] == i] for i in range(n)}
+
+    reihenfolge, gruppen = [], {}
+    for i, (poly, farbe) in enumerate(alle):
+        if farbe is None:
+            continue
+        loecher = [alle[j][0] for j in kinder[i]]
+        if farbe not in gruppen:
+            gruppen[farbe] = []
+            reihenfolge.append(farbe)
+        gruppen[farbe].append((poly, loecher))
+    aussen = [alle[i][0] for i in range(n)
+              if tiefe[i] == 0 and alle[i][1] is not None]
+    inseln = [alle[i][0] for i in range(n)
+              if alle[i][1] is None and tiefe[i] == 1]
+    # groesste Farbflaeche zuerst -> Filament 2, 3, ...
+    reihenfolge.sort(key=lambda f: -sum(abs(flaeche_signiert(p))
+                                        for (p, _) in gruppen[f]))
+    return [(f, gruppen[f]) for f in reihenfolge], aussen, inseln
+
+
+def bild_farbgruppen(pfad, breite_mm, mitte=(0.0, 0.0), glaettung=0.9,
+                     max_farben=4):
+    """Pixelbild -> Bauteile je Farbe, wie svg_farbgruppen fuer SVG.
+
+    Alles Helle gilt als Hintergrund. Der Rest wird nach Farbe geclustert
+    (die dominanten Toene, aehnliche zusammengefasst), je Cluster kommen
+    die Konturen aus Marching Squares. Wer oben liegt, sagt hier nicht
+    die Zeichenreihenfolge, sondern die Geometrie: eine Flaeche, die IN
+    einer anderen liegt, wird aus dieser herausgestanzt -- so ueberlappen
+    sich die Koerper nicht.
+    """
+    from PIL import Image
+    import numpy as np
+    from skimage import measure
+
+    rgb = np.asarray(Image.open(pfad).convert("RGB"), dtype=float)
+    hell = rgb.mean(axis=2)
+    vordergrund = hell < 235
+    if vordergrund.sum() < 50:
+        raise SystemExit("FEHLER: %s ist praktisch leer" % pfad)
+
+    # Farben grob quantisieren und die haeufigsten als Cluster nehmen
+    grob = (rgb // 48).astype(int)
+    schluessel = (grob[:, :, 0] * 36 + grob[:, :, 1] * 6 + grob[:, :, 2])
+    werte, anzahl = np.unique(schluessel[vordergrund], return_counts=True)
+    reihenfolge = np.argsort(-anzahl)
+    gesamt = anzahl.sum()
+    cluster = [int(werte[i]) for i in reihenfolge
+               if anzahl[i] > 0.04 * gesamt][:max_farben]
+
+    hoehe, breite = hell.shape
+    skala = breite_mm / float(breite)
+    gruppen = []
+    for c in cluster:
+        maske = ((schluessel == c) & vordergrund).astype(float)
+        if maske.sum() < 40:
+            continue
+        polys = []
+        for k in measure.find_contours(maske, 0.5):
+            k = measure.approximate_polygon(k, tolerance=glaettung)
+            if len(k) < 4:
+                continue
+            p = [((col - breite / 2.0) * skala + mitte[0],
+                  (hoehe / 2.0 - row) * skala + mitte[1]) for (row, col) in k]
+            if p[0] == p[-1]:
+                p = p[:-1]
+            if len(p) > 2 and abs(flaeche_signiert(p)) >= 4.0:
+                polys.append(p)
+        if not polys:
+            continue
+        flaechen, loecher = [], []
+        for i, q in enumerate(polys):
+            tiefe = sum(1 for j, r in enumerate(polys)
+                        if j != i and punkt_in_polygon(q[0], r))
+            (loecher if tiefe % 2 else flaechen).append(q)
+        ys, xs = np.nonzero(maske)
+        farbe = "#%02x%02x%02x" % tuple(
+            int(rgb[ys, xs, k].mean()) for k in range(3))
+        gruppen.append([farbe, flaechen, loecher,
+                        sum(abs(flaeche_signiert(f)) for f in flaechen)])
+
+    if not gruppen:
+        raise SystemExit("FEHLER: keine Farbflaechen in %s" % pfad)
+    flaechen = [(f, farbe) for (farbe, fs, _, _) in gruppen for f in fs]
+
+    # Echte Loecher kommen NICHT aus den Farbmasken: an einer Farbgrenze
+    # liefern zwei Masken praktisch deckungsgleiche Konturen, die sich in
+    # der Verschachtelung gegenseitig blockieren. Ein Loch ist nur dort,
+    # wo der HINTERGRUND durchscheint -- also nehmen wir seine Kontur.
+    echte = []
+    for k in measure.find_contours(vordergrund.astype(float), 0.5):
+        k = measure.approximate_polygon(k, tolerance=glaettung)
+        if len(k) < 4:
+            continue
+        q = [((col - breite / 2.0) * skala + mitte[0],
+              (hoehe / 2.0 - row) * skala + mitte[1]) for (row, col) in k]
+        if q[0] == q[-1]:
+            q = q[:-1]
+        if len(q) < 3 or abs(flaeche_signiert(q)) < 4.0:
+            continue
+        # nur Konturen INNERHALB der Silhouette sind Loecher
+        if any(punkt_in_polygon(q[0], f) for (f, _) in flaechen
+               if abs(flaeche_signiert(f)) > abs(flaeche_signiert(q))):
+            echte.append(q)
+    return logo_zerlegen(flaechen, echte)
 
 
 def logo_konturen(pfad, breite_mm, mitte=(0.0, 0.0), glaettung=0.9):

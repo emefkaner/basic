@@ -145,6 +145,16 @@ GRIFF_HOCH  = 24.0
 GRIFF_PROFIL = 12.0   # Querschnitt des Buegels
 SCHWALBE_SP = 0.25    # Spiel der Griff-Schwalbe
 
+# Zusatzfaecher fuer lose Hot Wheels 1:64. Ausgelegt auf das laengste
+# Auto des Nutzers (gemessen 88 x 35 x 30); kuerzere Autos haelt die
+# Stirnfeder, schmalere die Klemmrippen.
+HW_L, HW_B, HW_H = 88.0, 35.0, 30.0
+HW_LUFT   = 1.5     # je Seite -> lichtes Fach = Auto + 2 x Luft
+HW_WAND   = 2.5     # Fachwand
+HW_ECKE   = 5.0     # Eckradius der Faecher (rund, wie gewuenscht)
+HW_FEDER  = 1.2     # Stirn-Blattfeder: Dicke
+HW_FED_HUB = 8.0    # Hub der Stirnfeder -> haelt auch 80-mm-Autos
+
 SEG = 64
 
 # Vom Nutzer GEMESSEN (Messschieber): Controller liegend 190 lang (Radkante
@@ -255,6 +265,25 @@ def abgeleitet():
     g["fachC_x1"] = g["fachC_x0"] + g["fachC_l"]
     g["fachA_x1"] = g["innen_x"] / 2.0
     g["fachA_x0"] = g["fachA_x1"] - g["fachA_l"]
+
+    # Die Auto-Box sitzt nicht mehr mittig, sondern ganz HINTEN im rechten
+    # Fach. Damit wird aus den zwei ungenutzten Streifen (je 48 mm) vorn
+    # ein Stueck von 96 mm -- gerade genug fuer ein Hot-Wheels-Fach.
+    g["fachA_y1"] = g["innen_y"] / 2.0
+    g["fachA_y0"] = g["fachA_y1"] - g["fachA_t"]
+
+    # Zusatzfaecher fuer lose Hot Wheels (LICHTE Masze).
+    hb, hl = HW_B + 2 * HW_LUFT, HW_L + 2 * HW_LUFT
+    ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
+    # Fach A: in den Keil zwischen Rad- und Griffkontur, vorn links.
+    ax0 = -ix + HW_WAND
+    ay0 = -iy + HW_WAND
+    # Fach B: vorn im rechten Fach, vor der Auto-Box, in x mittig.
+    bxm = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
+    by1 = g["fachA_y0"] - HW_WAND
+    g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl),
+               (bxm - hb / 2.0, bxm + hb / 2.0, by1 - hl, by1)]
+    g["hw_licht"] = (hb, hl)
     return g
 
 
@@ -541,6 +570,48 @@ def tropfen(r, seg=SEG):
 # Wiederkehrende Baugruppen
 # ---------------------------------------------------------------------------
 
+def hw_feder(x0, x1, y_wand, s, z1):
+    """Blattfeder quer im Hot-Wheels-Fach: Fuesse in der Stirnwand,
+    Scheitel ragt HW_FED_HUB ins Fach. s = +1/-1 (Richtung ins Fach).
+    Die Biegung liegt in der Lagenebene -- Zug in XY, nicht ueber die
+    Lagenhaftung."""
+    n = 20
+    vorn, hint = [], []
+    for i in range(n + 1):
+        t = i / n
+        vorn.append((x0 + (x1 - x0) * t,
+                     y_wand + s * math.sin(math.pi * t) * HW_FED_HUB))
+    for i in range(n + 1):
+        t = 1.0 - i / n
+        hint.append((x0 + (x1 - x0) * t,
+                     y_wand - s * HW_FEDER
+                     + s * math.sin(math.pi * t) * HW_FED_HUB))
+    return prisma(vorn + hint, 0.0, z1)
+
+
+def hw_fach(x0, x1, y0, y1, z1, feder_vorn=True):
+    """Ein Einzelfach fuer ein loses Hot Wheels: Rahmen mit runden Ecken
+    (x0..x1, y0..y1 sind die LICHTEN Masze), zwei Klemmrippen je
+    Laengsseite und eine Stirnfeder, die auch kuerzere Autos gegen die
+    Gegenseite drueckt."""
+    schalen = []
+    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+    bx, by = x1 - x0, y1 - y0
+    innen = [(px + cx, py + cy) for px, py in rundrechteck(bx, by, HW_ECKE)]
+    aussen = [(px + cx, py + cy) for px, py in
+              rundrechteck(bx + 2 * HW_WAND, by + 2 * HW_WAND,
+                           HW_ECKE + HW_WAND)]
+    schalen.append(loch_prisma(aussen, innen, 0.0, z1))
+    for dy in (-by * 0.26, by * 0.26):
+        schalen.append(rippe(x0, cy + dy, "+x", 0.0, z1))
+        schalen.append(rippe(x1, cy + dy, "-x", 0.0, z1))
+    if feder_vorn:
+        schalen.append(hw_feder(x0 + 4.0, x1 - 4.0, y0, +1.0, z1))
+    else:
+        schalen.append(hw_feder(x0 + 4.0, x1 - 4.0, y1, -1.0, z1))
+    return schalen
+
+
 def rippe(x, y, richtung, z0, z1):
     """Eine Klemmrippe: duenner Steg, der senkrecht von einer Fachwand
     absteht. richtung: '+x','-x','+y','-y' = wohin sie ins Fach ragt.
@@ -624,18 +695,13 @@ def teil_wanne(g):
     z1 = g["z_fach"]          # Oberkante aller Innenteile
     z_rand = g["wanne_innen_h"]   # Oberkante der Wannenwand
 
-    # Fuellbloecke im Autofach (verkuerzen die Tiefe auf Boxmass + Rippenraum)
-    fach_a_frei = g["fachA_t"]
-    if g["innen_y"] > fach_a_frei + 0.5:
-        blockt = (g["innen_y"] - fach_a_frei) / 2.0
-        for s in (+1, -1):
-            y_innen = s * (g["innen_y"] / 2.0 - blockt)
-            y_aussen = s * g["innen_y"] / 2.0
-            bl = [(g["fachA_x0"], min(y_innen, y_aussen)),
-                  (g["fachA_x1"], min(y_innen, y_aussen)),
-                  (g["fachA_x1"], max(y_innen, y_aussen)),
-                  (g["fachA_x0"], max(y_innen, y_aussen))]
-            schalen.append(prisma(bl, 0.0, z1))
+    # Die Auto-Box liegt hinten im rechten Fach; davor sitzt das
+    # Hot-Wheels-Fach B. Ein Fuellblock ist nicht mehr noetig -- die
+    # Rueckwand von Fach B ist zugleich der Anschlag der Box.
+
+    # Zusatzfaecher fuer lose Hot Wheels
+    for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
+        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0)))
 
     # Controllerfach: Konturmulde nach dem Vorbild des Original-Trays.
     # Eine Fuellschale mit pistolenfoermigem Loch (Bruecken-Triangulierung)
@@ -659,15 +725,15 @@ def teil_wanne(g):
         qx, qy = kontur_pos[idx]
         schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
 
-    # Klemmrippen Autofach
+    # Klemmrippen Autofach (Box sitzt jetzt hinten: fachA_y0..fachA_y1)
     ax = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
-    ay = fach_a_frei / 2.0
+    aym = (g["fachA_y0"] + g["fachA_y1"]) / 2.0
     for dy in (-g["fachA_t"] * 0.25, g["fachA_t"] * 0.25):
-        schalen.append(rippe(g["fachA_x0"] + TRENNWAND, dy, "+x", 0.0, z1))
-        schalen.append(rippe(g["fachA_x1"], dy, "-x", 0.0, z1))
+        schalen.append(rippe(g["fachA_x0"] + TRENNWAND, aym + dy, "+x", 0.0, z1))
+        schalen.append(rippe(g["fachA_x1"], aym + dy, "-x", 0.0, z1))
     for dx in (-g["fachA_l"] * 0.22, g["fachA_l"] * 0.22):
-        schalen.append(rippe(ax + dx, -ay, "+y", 0.0, z1))
-        schalen.append(rippe(ax + dx, ay, "-y", 0.0, z1))
+        schalen.append(rippe(ax + dx, g["fachA_y0"], "+y", 0.0, z1))
+        schalen.append(rippe(ax + dx, g["fachA_y1"], "-y", 0.0, z1))
 
     # Scharnieraugen hinten aussen (Achse X, Lochmitte 4 ueber Randkante)
     z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
@@ -779,9 +845,11 @@ def teil_deckel(g):
               48.0, hub_ctrl),
              (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1],
               48.0, hub_ctrl),
-             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, -g["fachA_t"] * 0.22,
+             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0,
+              (g["fachA_y0"] + g["fachA_y1"]) / 2.0 - g["fachA_t"] * 0.22,
               g["fachA_l"] * 0.8, hub_box),
-             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0, g["fachA_t"] * 0.22,
+             (-(g["fachA_x0"] + g["fachA_x1"]) / 2.0,
+              (g["fachA_y0"] + g["fachA_y1"]) / 2.0 + g["fachA_t"] * 0.22,
               g["fachA_l"] * 0.8, hub_box)]
     for cx, y, spann, hub in ziele:
         profil = feder(cx, spann, hub)
@@ -973,6 +1041,40 @@ def teil_stift(g):
 
 # ---------------------------------------------------------------------------
 
+def hw_faecher_pruefen(g):
+    """Jedes Hot-Wheels-Fach muss vollstaendig frei liegen: die Aussenkante
+    seines Rahmens darf weder in die Controller-Mulde noch in die Auto-Box
+    noch aus der Wanne ragen. Geprueft wird der Rahmenrand Punkt fuer
+    Punkt -- die Mulde ist konkav, ein Test nur der Ecken uebersaehe die
+    Kerbe zwischen Rad- und Griffkontur."""
+    mx0, my0 = g["fachC_x0"], -g["fachC_t"] / 2.0
+    mulde = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
+    ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
+    box = (g["fachA_x0"], g["fachA_x1"], g["fachA_y0"], g["fachA_y1"])
+    fehler = []
+    for nr, (x0, x1, y0, y1) in enumerate(g["hw"], 1):
+        ax0, ax1 = x0 - HW_WAND, x1 + HW_WAND
+        ay0, ay1 = y0 - HW_WAND, y1 + HW_WAND
+        rand = []
+        for t in [i / 40.0 for i in range(41)]:
+            rand += [(ax0 + (ax1 - ax0) * t, ay0),
+                     (ax0 + (ax1 - ax0) * t, ay1),
+                     (ax0, ay0 + (ay1 - ay0) * t),
+                     (ax1, ay0 + (ay1 - ay0) * t)]
+        for p in rand:
+            if punkt_in_polygon(p, mulde):
+                fehler.append("Fach %d ragt in die Controllermulde" % nr)
+                break
+            if (box[0] < p[0] < box[1] and box[2] < p[1] < box[3]):
+                fehler.append("Fach %d ragt in das Auto-Box-Fach" % nr)
+                break
+            if not (-ix - WAND + 1.0 <= p[0] <= ix + WAND - 1.0
+                    and -iy - WAND + 1.0 <= p[1] <= iy + WAND - 1.0):
+                fehler.append("Fach %d ragt aus der Wanne" % nr)
+                break
+    return sorted(set(fehler))
+
+
 def falzzone_pruefen(g, schalen):
     """Die Falzzone der Wanne muss frei bleiben.
 
@@ -1045,6 +1147,14 @@ def main():
           % (g["fachC_l"], g["fachC_t"], g["fachA_l"], g["fachA_t"], KLEMMWEG))
 
     fehler = 0
+    hw_fehler = hw_faecher_pruefen(g)
+    if hw_fehler:
+        raise SystemExit("FEHLER: " + "; ".join(hw_fehler))
+    hb, hl = g["hw_licht"]
+    print("Hot-Wheels-Faecher: %d Stueck, licht %.0f x %.0f x %.0f mm "
+          "(Auto bis %.0f x %.0f x %.0f, Stirnfeder %.0f mm)"
+          % (len(g["hw"]), hb, hl, MULDE_HOEHE, HW_B, HW_L, HW_H, HW_FED_HUB))
+
     wanne = teil_wanne(g)
     frei = falzzone_pruefen(g, wanne)
     if frei:

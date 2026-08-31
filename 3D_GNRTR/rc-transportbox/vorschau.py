@@ -142,6 +142,89 @@ def falz_detail(pfad, p):
         f.write("\n".join(z))
 
 
+def draufsicht(pfad, p):
+    """Massstaebliche Belegung der Wanne von oben.
+
+    Zeigt, was den Platz wirklich belegt: die Controller-Silhouette, die
+    Auto-Box und die zwei Hot-Wheels-Faecher -- plus die Restflaechen mit
+    ihren Maszen. Die Restflaechen sehen im 3D-Bild groesser aus als sie
+    sind, weil die Mulde konkav ist."""
+    ix, iy = p["innen_x"] / 2.0, p["innen_y"] / 2.0
+    ax, ay = p["aussen_x"] / 2.0, p["aussen_y"] / 2.0
+    mx0, my0 = p["fachC_x0"], -p["fachC_t"] / 2.0
+    kontur = [(x + mx0, y + my0) for (x, y) in p["kontur"]]
+    s = 2.2
+    rand = 26.0
+    W = (2 * ax + 2 * rand) * s
+    H = (2 * ay + 2 * rand) * s + 30
+
+    def X(x):
+        return (x + ax + rand) * s
+
+    def Y(y):
+        return (ay - y + rand) * s + 26
+
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" '
+         'viewBox="0 0 %.0f %.0f">' % (W, H, W, H),
+         '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
+         '<text x="%.0f" y="20" font-family="sans-serif" font-size="15" '
+         'font-weight="600" text-anchor="middle" fill="#1a1a1a">'
+         'Wanne von oben &#8212; was den Platz belegt</text>' % (W / 2)]
+
+    def poly(pts, fill, stroke, sw=1.0, dash=""):
+        d = " ".join("%.1f,%.1f" % (X(x), Y(y)) for x, y in pts)
+        return ('<polygon points="%s" fill="%s" stroke="%s" stroke-width="%.1f"'
+                '%s/>' % (d, fill, stroke, sw,
+                          ' stroke-dasharray="%s"' % dash if dash else ""))
+
+    def txt(x, y, t, size=9.5, farbe="#1a1a1a", anker="middle", fett=False):
+        z.append('<text x="%.1f" y="%.1f" font-family="sans-serif" '
+                 'font-size="%.1f" text-anchor="%s" fill="%s"%s>%s</text>'
+                 % (X(x), Y(y), size, anker, farbe,
+                    ' font-weight="600"' if fett else "", t))
+
+    z.append(poly(g.rundrechteck(2 * ax, 2 * ay, g.ECKRADIUS),
+                  "#e9e9e6", "#8a8f96", 1.2))
+    z.append(poly(g.rundrechteck(2 * ix, 2 * iy, g.ECKRADIUS - g.WAND),
+                  "#f7f7f5", "#b8bcc2", 1.0))
+    z.append(poly(kontur, "#c8663f", "#8d4225", 1.0))
+    txt(mx0 + p["rad_pos"][0], my0 + p["rad_pos"][1] - 4, "Rad", 10, "#fff")
+    txt(mx0 + p["griff_pos"][0] - 14, my0 + p["griff_pos"][1], "Griff", 10, "#fff")
+    txt(mx0 + p["schnauz_pos"][0] + 26, my0 + p["schnauz_pos"][1] - 26,
+        "Controller", 11, "#fff", fett=True)
+
+    z.append(poly([(p["fachA_x0"], p["fachA_y0"]), (p["fachA_x1"], p["fachA_y0"]),
+                   (p["fachA_x1"], p["fachA_y1"]), (p["fachA_x0"], p["fachA_y1"])],
+                  "#b1483f", "#7d2a23", 1.0))
+    txt((p["fachA_x0"] + p["fachA_x1"]) / 2.0,
+        (p["fachA_y0"] + p["fachA_y1"]) / 2.0 + 6, "Auto-Box", 10, "#fff", fett=True)
+    txt((p["fachA_x0"] + p["fachA_x1"]) / 2.0,
+        (p["fachA_y0"] + p["fachA_y1"]) / 2.0 - 6, "100 x 50", 9, "#f4d7d2")
+
+    hb, hl = p["hw_licht"]
+    for nr, (x0, x1, y0, y1) in enumerate(p["hw"], 1):
+        # rundrechteck liegt um (0,0) -> auf die Fachmitte verschieben
+        z.append(poly([(px + (x0 + x1) / 2.0, py + (y0 + y1) / 2.0)
+                       for px, py in g.rundrechteck(
+                           x1 - x0 + 2 * g.HW_WAND, y1 - y0 + 2 * g.HW_WAND,
+                           g.HW_ECKE + g.HW_WAND)], "#3a6eb2", "#12294a", 1.0))
+        z.append(poly([(px + (x0 + x1) / 2.0, py + (y0 + y1) / 2.0)
+                       for px, py in g.rundrechteck(x1 - x0, y1 - y0, g.HW_ECKE)],
+                      "#dce6f4", "#12294a", 0.8))
+        txt((x0 + x1) / 2.0, (y0 + y1) / 2.0 + 8, "Hot Wheels %d" % nr,
+            9.5, "#12294a", fett=True)
+        txt((x0 + x1) / 2.0, (y0 + y1) / 2.0 - 6, "%.0f x %.0f licht" % (hb, hl),
+            8.5, "#3a5578")
+
+    txt(0, iy + 12, "aussen %.0f x %.0f mm" % (p["aussen_x"], p["aussen_y"]),
+        10, "#555")
+    txt(0, -iy - 17, "Rest links: Keilform, unter 43 mm breit &#8212; kein "
+                     "zweites Auto. Rest rechts: 15 mm Streifen.", 9, "#777")
+    z.append('</svg>')
+    with open(pfad, "w") as f:
+        f.write("\n".join(z))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mit-griff", action="store_true",
@@ -182,13 +265,19 @@ def main():
     rad_att = g.prisma(g.kreis(22.0, mx0 + p["rad_pos"][0],
                                my0 + p["rad_pos"][1], 32),
                        g.CTRL_GEHAEUSE_D, g.CTRL_H)
+    hw_att = []
+    for (x0, x1, y0, y1) in p["hw"]:
+        hw_att += g.prisma([(x0 + g.HW_LUFT, y0 + g.HW_LUFT),
+                            (x1 - g.HW_LUFT, y0 + g.HW_LUFT),
+                            (x1 - g.HW_LUFT, y1 - g.HW_LUFT),
+                            (x0 + g.HW_LUFT, y1 - g.HW_LUFT)], 0.0, g.HW_H)
     bild(os.path.join(ziel, "ansicht_wanne_offen.svg"),
          [(wanne, grau), (box_att, rot), (ctrl_att, (200, 90, 60)),
-          (rad_att, (40, 40, 44))],
+          (rad_att, (40, 40, 44)), (hw_att, (150, 60, 130))],
          drehung=math.radians(28), skala=1.8,
          titel="Wanne: Konturmulde + Auto-Box (Attrappen rot)",
-         untertitel="Gehaeuse (hell) in der Mulde, Drehrad (dunkel) ragt "
-                    "nach oben frei in den Deckelraum",
+         untertitel="Gehaeuse (hell) in der Mulde, Drehrad (dunkel) frei "
+                    "nach oben, zwei Hot Wheels (violett) in Einzelfaechern",
          tilt=math.radians(52))
 
     # 1b) Wanne leer, damit die Mulde selbst sichtbar ist
@@ -229,9 +318,11 @@ def main():
          tilt=math.radians(22))
 
     falz_detail(os.path.join(ziel, "ansicht_falz_schnitt.svg"), p)
+    draufsicht(os.path.join(ziel, "ansicht_draufsicht.svg"), p)
 
     for name in ("ansicht_wanne_offen.svg", "ansicht_deckel_innen.svg",
-                 "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg"):
+                 "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg",
+                 "ansicht_draufsicht.svg"):
         print("%-28s %6.0f kB"
               % (name, os.path.getsize(os.path.join(ziel, name)) / 1024.0))
 

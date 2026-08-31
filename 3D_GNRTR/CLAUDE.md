@@ -119,6 +119,15 @@ Formschluss-Prinzipien, die sich bewährt haben:
   „außen clean" mehr wert als der Bügel. Solche Umkehrungen einer
   früheren Nutzer-Vorgabe nicht still machen, sondern mit Zahlen
   vorschlagen und als Schalter anbieten.
+- **Freie Fläche ist nicht nutzbare Fläche.** Restflächen neben einer
+  konkaven Kontur sehen im 3D-Bild viel größer aus, als sie sind. Vor
+  jeder Zusage über eine Stückzahl einen **Packtest** rechnen: Kandidaten-
+  rechtecke (Bauteil + Luft + Wand) über alle Winkel und Positionen gegen
+  die echte Kontur prüfen, mit Wandabstand. Beim RC-Koffer ergab das für
+  Autolängen von 55 bis 90 mm immer dieselbe Zahl — der Engpass war die
+  Breite, nicht die Länge, und das war ohne Rechnung nicht zu sehen.
+  Das Ergebnis dem Nutzer als **maßstäbliche Draufsicht** zeigen, nicht
+  als Behauptung.
 - **Maße misstrauen:** Ein Maßband über eine Wölbung misst Bogenlänge,
   nicht Durchmesser (2–3 cm Fehler beim Tellerfuß). Besser: Anschläge,
   Messschieber, oder ein bereits gedrucktes Teil als Lehre (anschieben,
@@ -159,4 +168,4 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
-| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 | Crush-Ribs, Federbögen, Schnapper, Stufenfalz, Scharnier, T-Nut-Griff optional (`--mit-griff`) |
+| `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 2 lose Autos | Crush-Ribs, Federbögen, Schnapper, Stufenfalz, Scharnier, T-Nut-Griff optional (`--mit-griff`) |

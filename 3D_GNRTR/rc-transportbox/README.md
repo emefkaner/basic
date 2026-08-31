@@ -1,8 +1,9 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
-Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox** plus den
-Pistolengriff-Controller. Außen **213 × 212 × 66 mm**, verschließbar,
-außen glatt — komplett gedruckt, keine Schrauben, keine Metallteile.
+Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
+Pistolengriff-Controller und **zwei lose Hot Wheels** in Einzelfächern.
+Außen **213 × 212 × 66 mm**, verschließbar, außen glatt — komplett
+gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.
 
@@ -39,6 +40,36 @@ mit Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die Sicheru
 - **Federbögen im Deckel**, gezielt über Schnauze, Griffende und Auto-Box —
   **nicht** über dem Drehrad: drücken beim Schließen von oben nach, ohne
   das Rad zu klemmen. Der Hub wird je Stelle aus der Einbauhöhe gerechnet.
+
+### Zwei Einzelfächer für lose Hot Wheels
+
+Lichte Maße **38 × 91 × 30 mm** je Fach, runde Ecken (R5), ausgelegt auf
+das längste gemessene Auto (88 × 35 × 30). Gehalten wird jedes Auto
+dreifach: vier **Klemmrippen** an den Längsseiten, eine **Stirn-Blattfeder**
+(1,2 mm dünn, 8 mm Hub, biegt in der Lagenebene) drückt auch kürzere Autos
+ab etwa 80 mm gegen die Gegenseite, und die 30 mm hohen Fachwände lassen
+das Auto gar nicht erst kippen.
+
+- **Fach 1** liegt im Keil zwischen Rad- und Griffkontur des Controllers —
+  genau die Stelle, an der im Original-Tray auch Luft ist.
+- **Fach 2** liegt vorn im rechten Fach. Dafür rückt die **Auto-Box nach
+  hinten** statt mittig zu sitzen: aus zwei ungenutzten Streifen von je
+  48 mm wird einer von 96 mm, und der reicht für ein Fach.
+
+**Warum nur zwei?** Der Engpass ist die Breite, nicht die Länge: ein Fach
+braucht 35 mm Auto + 2 × 1,5 Luft + 2 × 2,5 Wand = **43 mm**. Der Keil
+läuft nach hinten spitz zu (bei y = +60 sind nur noch 28 mm frei), und der
+rechte Streifen ist 58 mm breit — für ein zweites Fach nebeneinander
+fehlen 28 mm. Ein Packtest über alle Winkel und Positionen findet für
+Autolängen von 55 bis 90 mm immer dieselbe Zahl: zwei. Kürzere Autos
+bringen also nichts; nur ein größerer Koffer würde mehr fassen (+83 mm in
+der Tiefe ergäbe hinten einen Streifen für fünf weitere).
+
+Die Maße sind Parameter (`HW_L`, `HW_B`, `HW_H`, `HW_LUFT`, `HW_WAND`,
+`HW_ECKE`, `HW_FED_HUB`). `hw_faecher_pruefen()` testet den Rahmenrand
+Punkt für Punkt gegen Mulde, Auto-Box und Wannenwand — die Mulde ist
+konkav, ein reiner Eckentest würde die Kerbe zwischen Rad und Griff
+übersehen.
 
 ### Einbaulage: Rad nach oben
 
@@ -110,7 +141,7 @@ rendert die passenden Ansichten.
 - **Wände/Infill:** 3 Wandlinien, 10–12 % Infill. Die Füllschale der
   Konturmulde ist volumig — das niedrige Infill hält sie leicht, die
   4-mm-Außenwände bleiben trotzdem praktisch massiv.
-- **Schichthöhe:** 0,2 mm. Materialbedarf gesamt grob 390–440 g
+- **Schichthöhe:** 0,2 mm. Materialbedarf gesamt grob 400–450 g
   (mit Griff rund 30 g mehr).
 - **Der Falz ist die einzige Passung, die beim Druck sitzen muss.** Wenn
   dein Drucker breit extrudiert, kann die Lippe stramm gehen: dann
@@ -142,6 +173,8 @@ den Lippenquerschnitt. Der Test arbeitet über z-Intervalle statt über
 Eckpunkte, weil ein durchquerendes Prisma in der Zone gar keinen Eckpunkt
 hat und einem Punkttest entginge.
 
-Ansichten: `stl/ansicht_koffer_zu.svg`, `stl/ansicht_wanne_offen.svg`
-(mit Attrappen), `stl/ansicht_wanne_leer.svg`, `stl/ansicht_deckel_innen.svg`,
-`stl/ansicht_falz_schnitt.svg` (maßstäblicher Schnitt durch die Fuge).
+Ansichten: `stl/ansicht_draufsicht.svg` (maßstäbliche Belegung von oben —
+zeigt, was den Platz wirklich belegt), `stl/ansicht_koffer_zu.svg`,
+`stl/ansicht_wanne_offen.svg` (mit Attrappen), `stl/ansicht_wanne_leer.svg`,
+`stl/ansicht_deckel_innen.svg`, `stl/ansicht_falz_schnitt.svg`
+(maßstäblicher Schnitt durch die Fuge).

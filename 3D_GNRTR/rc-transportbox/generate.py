@@ -69,26 +69,66 @@ RAD_FREI = 4.0            # Sicherheitsabstand der Federn zum Radrand
 # Foto des Formfaser-Trays vermessen; Massstab ueber die bekannte 100-mm-
 # Auto-Box (474 px). Einheiten mm, y nach unten (wird beim Aufbau
 # gespiegelt). Der Radbogen wird programmatisch eingefuegt.
+# GEMESSENE Silhouette (Controller auf DIN A4, Foto von oben, ueber die
+# vier Blattecken entzerrt -- siehe kontur_aus_foto.py). Die frueheren
+# Werte stammten aus dem Foto der Original-Schaumschale und waren rund
+# 25 mm zu kurz und 20 mm zu schmal; in der gedruckten Lehre passte
+# nichts. x = Breite, y = Laenge, Rad bei grossem y.
 CTRL_KONTUR_ROH = [
-    (0.0,  56.0),   # Schnauze vorn-unten
-    (8.1,  43.2),   # Schnauze vorn-oben
-    "RAD",          # Drehrad: Bogen ueber (RAD_CX, RAD_CY), Radius RAD_R
-    (96.7,  9.4),   # hinter dem Rad, oben
-    (93.5, 46.3),   # Ruecken / Griffansatz
-    (99.0, 118.1),  # Griffruecken
-    (100.0, 158.2), # Griffende hinten
-    (77.9, 169.8),  # Griffkuppe
-    (55.5, 160.3),  # Griffende vorn
-    (39.9, 107.5),  # Griff vorn / Trigger
-    (35.5,  82.2),  # Triggerbucht
-    (27.0,  71.7),  # Unterkante Elektronikbox
+    (151.1, 6.8),
+    (150.5, 35.1),
+    (145.6, 57.4),
+    (138.1, 77.5),
+    (118.4, 118.1),
+    (115.3, 130.5),
+    (115.5, 138.5),
+    (118.6, 146.0),
+    (141.6, 166.3),
+    (142.4, 172.2),
+    (138.2, 186.2),
+    (126.2, 194.4),
+    (51.0, 205.4),
+    (42.4, 212.2),
+    (34.1, 215.1),
+    (23.3, 214.6),
+    (7.8, 208.4),
+    (0.0, 189.9),
+    (0.3, 181.6),
+    (6.1, 159.9),
+    (14.3, 156.4),
+    (52.3, 154.5),
+    (53.7, 153.1),
+    (43.5, 149.3),
+    (38.5, 145.3),
+    (34.1, 137.3),
+    (34.1, 128.9),
+    (37.0, 130.3),
+    (38.3, 137.3),
+    (44.8, 145.2),
+    (52.3, 147.0),
+    (57.3, 143.2),
+    (58.9, 135.0),
+    (56.6, 130.1),
+    (49.2, 123.9),
+    (55.7, 123.7),
+    (63.1, 130.3),
+    (70.9, 152.8),
+    (75.3, 151.7),
+    (75.1, 140.6),
+    (70.8, 118.4),
+    (79.9, 107.8),
+    (95.8, 44.5),
+    (93.9, 42.6),
+    (77.5, 40.0),
+    (72.1, 36.9),
+    (51.3, 32.5),
+    (39.9, 18.4),
+    (36.9, 8.6),
+    (49.9, 4.9),
+    (132.0, 0.0),
+    (142.8, 1.1),
 ]
-# Radgeometrie in Rohkoordinaten, ruecklaufend aus der Messung bestimmt:
-# Raddurchmesser 45 mm, Raender in der 131er Achse 77 mm / 10 mm. Die
-# Summe 77+45+10 = 132 gegen 131 gemessene Breite zeigt ~1 mm Messstreuung,
-# die Werte liegen deshalb mittig dazwischen (ergibt 76.4 / 9.6).
-RAD_CX, RAD_CY, RAD_R = 75.5, 20.0, 17.2
-CTRL_FOTO_LAENGE = 169.8   # y-Spanne der Foto-Silhouette (Radkante-Griffende)
+
 CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
 MULDE_LUFT = 4.0           # Offset der Mulde um die Silhouette (Rippenraum)
 MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
@@ -199,8 +239,8 @@ SEG = 64
 # Foto-Silhouette wird darauf anisotrop skaliert -- die Foto-Skala war
 # wegen Parallaxe (Referenzbox liegt hoeher als die Controller-Kontur)
 # in beiden Achsen unterschiedlich zu klein.
-CTRL_LAENGE = 190.0
-CTRL_BREITE = 131.0
+CTRL_LAENGE = 215.1
+CTRL_BREITE = 151.1
 
 
 # ---------------------------------------------------------------------------
@@ -208,25 +248,19 @@ CTRL_BREITE = 131.0
 # ---------------------------------------------------------------------------
 
 def ctrl_kontur():
-    """Silhouette als geschlossenes Polygon in mm, y nach oben, auf die
-    gemessenen Werte skaliert, Ursprung = linke untere BBox-Ecke."""
-    pts = []
-    for eintrag in CTRL_KONTUR_ROH:
-        if eintrag == "RAD":
-            # Bogen ueber das Rad, von links (180 Grad) bis -30 Grad
-            for i in range(13):
-                w = math.radians(180.0 - 210.0 * i / 12.0)
-                pts.append((RAD_CX + RAD_R * math.cos(w),
-                            RAD_CY - RAD_R * math.sin(w)))
-        else:
-            pts.append(eintrag)
+    """Silhouette als geschlossenes Polygon in mm, y nach oben.
+
+    Die Punkte sind gemessen, nicht geschaetzt -- deshalb wird hier nur
+    noch auf die Sollmasze normiert und der Ursprung in die linke untere
+    Ecke gelegt. Das frueher noetige Glaetten des Kopfbereichs entfaellt:
+    es war eine Notmasznahme gegen eine geratene Form.
+    """
+    pts = list(CTRL_KONTUR_ROH)
     xs = [x for (x, _) in pts]
     ys = [y for (_, y) in pts]
     sx = CTRL_BREITE / (max(xs) - min(xs))
     sy = CTRL_LAENGE / (max(ys) - min(ys))
-    ymax = max(ys)
-    pts = [((x - min(xs)) * sx, (ymax - y) * sy) for (x, y) in pts]
-    return kopf_glaetten(pts)
+    return [((x - min(xs)) * sx, (y - min(ys)) * sy) for (x, y) in pts]
 
 
 def kopf_glaetten(pts, bis=16):
@@ -354,9 +388,29 @@ def abgeleitet():
     # Zusatzfaecher fuer lose Hot Wheels (LICHTE Masze).
     hb, hl = HW_B + 2 * HW_LUFT, HW_L + 2 * HW_LUFT
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    # Fach A: in den Keil zwischen Rad- und Griffkontur, vorn links.
+    # Fach A: an die linke Wand, so weit nach vorn wie die Muldenkontur
+    # es zulaesst. Die Lage wird GESUCHT statt gesetzt -- die Kontur ist
+    # gemessen und kann sich beim naechsten Nachmessen wieder aendern,
+    # feste Koordinaten waeren dann still falsch.
     ax0 = -ix + HW_WAND
+    mulde_abs = [(x + g["fachC_x0"], y - g["fachC_t"] / 2.0)
+                 for (x, y) in g["mulde"]]
+
+    def frei_bei(y0):
+        # den RAHMEN pruefen, nicht die lichte Kontur -- sonst findet die
+        # Suche eine Lage, die die spaetere Pruefung verwirft.
+        rx0, rx1 = ax0 - HW_WAND, ax0 + hb + HW_WAND
+        ry0, ry1 = y0 - HW_WAND, y0 + hl + HW_WAND
+        for t in [i / 30.0 for i in range(31)]:
+            for q in ((rx0 + (rx1 - rx0) * t, ry0), (rx0 + (rx1 - rx0) * t, ry1),
+                      (rx0, ry0 + (ry1 - ry0) * t), (rx1, ry0 + (ry1 - ry0) * t)):
+                if punkt_in_polygon(q, mulde_abs):
+                    return False
+        return True
+
     ay0 = -iy + HW_WAND
+    while ay0 + hl + HW_WAND < iy and not frei_bei(ay0):
+        ay0 += 1.0
     # Fach B: vorn im rechten Fach, vor der Auto-Box, in x mittig.
     bxm = (g["fachA_x0"] + g["fachA_x1"]) / 2.0
     by1 = g["fachA_y0"] - HW_WAND

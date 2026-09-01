@@ -130,8 +130,34 @@ CTRL_KONTUR_ROH = [
 ]
 
 CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
-MULDE_LUFT = 4.0           # Offset der Mulde um die Silhouette (Rippenraum)
+# Luft rundum. Waren 4,0 -- als es die Kontur noch nicht gab und
+# Klemmrippen den Rest richten sollten. Im Lehrendruck war das sichtbar
+# zu viel Spiel ("fast ein bisschen zu lang"), also auf 2,0 herunter:
+# zusammen mit dem Konturversatz (KONTUR_WEIT) bleiben rund 2,6 mm je
+# Seite, genug zum Einlegen, und die Laengsfeder nimmt den Rest.
+MULDE_LUFT = 2.0           # Offset der Mulde um die Silhouette
 MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
+
+# Abzug (der orangene Hebel). Aus dem Foto der gedruckten Lehre gemessen
+# (Homographie ueber die vier Plattenecken, der Hebel ist am Orange
+# eindeutig zu erkennen): er belegt 35,4 x 31,2 mm und lag zur Haelfte
+# auf dem Material auf, bis zu 15,4 mm tief. Die Lage ist relativ zur
+# linken unteren Ecke der KONTUR angegeben -- so bleibt sie richtig,
+# wenn MULDE_LUFT sich aendert.
+ABZUG_X0, ABZUG_X1 = 34.4, 69.8
+ABZUG_Y0, ABZUG_Y1 = 124.9, 156.1
+ABZUG_LUFT = 5.0           # grob aussparen, nicht formzutreu (Wunsch)
+ABZUG_ECKE = 6.0           # Eckradius der Aussparung
+
+# Der gemessene Umriss des Hebels selbst (C-Form), konturrelativ. Wird
+# nicht ausgespart -- er ist der PRUEFKOERPER: jeder Punkt muss nach dem
+# Einschmelzen der Aussparung frei in der Mulde liegen.
+ABZUG_UMRISS = [
+    (69.8, 154.9), (56.2, 156.1), (54.4, 152.3), (41.8, 149.3),
+    (35.4, 140.1), (34.6, 130.7), (36.9, 131.0), (38.3, 138.1),
+    (43.1, 144.9), (52.5, 148.1), (57.5, 145.1), (59.6, 138.2),
+    (56.8, 131.3), (50.1, 125.8), (58.4, 126.8), (63.4, 134.1),
+]
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 
@@ -179,13 +205,17 @@ LOGO_DATEI  = "logo.png"
 LOGO_BREITE = 130.0   # mm ueber die Deckelmitte
 LOGO_TIEFE  = 0.6     # 3 Lagen bei 0,2 mm -- deckt sauber in Farbe 2
 
-# Kleine Laengsfeder am Kopfende. Der erste Entwurf hatte 15 mm Hub --
-# das war eine Kruecke gegen die damals unbekannte Kontur und im Druck
-# viel zu klobig. Die Kontur ist jetzt gemessen, also reicht eine
-# kurze, weiche Feder, die das Spiel wegnimmt.
-CTRL_FED_DICK = 1.2
-CTRL_FED_HUB  = 5.0
-CTRL_FED_SEHNE = 45.0   # Laenge der Federsehne
+# Laengsfeder am Kopfende. Der erste Entwurf hatte 15 mm Hub -- eine
+# Kruecke gegen die damals unbekannte Kontur, im Druck viel zu klobig.
+# Danach 5 mm, und im Lehrendruck war zu sehen, dass die zu kurz greifen:
+# die Silhouette von oben enthaelt das ueberstehende Drehrad, in der
+# Muldenzone (z = 0..30) endet das Gehaeuse aber frueher. Jetzt 10 mm
+# Hub auf 55 mm Sehne. Selbst flachgedrueckt bleibt die Randdehnung bei
+# 0,7 % -- die Feder darf also bis auf Anschlag gehen und wirkt dann als
+# Anschlag statt als Bruchstelle.
+CTRL_FED_DICK = 1.4
+CTRL_FED_HUB  = 10.0
+CTRL_FED_SEHNE = 55.0   # Laenge der Federsehne
 
 # Die gemessene Kontur kommt aus einer Pixelmaske und hat daher kleine
 # Treppen. Chaikin rundet sie weich aus; der Versatz nach aussen sorgt
@@ -326,6 +356,100 @@ def schlaufen_entfernen(poly):
     return poly
 
 
+def polygon_vereinigen(poly, extra):
+    """Ein konvexes Zusatzstueck in eine Kontur einschmelzen.
+
+    Gebraucht fuer die Abzugsaussparung: das Rechteck um den Abzug ragt
+    aus der Mulde heraus, beides muss EIN Loch werden. Zwei getrennte
+    Loecher wuerden einen Materialsteg dazwischen stehen lassen, genau
+    dort, wo der Abzug sitzt.
+
+    Verfahren: die Muldenpunkte, die im Zusatzstueck liegen, bilden eine
+    zusammenhaengende Kette. Sie wird durch einen Umweg ueber den Rand
+    des Zusatzstuecks ersetzt -- und zwar ueber die Seite, die AUSSERHALB
+    der Mulde liegt. Ergebnis ist wieder ein einfaches Polygon, ohne
+    Boolean-Bibliothek.
+    """
+    def schnitt(a, b, c, d):
+        r = (b[0] - a[0], b[1] - a[1])
+        s = (d[0] - c[0], d[1] - c[1])
+        nen = r[0] * s[1] - r[1] * s[0]
+        if abs(nen) < 1e-12:
+            return None
+        t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / nen
+        u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / nen
+        if -1e-9 <= t <= 1 + 1e-9 and -1e-9 <= u <= 1 + 1e-9:
+            return (a[0] + r[0] * t, a[1] + r[1] * t, u)
+        return None
+
+    drin = [punkt_in_polygon(p, extra) for p in poly]
+    if not any(drin):
+        raise SystemExit("FEHLER: Zusatzstueck beruehrt die Kontur nicht -- "
+                         "es wuerde ein freischwebendes zweites Loch geben")
+    if all(drin):
+        raise SystemExit("FEHLER: Zusatzstueck verschluckt die ganze Kontur")
+    n = len(poly)
+    anfaenge = [i for i in range(n) if drin[i] and not drin[i - 1]]
+    if len(anfaenge) != 1:
+        raise SystemExit("FEHLER: Zusatzstueck schneidet die Kontur %d mal an "
+                         "-- Lage oder Groesse pruefen" % len(anfaenge))
+    poly = poly[anfaenge[0]:] + poly[:anfaenge[0]]
+    kette = 0
+    while punkt_in_polygon(poly[kette], extra):
+        kette += 1
+    a, b = poly[-1], poly[kette]          # letzter/erster Punkt AUSSERHALB
+
+    def rand_treffer(p, q):
+        """Wo verlaesst die Strecke p->q den Rand von extra?"""
+        m = len(extra)
+        for i in range(m):
+            s = schnitt(p, q, extra[i], extra[(i + 1) % m])
+            if s is not None:
+                return i, s[2], (s[0], s[1])
+        return None
+
+    ein = rand_treffer(a, poly[0])
+    aus = rand_treffer(poly[kette - 1], b)
+    if ein is None or aus is None:
+        raise SystemExit("FEHLER: Rand des Zusatzstuecks nicht getroffen")
+    i0, t0, p_ein = ein
+    i1, t1, p_aus = aus
+    m = len(extra)
+
+    def weg(vorwaerts):
+        """Eckpunkte von extra zwischen Ein- und Austritt, eine Richtung.
+
+        Eintritt liegt auf Kante i0 (extra[i0] -> extra[i0+1]), Austritt
+        auf Kante i1. Vorwaerts sind das die Ecken i0+1 ... i1, rueckwaerts
+        i0 ... i1+1.
+        """
+        pts = []
+        if vorwaerts:
+            i = (i0 + 1) % m
+            while True:
+                pts.append(extra[i])
+                if i == i1 or len(pts) > m:
+                    break
+                i = (i + 1) % m
+        else:
+            i = i0
+            while True:
+                pts.append(extra[i])
+                if i == (i1 + 1) % m or len(pts) > m:
+                    break
+                i = (i - 1) % m
+        return pts
+
+    kandidaten = []
+    for vor in (True, False):
+        w = weg(vor)
+        aussen = sum(0 if punkt_in_polygon(p, poly) else 1 for p in w)
+        kandidaten.append((aussen - 0.001 * len(w), w))
+    weg_aussen = max(kandidaten, key=lambda k: k[0])[1]
+    neu = poly[kette:] + [p_ein] + weg_aussen + [p_aus]
+    return polygon_saeubern(neu)
+
+
 def kerben_fuellen(pts, min_spalt=16.0, min_bogen=40.0):
     """Schmale Einschnitte der Kontur ueberbruecken.
 
@@ -454,6 +578,23 @@ def offset_polygon(poly, d):
     return out
 
 
+def abzug_rechteck(kontur):
+    """Grobe, rundgeeckte Aussparung um den Abzug.
+
+    Nicht formzutreu: ein exakt ausgesparter Clip laesst sich kaum
+    einfaedeln, und die Fotomessung ist auf den Millimeter genau, nicht
+    auf den Zehntel. Deshalb ein Rechteck mit 5 mm Luft rundum, in die
+    Mulde eingeschmolzen. Bezug ist die linke untere Ecke der Kontur.
+    """
+    x0k = min(x for (x, _) in kontur)
+    y0k = min(y for (_, y) in kontur)
+    bx = (ABZUG_X1 - ABZUG_X0) + 2 * ABZUG_LUFT
+    by = (ABZUG_Y1 - ABZUG_Y0) + 2 * ABZUG_LUFT
+    cx = x0k + (ABZUG_X0 + ABZUG_X1) / 2.0
+    cy = y0k + (ABZUG_Y0 + ABZUG_Y1) / 2.0
+    return [(x + cx, y + cy) for (x, y) in rundrechteck(bx, by, ABZUG_ECKE)]
+
+
 def abgeleitet():
     g = {}
     zuschlag = 2.0 * (RIPPE_TIEF - 1.0)
@@ -466,6 +607,13 @@ def abgeleitet():
     steg = 3.0
     g["mulde"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in mulde]
     g["kontur"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in kontur]
+    # Grobe Aussparung fuer den Abzug, in die Mulde eingeschmolzen.
+    g["abzug"] = abzug_rechteck(g["kontur"])
+    g["mulde"] = polygon_vereinigen(g["mulde"], g["abzug"])
+    xs = [x for (x, _) in g["mulde"]]
+    ys = [y for (_, y) in g["mulde"]]
+    if min(xs) < steg - 0.01 or min(ys) < steg - 0.01:
+        raise SystemExit("FEHLER: Abzugsaussparung durchbricht den Randsteg")
     # Bezugspunkte ueber ihre LAGE bestimmen, nicht ueber Konturindizes:
     # das Glaetten des Kopfes aendert die Punktzahl, Indizes waeren still
     # falsch geworden.
@@ -2237,6 +2385,56 @@ def hw_hohlraum_pruefen(g, schalen):
     return treffer
 
 
+def mulde_pruefen(g):
+    """Die Mulde muss die gemessene Silhouette ueberall umschliessen.
+
+    MULDE_LUFT wurde nach dem Lehrendruck von 4 auf 2 mm gekuerzt. Weiter
+    herunter darf es nicht unbemerkt gehen: unter etwa 1,5 mm je Seite
+    klemmt der Controller in einer gedruckten Mulde. Geprueft wird gegen
+    die Kontur, nicht gegen den Parameter -- Glaetten, Versatz und das
+    Einschmelzen der Abzugsaussparung veraendern den Rand.
+    """
+    fehler = []
+    raus = [p for p in g["kontur"] if not punkt_in_polygon(p, g["mulde"])]
+    if raus:
+        fehler.append("%d Konturpunkte liegen ausserhalb der Mulde" % len(raus))
+    d = min(min(math.dist(p, q) for q in g["mulde"]) for p in g["kontur"])
+    if d < 1.5:
+        fehler.append("Mulde nur %.2f mm weiter als der Controller "
+                      "(mindestens 1,5)" % d)
+    return fehler, d
+
+
+def abzug_pruefen(g):
+    """Liegt der Abzug frei?
+
+    Im ersten Lehrendruck lag er zur Haelfte auf dem Material auf --
+    genau der Fehler, den diese Pruefung kuenftig abfaengt. Geprueft wird
+    der GEMESSENE Umriss des Hebels gegen die fertige Mulde, nicht die
+    Aussparung gegen sich selbst (das waere immer wahr).
+    """
+    k = g["kontur"]
+    x0k = min(x for (x, _) in k)
+    y0k = min(y for (_, y) in k)
+    schlecht = []
+    for (u, v) in ABZUG_UMRISS:
+        p = (x0k + u, y0k + v)
+        if not punkt_in_polygon(p, g["mulde"]):
+            schlecht.append(p)
+    if schlecht:
+        return ("%d von %d Punkten des Abzugs liegen auf Material"
+                % (len(schlecht), len(ABZUG_UMRISS)))
+    # zusaetzlich: mindestens 2 mm Luft ringsum
+    eng = 0
+    for (u, v) in ABZUG_UMRISS:
+        p = (x0k + u, y0k + v)
+        if min(math.dist(p, q) for q in g["mulde"]) < 2.0:
+            eng += 1
+    if eng:
+        return "%d Abzugspunkte naeher als 2 mm am Muldenrand" % eng
+    return None
+
+
 def bauraum_pruefen(g):
     """Passt der Koffer aufs Bett -- mit Rand fuer Brim und Bettschiefe?
 
@@ -2363,6 +2561,16 @@ def main():
                          "-- der Deckel liesse sich nicht schliessen" % frei)
     print("Falzzone frei (Lippe %.1f mm tief, %.1f mm dick, %.2f mm Spiel)"
           % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
+    mfehler, mluft = mulde_pruefen(g)
+    if mfehler:
+        raise SystemExit("FEHLER Mulde: " + "; ".join(mfehler))
+    schlimm = abzug_pruefen(g)
+    if schlimm:
+        raise SystemExit("FEHLER Abzug: " + schlimm)
+    print("Mulde: %.1f mm weiter als die gemessene Silhouette; Abzug frei "
+          "(%.0f x %.0f mm Aussparung, %.0f mm Luft), Feder %.0f mm Hub"
+          % (mluft, ABZUG_X1 - ABZUG_X0 + 2 * ABZUG_LUFT,
+             ABZUG_Y1 - ABZUG_Y0 + 2 * ABZUG_LUFT, ABZUG_LUFT, CTRL_FED_HUB))
     eng = bauraum_pruefen(g)
     if eng:
         raise SystemExit("FEHLER Bauraum: " + "; ".join(eng))

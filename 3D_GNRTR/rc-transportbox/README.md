@@ -1,21 +1,51 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
-## Projektstand (zuletzt: Lehrendruck läuft)
+## Projektstand (nach dem ersten Lehrendruck korrigiert)
 
 | | |
 |---|---|
-| **Koffer außen** | 265 × 238 × 66 mm (Bett 350 × 320: 42/41 mm Rand) |
+| **Koffer außen** | 261 × 234 × 66 mm (Bett 350 × 320: 44/43 mm Rand) |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
+| **Muldenluft** | 2,0 mm je Seite (war 4,0 — im Lehrendruck zu viel) |
+| **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
+| **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub (war 5) |
 | **Auto-Box** | 100 × 50 × 50 mm |
 | **Hot Wheels (längstes)** | 88 × 35 × 30 mm, **drei** Einzelfächer |
 | **Zubehörfach** | 28 × 108 mm neben der Auto-Box (Ladekabel, Ersatzräder) |
 | **Scharnierachse** | 179 mm rohes 1,75-mm-Filament |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
-**Als Nächstes:** Passlehre prüfen (`rcbox_0_passlehre_zuerst_drucken.stl`).
-Sitzt der Controller, sind Wanne, Deckel und die zwei Logoteile dran —
-rund 700 g. Klemmt etwas, die Stelle nennen; die Kontur steckt in
-`CTRL_KONTUR_ROH` und lässt sich punktweise nachziehen.
+**Als Nächstes:** die korrigierte Passlehre gegenprüfen
+(`rcbox_0_passlehre_zuerst_drucken.stl`, rund 40 min). Sitzt der
+Controller samt Abzug, sind Wanne, Deckel und die zwei Logoteile dran —
+rund 700 g.
+
+### Was der erste Lehrendruck gezeigt hat
+
+Der Controller lag drin, aber drei Dinge stimmten nicht. Alle drei sind
+aus dem Foto **gemessen** worden, nicht geschätzt: die Lehre selbst ist
+die Bezugsfläche, über ihre vier Ecken wird das Foto entzerrt.
+
+| Befund | Messung | Korrektur |
+|---|---|---|
+| Abzug lag auf dem Material auf | der orangene Hebel belegt 35,4 × 31,2 mm, davon lagen 44 von 90 Umrisspunkten auf Material, bis 15,4 mm tief | 45 × 41 mm große, grob gerundete Aussparung, in die Mulde eingeschmolzen |
+| „fast ein bisschen zu lang" | durch das Loch war ringsum Holz zu sehen, rund 10 % der Muldenfläche | `MULDE_LUFT` 4,0 → 2,0 mm; Koffer wird 4 mm kürzer und schmaler |
+| Feder zu klein | 5 mm Hub greifen nicht bis ans Gehäuse — die Silhouette von oben enthält das überstehende Drehrad, in der Muldenzone endet das Gehäuse früher | 10 mm Hub, 55 mm Sehne, 1,4 mm dick |
+
+Der Abzug ist damit nicht formgetreu ausgespart, sondern grob — ein
+formgetreuer Ausschnitt wäre kaum einzufädeln. Damit die Aussparung und
+die Mulde **ein** Loch werden (und nicht ein Materialsteg dazwischen
+stehen bleibt), schmilzt `polygon_vereinigen()` das Rechteck in die
+Muldenkontur: die Muldenpunkte im Rechteck werden durch einen Umweg über
+dessen Außenrand ersetzt. Ohne Boolean-Bibliothek, und das Ergebnis ist
+wieder ein einfaches Polygon.
+
+Zwei Prüfungen halten das künftig fest:
+`abzug_pruefen()` legt den **gemessenen** Umriss des Hebels über die
+fertige Mulde (jeder Punkt frei, mindestens 2 mm Luft), und
+`mulde_pruefen()` verlangt, dass die Mulde die Silhouette überall um
+mindestens 1,5 mm umschließt — sonst wäre `MULDE_LUFT` eine Zahl, an der
+man sich unbemerkt festklemmt.
 
 ### Wie die Kontur entstanden ist — und was vorher schiefging
 
@@ -50,8 +80,10 @@ Deshalb in dieser Reihenfolge:
 2. **Kerben überbrücken** (`kerben_fuellen`): liegen zwei Punkte näher
    als 16 mm beieinander, sind aber entlang der Kontur weiter als 40 mm
    auseinander, wird der Bogen dazwischen durch die direkte Verbindung
-   ersetzt. So wird der Abzugsclip grob umschlossen statt formgetreu
-   ausgespart — formgetreu bekam man den Controller kaum eingefädelt.
+   ersetzt. Das glättet den Rand — genau dabei ist aber der Schlitz
+   hinter dem Abzug mit verschwunden, weshalb der Hebel im ersten
+   Lehrendruck auf dem Material auflag. Die grobe Abzugsaussparung wird
+   deshalb hinterher wieder eingeschmolzen (`polygon_vereinigen`).
 3. **0,6 mm nach außen versetzen** — die Mulde darf weiter werden, nie
    enger.
 4. **Schlaufen entfernen** (`schlaufen_entfernen`): beim Versetzen
@@ -60,15 +92,18 @@ Deshalb in dieser Reihenfolge:
 
 **Keine Klemmrippen in der Controllermulde.** Sie standen als Nubsis im
 Weg und werden nicht gebraucht, seit die Kontur gemessen ist. Das
-Restspiel nimmt eine kurze Blattfeder am Kopfende: 45 mm Sehne, 1,2 mm
-dick, 5 mm Hub, Randdehnung 0,4 %. Der erste Entwurf hatte 15 mm Hub —
-eine Krücke aus der Zeit, als die Kontur noch unbekannt war.
+Restspiel nimmt eine Blattfeder am Kopfende: 55 mm Sehne, 1,4 mm dick,
+10 mm Hub. Sie darf bis auf Anschlag gehen — selbst flachgedrückt liegt
+die Randdehnung bei 0,7 %, sie wirkt dann als Anschlag statt als
+Bruchstelle. Vorgänger waren 15 mm Hub (Krücke gegen die damals
+unbekannte Kontur) und 5 mm (griffen im Lehrendruck nicht weit genug,
+weil die Silhouette von oben das überstehende Drehrad enthält).
 
 ## Überblick
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
 Pistolengriff-Controller und **drei lose Hot Wheels** in Einzelfächern.
-Außen **265 × 238 × 66 mm**, verschließbar, außen glatt — komplett
+Außen **261 × 234 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.
@@ -98,33 +133,34 @@ erwischt wird.
 ## Zuerst die Passlehre drucken
 
 `rcbox_0_passlehre_zuerst_drucken.stl` ist der Muldenquerschnitt als
-8 mm flache Platte mit den Klemmrippen — 144 × 204 mm, rund 40 Minuten
-Druckzeit. **Controller einlegen und prüfen, bevor die 600-g-Wanne
+8 mm flache Platte samt Längsfeder — 162 × 226 mm, rund 40 Minuten
+Druckzeit. **Controller einlegen und prüfen, bevor die 870-g-Wanne
 gedruckt wird.** Die Silhouette stammt aus Fotos, nicht aus einer
 Zeichnung: eine Lehre ist billiger als ein Fehldruck. Klemmt es, den
 Restspalt messen und `CTRL_BREITE`, `CTRL_LAENGE` oder `MULDE_LUFT`
 anpassen und neu erzeugen.
 
+Und die Lehre ist zugleich das **Messmittel**: ein Foto von oben, auf dem
+alle vier Plattenecken zu sehen sind, reicht, um die Passung in
+Millimetern auszuwerten (Homographie über die Ecken). So sind die
+Abzugsaussparung und die gekürzte Muldenluft entstanden — durch das Loch
+sichtbares Holz ist Spiel, und der orangene Hebel ist farblich eindeutig
+zu finden.
+
 ## Warum nichts wackelt
 
-Die Controller-Silhouette wurde aus dem Foto des Original-Trays vermessen
-(Maßstab über die bekannte 100-mm-Auto-Box, Messgitter-Overlay) und auf
-die **gemessenen** Werte kalibriert: 190 lang × 131 breit, Gehäuse 42 dick,
-mit Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die Sicherung ist dreifach:
+Die Controller-Silhouette ist auf DIN A4 gemessen und in der gedruckten
+Lehre gegengeprüft: **215,1 lang × 151,1 breit**, Gehäuse 42 dick, mit
+Drehrad 57, Rad ⌀45 mm (Ränder 77/10 mm in der Breitenachse). Die
+Sicherung ist dreifach:
 
 - **Konturmulde** (30 mm tief): die Fachfüllung hat ein pistolenförmiges
-  Loch mit 4 mm Luft — der Controller kann weder verrutschen noch
-  rotieren, genau wie im Original-Tray. Der **Kopfbereich** (Gehäusekopf
-  plus Drehrad) ist auf seine konvexe Hülle geglättet: die aus dem
-  Tray-Foto abgenommene Kontur hatte dort eine Taille, das Rad stand als
-  Nase ab. Auf den Fotos des Controllers sitzt es bündig am Kopf. Die
-  Hülle ist nie enger als die Originalkontur — der Controller passt
-  also sicher, die Mulde ist dort nur etwas weiter.
-- **Klemmrippen** entlang der Kontur — aber **keine am Radbogen**: das
-  Rad reicht von z=12 bis 57, eine Rippe dort würde auf das Drehrad
-  drücken statt auf das Gehäuse. Sie sind:
-  1,1 mm dünn, federnd, mit Anlauffase — sie nehmen die Resttoleranz der
-  Foto-Kontur von ±3–4 mm auf.
+  Loch mit 2 mm Luft je Seite — der Controller kann weder verrutschen
+  noch rotieren, genau wie im Original-Tray. Der Abzug hat seine eigene
+  grobe Aussparung, in dieselbe Kontur eingeschmolzen.
+- **Keine Klemmrippen** in der Mulde: sie waren das Mittel gegen die
+  damals unbekannte Kontur. Seit die Silhouette gemessen ist, stünden
+  sie nur als Nubsis im Weg.
 - **Federbögen im Deckel**, gezielt über Schnauze, Griffende und Auto-Box —
   **nicht** über dem Drehrad: drücken beim Schließen von oben nach, ohne
   das Rad zu klemmen. Der Hub wird je Stelle aus der Einbauhöhe gerechnet.
@@ -136,10 +172,13 @@ Längsrichtung über die Gehäusekante hinaus. In der Muldenzone (0 bis
 30 mm) ist dort also nur Gehäuse — die Mulde reicht aber bis zur
 Radkante, der Controller könnte um den Radüberstand nach vorn wandern.
 Wie weit das Rad genau übersteht, ist aus Fotos nicht sicher zu messen.
-Statt zu raten, drückt eine **Blattfeder** (1,4 mm dünn, 15 mm Hub) am
-Kopfende den Controller gegen die Wand am Griffende — das ist eine echte
-Gehäusekante. Damit ist die Längslage definiert, egal wie der
-Radüberstand ausfällt. Randdehnung geprüft, unter 4 %.
+Statt zu raten, drückt eine **Blattfeder** (55 mm Sehne, 1,4 mm dünn,
+10 mm Hub) am Kopfende den Controller gegen die Wand am Griffende — das
+ist eine echte Gehäusekante. Damit ist die Längslage definiert, egal wie
+der Radüberstand ausfällt. Der Hub ist genau deshalb von 5 auf 10 mm
+gewachsen: im Lehrendruck war zu sehen, dass 5 mm gar nicht bis ans
+Gehäuse reichen. Randdehnung selbst flachgedrückt 0,7 % — die Feder darf
+auf Anschlag gehen.
 
 ### Drei Einzelfächer für lose Hot Wheels
 
@@ -171,8 +210,9 @@ mehr Koffer. Drei Wege dorthin, gerechnet:
 | Fach hinter der Auto-Box | +70 mm in Y | mehr als doppelt so teuer |
 | Fach quer vor der Box | +46 mm in Y | teurer, und die Box verliert den Anschlag |
 
-Gewählt ist also die schmalste: **265 × 238 mm**, auf dem 350er Bett
-bleiben 42 bzw. 41 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
+Gewählt ist also die schmalste. Mit der später gekürzten Muldenluft
+steht der Koffer bei **261 × 234 mm**, auf dem 350er Bett bleiben 44 bzw.
+43 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
 Koffer wächst).
 
 Der Streifen ist damit 88 mm breit, die Auto-Box braucht davon 58. Die

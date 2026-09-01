@@ -315,7 +315,12 @@ def controller_lage(pfad, p):
     was frei in den Deckelraum ragt."""
     mx0, my0 = p["fachC_x0"], -p["fachC_t"] / 2.0
     kontur = p["kontur"]
-    foto = [(190.0 - y, x) for (x, y) in kontur]
+    # in die Fotolage drehen (Rad links, Griffende rechts). Der Bezug muss
+    # aus der Kontur kommen, nicht aus einer festen Zahl -- die 190 mm von
+    # frueher waren die alte, falsch gemessene Laenge, und seit der echten
+    # Messung lief die Zeichnung links aus dem Bild.
+    kymax = max(y for (_, y) in kontur)
+    foto = [(kymax - y, x) for (x, y) in kontur]
     W, H = 1120, 800
     z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
          'viewBox="0 0 %d %d">' % (W, H, W, H),
@@ -331,7 +336,7 @@ def controller_lage(pfad, p):
                     ' font-weight="600"' if fett else "", t))
 
     # ---- oben links: Orientierung wie auf dem Foto
-    ox, oy, fs = 40, 96, 2.15
+    ox, oy, fs = 40, 96, 1.75
     z.append('<polygon points="%s" fill="#c8663f" stroke="#8d4225" '
              'stroke-width="1.6"/>'
              % " ".join("%.1f,%.1f" % (ox + x * fs, oy + y * fs)
@@ -340,11 +345,28 @@ def controller_lage(pfad, p):
         "middle", True)
     txt(ox + 30 * fs, oy + 30 * fs, "Rad", 12, "#fff")
     txt(ox + 150 * fs, oy + 95 * fs, "Griff", 12, "#fff")
+    # Fach 1 an seiner ECHTEN Stelle zeigen, in dieselbe Lage gedreht
+    hx0, hx1, hy0, hy1 = p["hw"][0]
+    hm = [(hx0 - mx0, hy0 - my0), (hx1 - mx0, hy1 - my0)]
+    hf = [(kymax - y, x) for (x, y) in hm]
     z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="5" '
              'fill="#e5dcf2" fill-opacity="0.75" stroke="#7d3fa8" '
              'stroke-width="2"/>'
-             % (ox + 75 * fs, oy + 2 * fs, 88 * fs, 35 * fs))
-    txt(ox + 119 * fs, oy + 24 * fs, "Hot Wheels", 12, "#4b2570", "middle", True)
+             % (ox + min(hf[0][0], hf[1][0]) * fs,
+                oy + min(hf[0][1], hf[1][1]) * fs,
+                abs(hf[1][0] - hf[0][0]) * fs, abs(hf[1][1] - hf[0][1]) * fs))
+    txt(ox + (hf[0][0] + hf[1][0]) / 2.0 * fs,
+        oy + (hf[0][1] + hf[1][1]) / 2.0 * fs,
+        "Hot Wheels", 12, "#4b2570", "middle", True)
+    # Der Abzug sitzt in seiner eigenen Aussparung -- die war im ersten
+    # Lehrendruck zu, deshalb hier mitzeichnen.
+    af = [(kymax - y, x) for (x, y) in p["abzug"]]
+    z.append('<polygon points="%s" fill="none" stroke="#12a150" '
+             'stroke-width="2" stroke-dasharray="5,4"/>'
+             % " ".join("%.1f,%.1f" % (ox + x * fs, oy + y * fs) for x, y in af))
+    afx = sum(x for x, _ in af) / len(af)
+    afy = sum(y for _, y in af) / len(af)
+    txt(ox + afx * fs, oy + afy * fs + 4, "Abzug", 11, "#0b6b36", "middle", True)
 
     # ---- oben rechts: Einbaulage
     bx, by, sc = 620, 96, 1.42
@@ -558,8 +580,9 @@ def main():
          [(wanne, grau)],
          drehung=math.radians(28), skala=1.8,
          titel="Wanne leer: die Konturmulde",
-         untertitel="Fuellschale mit pistolenfoermigem Loch, 26 mm tief, "
-                    "8 Klemmrippen",
+         untertitel="Fuellschale mit pistolenfoermigem Loch, %.0f mm tief, "
+                    "%.1f mm weiter als der Controller, Abzug ausgespart"
+                    % (g.MULDE_HOEHE, g.MULDE_LUFT),
          tilt=math.radians(55))
 
     # 2) Deckel in Drucklage (Innenseite oben)

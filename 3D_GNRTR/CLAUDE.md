@@ -233,6 +233,33 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Original einlegen lassen. Billiger als ein Fehldruck des Hauptteils,
   und die Rueckmeldung ist ein gemessener Restspalt statt einer
   Vermutung.
+- **Die Passlehre ist nicht nur ein Test, sie ist ein MESSMITTEL.** Ein
+  Foto von oben, auf dem alle vier Plattenecken zu sehen sind, laesst
+  sich ueber dieselbe Homographie auswerten wie das A4-Foto -- und die
+  Lehre ist die genauere Bezugsflaeche, weil ihre Masze aus dem
+  Generator stammen. Damit wird aus "passt fast" eine Zahl: beim
+  RC-Koffer der Abzug (35,4 x 31,2 mm, lag bis 15,4 mm tief auf
+  Material) und das Spiel rundum (durch das Loch sichtbarer Boden =
+  Luft, rund 10 % der Muldenflaeche). Farbige Teile am Gegenstand sind
+  dabei geschenkt: der orangene Abzug war ueber die Farbe eindeutig zu
+  finden. Deshalb die Lehre auf einen Untergrund legen, der sich vom
+  Bauteil unterscheidet.
+- **Was die Lehre findet, wird eine Pruefung, nicht nur eine Korrektur.**
+  Sonst faellt derselbe Fehler bei der naechsten Konturaenderung still
+  wieder hinein. Aus dem Abzug wurde `abzug_pruefen()` (der GEMESSENE
+  Umriss des Hebels gegen die fertige Mulde), aus der gekuerzten Luft
+  `mulde_pruefen()` (Mulde mindestens 1,5 mm weiter als die Silhouette,
+  gemessen am Rand, nicht am Parameter).
+- **Glaettung kann Funktionsluecken zuschmelzen.** `kerben_fuellen`
+  ueberbrueckt schmale Kerben, damit der Rand druckbar wird -- dabei ist
+  der Schlitz hinter dem Abzug mitverschwunden, und der Hebel lag im
+  Druck auf dem Material. Was gebraucht wird, danach wieder
+  hineinschmelzen: `polygon_vereinigen(kontur, rechteck)` ersetzt die
+  Konturpunkte im Zusatzstueck durch einen Umweg ueber dessen Aussenrand
+  (Richtung so waehlen, dass der Umweg AUSSERHALB der Kontur liegt).
+  Das ist eine Vereinigung ohne Boolean-Bibliothek und liefert wieder
+  ein einfaches Polygon. Zwei getrennte Loecher waeren falsch -- dazwischen
+  bliebe ein Steg genau dort, wo das Teil sitzt.
 - **Aus Fotos abgenommene Konturen konvex glaetten,** wo die genaue Form
   unsicher ist: die konvexe Huelle ist nie enger als das Original, das
   Teil passt also sicher, und die Mulde wird nur etwas weiter (die

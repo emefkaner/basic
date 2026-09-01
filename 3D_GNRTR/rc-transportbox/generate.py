@@ -161,6 +161,19 @@ ABZUG_UMRISS = [
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 
+# Controllerfach auf ein FESTES Aussenmasz gesetzt, statt es aus der
+# Mulde wachsen zu lassen. Grund: der Deckel haengt ueber die Kofferhuelle
+# an der Mulde -- jede Korrektur nach einem Lehrendruck haette einen schon
+# gedruckten Deckel wertlos gemacht. Mit dem festen Masz ist der Deckel
+# entkoppelt und kann parallel zum Lehrentest gedruckt werden.
+# 166 x 230 laesst der aktuellen Mulde (155,9 x 219,7) rund 5 mm Randsteg
+# je Seite; bis zum Mindeststeg von 3 mm darf sie also noch um 2 mm je
+# Seite wachsen -- das deckt genau den Weg zurueck zur alten Muldenluft
+# von 4 mm ab. Reicht das nicht, bricht der Generator ab, statt still ein
+# anderes Aussenmasz zu erzeugen.
+FACHC_FEST = (166.0, 230.0)
+STEG_MIN = 3.0        # Mindestmaterial zwischen Mulde und Fachwand
+
 # Bauraum Bambu H2S. Nennmass 350 x 350; vorsichtshalber 350 x 320
 # gerechnet, und 20 mm Rand je Seite fuer Brim und Bettschiefe.
 BETT_X, BETT_Y = 350.0, 320.0
@@ -602,17 +615,34 @@ def abgeleitet():
     mulde = schlaufen_entfernen(offset_polygon(kontur, MULDE_LUFT))
     xs = [x for (x, _) in mulde]
     ys = [y for (_, y) in mulde]
-    # 3 mm Randsteg rundum, damit die Fuellschale um die Mulde herum
-    # ueberall Material hat (Loch darf die Fachwand nicht beruehren)
-    steg = 3.0
-    g["mulde"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in mulde]
-    g["kontur"] = [(x - min(xs) + steg, y - min(ys) + steg) for (x, y) in kontur]
+    # Das Controllerfach hat ein FESTES Aussenmasz (FACHC_FEST), die Mulde
+    # wird darin zentriert. Frueher wuchs das Fach aus der Mulde heraus --
+    # damit haette jede Muldenkorrektur den ganzen Koffer und den Deckel
+    # verschoben, und ein bereits gedruckter Deckel waere Ausschuss.
+    g["fachC_l"], g["fachC_t"] = FACHC_FEST
+    steg_x = (g["fachC_l"] - (max(xs) - min(xs))) / 2.0
+    steg_y = (g["fachC_t"] - (max(ys) - min(ys))) / 2.0
+    if steg_x < STEG_MIN or steg_y < STEG_MIN:
+        raise SystemExit(
+            "FEHLER: Mulde %.1f x %.1f passt nicht mehr in das feste Fach "
+            "%.0f x %.0f (Randsteg %.1f / %.1f, mindestens %.1f). Entweder "
+            "MULDE_LUFT zuruecknehmen -- oder FACHC_FEST vergroessern, dann "
+            "aendert sich aber das Aussenmasz und der Deckel muss neu."
+            % (max(xs) - min(xs), max(ys) - min(ys), g["fachC_l"],
+               g["fachC_t"], steg_x, steg_y, STEG_MIN))
+    g["steg"] = (steg_x, steg_y)
+    g["mulde"] = [(x - min(xs) + steg_x, y - min(ys) + steg_y)
+                  for (x, y) in mulde]
+    g["kontur"] = [(x - min(xs) + steg_x, y - min(ys) + steg_y)
+                   for (x, y) in kontur]
     # Grobe Aussparung fuer den Abzug, in die Mulde eingeschmolzen.
     g["abzug"] = abzug_rechteck(g["kontur"])
     g["mulde"] = polygon_vereinigen(g["mulde"], g["abzug"])
     xs = [x for (x, _) in g["mulde"]]
     ys = [y for (_, y) in g["mulde"]]
-    if min(xs) < steg - 0.01 or min(ys) < steg - 0.01:
+    if (min(xs) < STEG_MIN - 0.01 or min(ys) < STEG_MIN - 0.01
+            or max(xs) > g["fachC_l"] - STEG_MIN + 0.01
+            or max(ys) > g["fachC_t"] - STEG_MIN + 0.01):
         raise SystemExit("FEHLER: Abzugsaussparung durchbricht den Randsteg")
     # Bezugspunkte ueber ihre LAGE bestimmen, nicht ueber Konturindizes:
     # das Glaetten des Kopfes aendert die Punktzahl, Indizes waeren still
@@ -639,8 +669,7 @@ def abgeleitet():
     # gemessen, die Rippen standen als "Nubsis" in der Mulde und wurden
     # nicht gebraucht. Die Laengsfeder nimmt das Restspiel.
     g["rippen_idx"] = []
-    g["fachC_l"] = max(xs) - min(xs) + 2 * steg
-    g["fachC_t"] = max(ys) - min(ys) + 2 * steg
+    # fachC_l / fachC_t stehen schon fest (FACHC_FEST), siehe oben.
     # Rechter Streifen: er traegt die Auto-Box UND die Hot-Wheels-Faecher
     # 2 und 3 nebeneinander. Zwei Faecher brauchen mehr Breite als die
     # Box allein -- das kostet 30 mm Aussenmasz und ist der billigste Weg
@@ -2571,6 +2600,11 @@ def main():
           "(%.0f x %.0f mm Aussparung, %.0f mm Luft), Feder %.0f mm Hub"
           % (mluft, ABZUG_X1 - ABZUG_X0 + 2 * ABZUG_LUFT,
              ABZUG_Y1 - ABZUG_Y0 + 2 * ABZUG_LUFT, ABZUG_LUFT, CTRL_FED_HUB))
+    print("Schale fest auf %.0f x %.0f: Randsteg %.1f / %.1f mm, die Mulde "
+          "darf noch %.1f / %.1f mm je Seite wachsen -- so lange bleibt ein "
+          "gedruckter Deckel gueltig."
+          % (g["fachC_l"], g["fachC_t"], g["steg"][0], g["steg"][1],
+             g["steg"][0] - STEG_MIN, g["steg"][1] - STEG_MIN))
     eng = bauraum_pruefen(g)
     if eng:
         raise SystemExit("FEHLER Bauraum: " + "; ".join(eng))

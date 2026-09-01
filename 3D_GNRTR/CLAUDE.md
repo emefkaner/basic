@@ -233,6 +233,16 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Original einlegen lassen. Billiger als ein Fehldruck des Hauptteils,
   und die Rueckmeldung ist ein gemessener Restspalt statt einer
   Vermutung.
+- **Was lange in Arbeit bleibt, von der Huelle ENTKOPPELN.** Beim
+  RC-Koffer wuchs das Aussenmasz aus der Controllermulde heraus -- also
+  haette jede Muldenkorrektur nach einem Lehrendruck auch den Deckel
+  verschoben, und wer den Deckel schon gedruckt hat, hat 300 g Ausschuss.
+  Loesung: das Fach auf ein FESTES Masz setzen (`FACHC_FEST`) und die
+  Mulde darin zentrieren. Die Reserve wird zur Zusage ("die Mulde darf
+  noch 2 mm je Seite wachsen") und der Generator bricht ab, wenn sie
+  nicht reicht, statt still ein anderes Aussenmasz zu erzeugen. So laesst
+  sich der fertige Teil parallel zum offenen Teil drucken. Kostet hier
+  4 mm Aussenmasz -- billiger als ein Fehldruck und als Wartezeit.
 - **Die Passlehre ist nicht nur ein Test, sie ist ein MESSMITTEL.** Ein
   Foto von oben, auf dem alle vier Plattenecken zu sehen sind, laesst
   sich ueber dieselbe Homographie auswerten wie das A4-Foto -- und die

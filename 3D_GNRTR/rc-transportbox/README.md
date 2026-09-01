@@ -4,7 +4,8 @@
 
 | | |
 |---|---|
-| **Koffer außen** | 261 × 234 × 66 mm (Bett 350 × 320: 44/43 mm Rand) |
+| **Koffer außen** | 266 × 238 × 66 mm (Bett 350 × 320: 42/41 mm Rand) |
+| **Controllerfach** | fest auf 166 × 230 — davon hängt der Deckel ab |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
 | **Muldenluft** | 2,0 mm je Seite (war 4,0 — im Lehrendruck zu viel) |
 | **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
@@ -17,8 +18,17 @@
 
 **Als Nächstes:** die korrigierte Passlehre gegenprüfen
 (`rcbox_0_passlehre_zuerst_drucken.stl`, rund 40 min). Sitzt der
-Controller samt Abzug, sind Wanne, Deckel und die zwei Logoteile dran —
-rund 700 g.
+Controller samt Abzug, ist die Wanne dran.
+
+**Der Deckel darf schon vorher gedruckt werden.** Das Controllerfach hat
+seit dieser Änderung ein festes Außenmaß (`FACHC_FEST` = 166 × 230), die
+Mulde wird darin zentriert. Damit hängt die Kofferhülle — und mit ihr
+Deckel, Scharnier, Falz und Logo — nicht mehr an der Muldenform. Reserve:
+die Mulde darf noch 2,0 mm je Seite wachsen, bevor der Randsteg unter
+3 mm fällt; das deckt den ganzen Weg zurück zur alten Muldenluft von
+4 mm ab. Reicht es doch nicht, bricht der Generator ab und sagt es, statt
+still ein anderes Außenmaß zu erzeugen — ein bereits gedruckter Deckel
+wäre sonst Ausschuss.
 
 ### Was der erste Lehrendruck gezeigt hat
 
@@ -29,7 +39,7 @@ die Bezugsfläche, über ihre vier Ecken wird das Foto entzerrt.
 | Befund | Messung | Korrektur |
 |---|---|---|
 | Abzug lag auf dem Material auf | der orangene Hebel belegt 35,4 × 31,2 mm, davon lagen 44 von 90 Umrisspunkten auf Material, bis 15,4 mm tief | 45 × 41 mm große, grob gerundete Aussparung, in die Mulde eingeschmolzen |
-| „fast ein bisschen zu lang" | durch das Loch war ringsum Holz zu sehen, rund 10 % der Muldenfläche | `MULDE_LUFT` 4,0 → 2,0 mm; Koffer wird 4 mm kürzer und schmaler |
+| „fast ein bisschen zu lang" | durch das Loch war ringsum Holz zu sehen, rund 10 % der Muldenfläche | `MULDE_LUFT` 4,0 → 2,0 mm; die 4 mm werden nicht am Außenmaß gespart, sondern als Randsteg-Reserve gelassen (siehe oben) |
 | Feder zu klein | 5 mm Hub greifen nicht bis ans Gehäuse — die Silhouette von oben enthält das überstehende Drehrad, in der Muldenzone endet das Gehäuse früher | 10 mm Hub, 55 mm Sehne, 1,4 mm dick |
 
 Der Abzug ist damit nicht formgetreu ausgespart, sondern grob — ein
@@ -103,7 +113,7 @@ weil die Silhouette von oben das überstehende Drehrad enthält).
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
 Pistolengriff-Controller und **drei lose Hot Wheels** in Einzelfächern.
-Außen **261 × 234 × 66 mm**, verschließbar, außen glatt — komplett
+Außen **266 × 238 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.
@@ -133,7 +143,7 @@ erwischt wird.
 ## Zuerst die Passlehre drucken
 
 `rcbox_0_passlehre_zuerst_drucken.stl` ist der Muldenquerschnitt als
-8 mm flache Platte samt Längsfeder — 162 × 226 mm, rund 40 Minuten
+8 mm flache Platte samt Längsfeder — 166 × 230 mm, rund 40 Minuten
 Druckzeit. **Controller einlegen und prüfen, bevor die 870-g-Wanne
 gedruckt wird.** Die Silhouette stammt aus Fotos, nicht aus einer
 Zeichnung: eine Lehre ist billiger als ein Fehldruck. Klemmt es, den
@@ -210,9 +220,8 @@ mehr Koffer. Drei Wege dorthin, gerechnet:
 | Fach hinter der Auto-Box | +70 mm in Y | mehr als doppelt so teuer |
 | Fach quer vor der Box | +46 mm in Y | teurer, und die Box verliert den Anschlag |
 
-Gewählt ist also die schmalste. Mit der später gekürzten Muldenluft
-steht der Koffer bei **261 × 234 mm**, auf dem 350er Bett bleiben 44 bzw.
-43 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
+Gewählt ist also die schmalste: **266 × 238 mm**, auf dem 350er Bett
+bleiben 42 bzw. 41 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
 Koffer wächst).
 
 Der Streifen ist damit 88 mm breit, die Auto-Box braucht davon 58. Die

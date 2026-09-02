@@ -44,9 +44,16 @@ import struct
 # Parameter: Inhalt
 # ---------------------------------------------------------------------------
 
-AUTOBOX_L  = 100.0    # gemessene Originalbox des Autos
+AUTOBOX_L  = 100.0    # Originalbox des Autos, Nennmasz vom Nutzer
 AUTOBOX_B  = 50.0
 AUTOBOX_H  = 50.0
+# Luft je Seite. Das Fach war vorher genau so gross wie die Box: 49,2 mm
+# frei fuer 50 mm Breite, weil die Klemmrippen die ganze Zugabe wieder
+# aufgefressen haben. Ein Presssitz ist bei einer Kartonschachtel Unsinn
+# -- sie soll hineinfallen, nicht hineingepresst werden, und das Nennmasz
+# ist ausserdem unsicher (Karton, Aufdruck, Beulen). Deshalb echte Luft
+# und keine Rippen: das Fach ist rundum groesser als die Box.
+AUTOBOX_LUFT = 2.5
 
 # Der Controller hat ZWEI relevante Dicken: das Gehaeuse und das seitlich
 # ueberstehende Drehrad. Er wird mit dem Rad NACH OBEN eingelegt -- dann
@@ -704,8 +711,8 @@ def abgeleitet():
     # beide Achslagen im 1-mm-Raster, Zielgroesse war die kleinste
     # umschliessende Flaeche: 195 x 234 statt 266 x 238, ein Drittel
     # weniger Grundflaeche.
-    g["box_l"] = AUTOBOX_B + zuschlag            # Box quer: B in X
-    g["box_t"] = AUTOBOX_L + zuschlag
+    g["box_l"] = AUTOBOX_B + 2 * AUTOBOX_LUFT    # Box quer: B in X
+    g["box_t"] = AUTOBOX_L + 2 * AUTOBOX_LUFT
     mw = max(xs) - min(xs)                       # Muldenbreite
     mh = max(ys) - min(ys)                       # Muldenlaenge
     bx0, by0 = BOX_NEBEN_MULDE                   # Box relativ zur Mulde
@@ -1872,16 +1879,10 @@ def teil_wanne(g):
         schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0),
                                rahmen=False))
 
-    # Klemmrippen der Auto-Box: je zwei an den Laengs- und Querwaenden
-    # ihres Lochs.
-    ax = (g["box_x0"] + g["box_x1"]) / 2.0
-    aym = (g["box_y0"] + g["box_y1"]) / 2.0
-    for dy in (-g["box_t"] * 0.25, g["box_t"] * 0.25):
-        schalen.append(rippe(g["box_x0"], aym + dy, "+x", 0.0, z1))
-        schalen.append(rippe(g["box_x1"], aym + dy, "-x", 0.0, z1))
-    for dx in (-g["box_l"] * 0.22, g["box_l"] * 0.22):
-        schalen.append(rippe(ax + dx, g["box_y0"], "+y", 0.0, z1))
-        schalen.append(rippe(ax + dx, g["box_y1"], "-y", 0.0, z1))
+    # KEINE Klemmrippen im Autofach: sie ragten mit voller Tiefe hinein
+    # und liessen 49,2 mm frei fuer eine 50 mm breite Box. Jetzt hat das
+    # Fach AUTOBOX_LUFT je Seite; niedergehalten wird die Box von den
+    # Federboegen im Deckel.
 
     # Scharnieraugen -- nur wenn das Scharnier ueberhaupt gebaut wird.
     if MIT_SCHARNIER:
@@ -2430,8 +2431,14 @@ def klemmung_pruefen(g):
                     "%s %s: auch mit flachgedrueckter Feder nur %.1f mm fuer "
                     "%.1f mm Inhalt" % (name, achse, licht - feder_dick, inhalt))
 
-    pruefe("Auto-Box", "quer", g["box_l"], AUTOBOX_B, rippen=2)
-    pruefe("Auto-Box", "laengs", g["box_t"], AUTOBOX_L, rippen=2)
+    for achse, licht, inhalt in (("quer", g["box_l"], AUTOBOX_B),
+                                 ("laengs", g["box_t"], AUTOBOX_L)):
+        luft = (licht - inhalt) / 2.0
+        if luft < 1.0:
+            fehler.append("Auto-Box %s: nur %.1f mm Luft je Seite (%.1f mm "
+                          "Fach fuer %.1f mm Box) -- die Schachtel soll "
+                          "hineinfallen, nicht hineingepresst werden"
+                          % (achse, luft, licht, inhalt))
     hb, hl = g["hw_licht"]
     pruefe("Hot-Wheels-Fach", "breit", hb, HW_B)
     pruefe("Hot-Wheels-Fach", "lang", hl, HW_L, feder_dick=HW_FEDER)
@@ -2630,9 +2637,9 @@ def main():
     kfehler = klemmung_pruefen(g)
     if kfehler:
         raise SystemExit("FEHLER Passung: " + "; ".join(kfehler))
-    print("Passung: Auto-Box %.1f mm frei zwischen den Rippen (Box %.0f), "
-          "Hot Wheels %.1f mm licht (Auto %.0f)"
-          % (g["box_l"] - 2 * RIPPE_TIEF, AUTOBOX_B, g["hw_licht"][0], HW_B))
+    print("Passung: Auto-Box-Fach %.0f x %.0f mm fuer eine %.0f x %.0f mm "
+          "Schachtel -- %.1f mm Luft je Seite, keine Rippen"
+          % (g["box_l"], g["box_t"], AUTOBOX_B, AUTOBOX_L, AUTOBOX_LUFT))
     mfehler, mluft = mulde_pruefen(g)
     if mfehler:
         raise SystemExit("FEHLER Mulde: " + "; ".join(mfehler))

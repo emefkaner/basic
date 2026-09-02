@@ -4,17 +4,17 @@
 
 | | |
 |---|---|
-| **Koffer außen** | 195 × 234 × 66 mm (vorher 266 × 238 — ein Drittel weniger Fläche) |
+| **Koffer außen** | 191 × 234 × 66 mm (vorher 266 × 238 — 35 % weniger Fläche) |
 | **Inhalt** | Controller + Auto in seiner Originalbox. Sonst nichts. |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
-| **Auto-Box** | 100 × 50 × 50 mm, liegt in der Kerbe neben dem Pistolengriff |
+| **Auto-Box** | 100 × 50 × 50 mm, Fach 105 × 55 (2,5 mm Luft je Seite), liegt in der Kerbe neben dem Pistolengriff |
 | **Muldenluft** | 2,0 mm je Seite |
 | **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
 | **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub |
 | **Verschluss** | Deckel zum **Aufstecken** — kein Scharnier, keine Schnapper. Es hält allein der Stufenfalz. |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
-### Warum 195 × 234 und nicht mehr
+### Warum 191 × 234 und nicht mehr
 
 Die Controllersilhouette ist L-förmig: neben dem Pistolengriff bleibt
 eine große Kerbe frei. Vorher lagen Controller und Auto-Box in zwei
@@ -24,7 +24,7 @@ beider Teile. Jetzt liegt die Box **in** der Kerbe.
 Die Lage ist nicht geschätzt, sondern das Ergebnis eines vollständigen
 Packtests: alle Positionen im 1-mm-Raster, beide Achslagen, bewertet nach
 der kleinsten umschließenden Fläche. 159 239 gültige Lagen, die beste
-ergibt 187 × 226 mm innen. Von Hand hätte man die Box in die Kerbe
+ergibt 183 × 226 mm innen. Von Hand hätte man die Box in die Kerbe
 schieben können, aber nicht wissen, dass es das Optimum ist.
 
 Die Hot-Wheels-Fächer und das Zubehörfach sind entfallen (`HW_ANZAHL = 0`);
@@ -37,7 +37,7 @@ Drei Fehler, alle drei echte Konstruktionsfehler, nicht Toleranzen:
 | Befund | Ursache | Korrektur |
 |---|---|---|
 | **Mulde spiegelverkehrt** | Bildkoordinaten zählen y nach unten, Modellkoordinaten nach oben. Die Homographie in `kontur_aus_foto.py` bildete die Blattecken in Bildreihenfolge ab — das Ergebnis war an der Längsachse gespiegelt, und keine Drehung nimmt das zurück | Rohkontur einmalig gespiegelt (x → 151,1 − x), `kontur_aus_foto.py` liefert jetzt direkt Modellkoordinaten |
-| **Auto-Box passt nicht** | Fachmaß mit `2·(Rippentiefe − 1)` Zuschlag gerechnet, die Rippen ragen aber die vollen 5 mm hinein: 48 mm frei für 50 mm Box | Fachmaß = Inhalt + 2·Rippentiefe − 2·`RIPPE_PRESS`; jetzt 49,2 mm frei, also 0,8 mm Übermaß, das die Rippen abgeben |
+| **Auto-Box passt nicht** | Fachmaß mit `2·(Rippentiefe − 1)` Zuschlag gerechnet, die Rippen ragen aber die vollen 5 mm hinein: 48 mm frei für 50 mm Box | Klemmrippen ersatzlos raus, stattdessen `AUTOBOX_LUFT` = 2,5 mm je Seite. Eine Kartonschachtel soll hineinfallen, nicht hineingepresst werden — und ihr Nennmaß ist unsicher (Karton, Aufdruck, Beulen). Fach jetzt 105 × 55 für 100 × 50 |
 | **Kein Hot Wheels passt** | dasselbe: 38 mm licht − 2 × 5 mm Rippe = 28 mm frei für ein 35 mm breites Auto | seitliche Klemmrippen ersatzlos raus — die Autobreite ist gemessen, 1,5 mm Luft je Seite reichen |
 
 **Warum die Passlehre das nicht gefunden hat:** eine flache Platte dreht
@@ -136,7 +136,7 @@ weil die Silhouette von oben das überstehende Drehrad enthält).
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
 Pistolengriff-Controller. Nur diese beiden — so kompakt wie möglich.
-Außen **195 × 234 × 66 mm**, verschließbar, außen glatt — komplett
+Außen **191 × 234 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.

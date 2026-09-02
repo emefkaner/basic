@@ -28,10 +28,12 @@ MW = max(p[0] for p in mulde)
 MH = max(p[1] for p in mulde)
 print("Mulde: %.1f x %.1f mm" % (MW, MH))
 
-zusch = 2.0 * (G.RIPPE_TIEF - G.RIPPE_PRESS)
-BX, BY = G.AUTOBOX_B + zusch, G.AUTOBOX_L + zusch
-print("Auto-Box-Fach: %.1f x %.1f mm (Box %.0f x %.0f + Rippen)"
-      % (BX, BY, G.AUTOBOX_B, G.AUTOBOX_L))
+# Fachmasz NICHT hier nachrechnen, sondern vom Generator holen -- sonst
+# laufen Werkzeug und Bauteil auseinander (genau so ist die Box einmal in
+# ein Fach geplant worden, das die Rippen wieder zugebaut haben).
+BX, BY = g["box_l"], g["box_t"]
+print("Auto-Box-Fach: %.1f x %.1f mm (Box %.0f x %.0f + %.1f mm Luft je Seite)"
+      % (BX, BY, G.AUTOBOX_B, G.AUTOBOX_L, G.AUTOBOX_LUFT))
 
 # Raster: Rand von RAND mm um die Mulde herum, 1 mm Zellen
 RAND = 140

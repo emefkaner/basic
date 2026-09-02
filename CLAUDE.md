@@ -270,6 +270,29 @@ What holds a supernatural effect inside a period film:
   "The man gives nothing away — the only thing that reacts is the metal."
 - Effects on objects are safe with moderation; see the packaging section above.
 
+## When the prompt describes a world the plate barely shows
+
+Two shots (S16_06, S16_14) came back completely re-staged: new framing,
+letterboxed aspect, re-posed actor, invented set. Both times the prompt's
+strongest block described something the plate hardly contained — a big effect
+on a small device, a sky-filled flight through a shot with almost no window.
+The model built the world the text promised, on top of the plate's ruins.
+
+Rules:
+
+- The weight of a block must match how much of the frame it may change. A
+  tiny window gets two sentences, not a SITUATION manifesto.
+- **If the only change is small, do it in post instead of generating.** A
+  bright window is a luma key: mask = brightness threshold inside a tracked
+  or keyframed region — the actor's dark silhouette protects itself. Replace
+  with a soft gradient sky; feather via a blurred quarter-res mask. S16_14
+  was finished this way with zero generation, original Lincoln, original
+  performance, no scanner involved.
+- Measure lum thresholds from histograms (vest ~16-32, blurred rails ~96-144,
+  blown window 160+), don't guess.
+- Grid overlays (drawgrid) on full frames beat eyeballing crops for
+  coordinates; measure once properly instead of chasing slivers.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

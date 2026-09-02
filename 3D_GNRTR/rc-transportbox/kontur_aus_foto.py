@@ -161,17 +161,31 @@ def kontur_messen(pfad, referenz="lehre", zeige=False):
     rgb = bild_laden(pfad)
     platte = platte_finden(rgb, referenz)
     ecken = ecken_finden(platte)
-    # Zielrechteck so drehen, wie die Flaeche im Bild liegt
+    # Zielrechteck so drehen, wie die Flaeche im Bild liegt.
+    #
+    # WICHTIG -- y-Richtung: ecken_finden liefert die Ecken in
+    # BILDkoordinaten, dort waechst y nach UNTEN. Wuerde man sie auf
+    # (0,0),(lang,0),(lang,kurz),(0,kurz) abbilden, kaeme ein Polygon
+    # heraus, dessen y ebenfalls nach unten zaehlt. Extrudiert man das
+    # als Modellpolygon (y nach oben), ist das Ergebnis GESPIEGELT -- und
+    # keine Drehung holt das zurueck. Genau so ist beim RC-Koffer eine
+    # spiegelverkehrte Controllermulde entstanden, bemerkt erst an der
+    # fertig gedruckten Wanne.
+    # Deshalb: die obere Bildkante bekommt das GROSSE v. Damit sind die
+    # Ausgabewerte Modellkoordinaten und koennen direkt uebernommen werden.
     d1 = math.dist(ecken[0], ecken[1])
     d2 = math.dist(ecken[1], ecken[2])
     if d1 >= d2:
-        ziel = [(0, 0), (lang, 0), (lang, kurz), (0, kurz)]
+        ziel = [(0, kurz), (lang, kurz), (lang, 0), (0, 0)]
     else:
-        ziel = [(0, 0), (kurz, 0), (kurz, lang), (0, lang)]
+        ziel = [(0, lang), (kurz, lang), (kurz, 0), (0, 0)]
     H = homographie(ecken, ziel)
+    # Ausdehnung der Bezugsflaeche, unabhaengig von der Eckreihenfolge
+    pl_x = max(p[0] for p in ziel)
+    pl_y = max(p[1] for p in ziel)
     print("Platte erkannt, Ecken im Bild: %s" %
           ", ".join("(%.0f,%.0f)" % e for e in ecken))
-    print("Kalibriert auf %.0f x %.0f mm" % (ziel[2][0], ziel[2][1]))
+    print("Kalibriert auf %.0f x %.0f mm" % (pl_x, pl_y))
 
     maske = controller_maske(rgb, platte, ecken, referenz)
     konturen = measure.find_contours(maske.astype(float), 0.5)
@@ -187,7 +201,7 @@ def kontur_messen(pfad, referenz="lehre", zeige=False):
     print("Silhouette: %d Punkte, %.1f x %.1f mm"
           % (len(mm), max(xs) - min(xs), max(ys) - min(ys)))
     ueber = [p for p in mm
-             if not (-2 <= p[0] <= ziel[2][0] + 2 and -2 <= p[1] <= ziel[2][1] + 2)]
+             if not (-2 <= p[0] <= pl_x + 2 and -2 <= p[1] <= pl_y + 2)]
     if ueber:
         print("WARNUNG: %d Punkte liegen ausserhalb der Platte -- der "
               "Controller ragt ueber die Lehre hinaus, die Kontur ist dort "
@@ -226,10 +240,10 @@ def main():
         ys = [p[1] for p in mm]
         s = 3.0
         z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" '
-             'height="%.0f">' % (ziel[2][0] * s + 40, ziel[2][1] * s + 40),
+             'height="%.0f">' % (pl_x * s + 40, pl_y * s + 40),
              '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
              '<rect x="20" y="20" width="%.1f" height="%.1f" fill="#e8352a"/>'
-             % (ziel[2][0] * s, ziel[2][1] * s),
+             % (pl_x * s, pl_y * s),
              '<polygon points="%s" fill="#4a4f57"/>'
              % " ".join("%.1f,%.1f" % (20 + x * s, 20 + y * s) for x, y in mm),
              '</svg>']

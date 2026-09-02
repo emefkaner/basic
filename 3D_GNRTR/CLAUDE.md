@@ -243,6 +243,38 @@ Formschluss-Prinzipien, die sich bewährt haben:
   nicht reicht, statt still ein anderes Aussenmasz zu erzeugen. So laesst
   sich der fertige Teil parallel zum offenen Teil drucken. Kostet hier
   4 mm Aussenmasz -- billiger als ein Fehldruck und als Wartezeit.
+- **Bild-y zeigt nach UNTEN, Modell-y nach OBEN.** Der teuerste Fehler des
+  RC-Koffers: die Homographie bildete die Blattecken in Bildreihenfolge
+  auf (0,0),(lang,0),(lang,kurz),(0,kurz) ab, das Ergebnis zaehlte y also
+  nach unten. Als Modellpolygon extrudiert kam eine spiegelverkehrte
+  Mulde heraus. Eine Spiegelung ist durch KEINE Drehung ruecknehmbar --
+  und sie faellt bei einem konkav-organischen Umriss visuell kaum auf.
+  Beim Umrechnen Bild -> Modell also immer die obere Bildkante auf das
+  GROSSE v legen.
+- **Eine flache Passlehre kann eine Spiegelung nicht aufdecken** -- man
+  dreht die Platte um, und alles passt. Genau deshalb ging der Fehler
+  durch den Lehrentest hindurch bis in die 900-g-Wanne. Haendigkeit
+  deshalb gegen ein FOTO des echten Teils pruefen, nicht gegen eine
+  Messung, die durch dieselbe Umrechnung gelaufen ist (die ist
+  selbstkonsistent und bestaetigt jeden Spiegelfehler brav). Bild
+  erzeugen: Fach von oben rendern (x rechts, y oben) und daneben das
+  Foto in gleicher Ausrichtung -- ein asymmetrisches Merkmal (hier der
+  orangene Abzug gegenueber der grossen Kerbe) entscheidet in einer
+  Sekunde. "Gleiche Seite von"-Tests taugen NICHT: eine Spiegelung
+  erhaelt sie.
+- **Klemmrippen und Federn vom lichten Mass ABZIEHEN.** Es reicht nicht
+  zu pruefen, dass sich Faecher nicht ueberlappen -- entscheidend ist,
+  was nach den Einbauten uebrig bleibt. Beim RC-Koffer bekam die Auto-Box
+  48 mm fuer 50 mm Breite und die Hot-Wheels-Faecher 28 mm fuer 35 mm
+  breite Autos, weil die Rippen mit voller Tiefe hineinragten, das
+  Fachmass sie aber nur mit (Tiefe - 1) einkalkulierte. Fachmass =
+  Inhalt + 2*Rippentiefe - 2*Uebermass, und eine Pruefung, die genau
+  diese Rechnung nachvollzieht (`klemmung_pruefen`).
+- **Eine Suche, die scheitern kann, muss LAUT scheitern.** Die Suche nach
+  dem Platz fuer ein Zusatzfach lief mit `while ... and not frei` durch
+  und nahm danach die letzte Position -- mitten in der Mulde. Kein
+  Fehler, keine Meldung, kaputte Geometrie. Immer: Erfolg explizit
+  festhalten, sonst abbrechen.
 - **Die Passlehre ist nicht nur ein Test, sie ist ein MESSMITTEL.** Ein
   Foto von oben, auf dem alle vier Plattenecken zu sehen sind, laesst
   sich ueber dieselbe Homographie auswerten wie das A4-Foto -- und die

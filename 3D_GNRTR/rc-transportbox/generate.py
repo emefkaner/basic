@@ -65,68 +65,77 @@ RAD_D = 45.0              # Durchmesser des Drehrads (gemessen)
 RAD_RAND_LINKS = 77.0     # Radkante von links in der Breitenachse (gemessen)
 RAD_FREI = 4.0            # Sicherheitsabstand der Federn zum Radrand
 
-# Controller-Silhouette (Draufsicht, liegend wie im Original-Tray), aus dem
-# Foto des Formfaser-Trays vermessen; Massstab ueber die bekannte 100-mm-
-# Auto-Box (474 px). Einheiten mm, y nach unten (wird beim Aufbau
-# gespiegelt). Der Radbogen wird programmatisch eingefuegt.
 # GEMESSENE Silhouette (Controller auf DIN A4, Foto von oben, ueber die
-# vier Blattecken entzerrt -- siehe kontur_aus_foto.py). Die frueheren
-# Werte stammten aus dem Foto der Original-Schaumschale und waren rund
-# 25 mm zu kurz und 20 mm zu schmal; in der gedruckten Lehre passte
-# nichts. x = Breite, y = Laenge, Rad bei grossem y.
+# vier Blattecken entzerrt -- siehe kontur_aus_foto.py).
+# x = Breite, y = Laenge, Rad bei grossem y, MODELLKOORDINATEN (y nach
+# oben, so wie man von oben in die offene Wanne schaut).
+#
+# ACHTUNG, hier steckte der teuerste Fehler des Projekts: Bildkoordinaten
+# zaehlen y nach UNTEN, Modellkoordinaten nach OBEN. Die Messung lieferte
+# also ein an der Laengsachse gespiegeltes Polygon, und weil eine
+# Spiegelung von keiner Drehung rueckgaengig gemacht wird, kam eine
+# spiegelverkehrte Mulde heraus -- gefunden erst an der fertig gedruckten
+# Wanne. Die Passlehre hat es nicht gezeigt, weil man eine flache Platte
+# einfach umdreht und dann alles passt. Diese Liste ist deshalb einmalig
+# gespiegelt worden (x -> 151,1 - x); kontur_aus_foto.py gibt seitdem
+# direkt Modellkoordinaten aus, eine neue Messung darf also unveraendert
+# hier hinein.
+#
+# Die allerersten Werte stammten aus dem Foto der Original-Schaumschale
+# und waren rund 25 mm zu kurz und 20 mm zu schmal.
 CTRL_KONTUR_ROH = [
-    (151.1, 6.8),
-    (150.5, 35.1),
-    (145.6, 57.4),
-    (138.1, 77.5),
-    (118.4, 118.1),
-    (115.3, 130.5),
-    (115.5, 138.5),
-    (118.6, 146.0),
-    (141.6, 166.3),
-    (142.4, 172.2),
-    (138.2, 186.2),
-    (126.2, 194.4),
-    (51.0, 205.4),
-    (42.4, 212.2),
-    (34.1, 215.1),
-    (23.3, 214.6),
-    (7.8, 208.4),
-    (0.0, 189.9),
-    (0.3, 181.6),
-    (6.1, 159.9),
-    (14.3, 156.4),
-    (52.3, 154.5),
-    (53.7, 153.1),
-    (43.5, 149.3),
-    (38.5, 145.3),
-    (34.1, 137.3),
-    (34.1, 128.9),
-    (37.0, 130.3),
-    (38.3, 137.3),
-    (44.8, 145.2),
-    (52.3, 147.0),
-    (57.3, 143.2),
-    (58.9, 135.0),
-    (56.6, 130.1),
-    (49.2, 123.9),
-    (55.7, 123.7),
-    (63.1, 130.3),
-    (70.9, 152.8),
-    (75.3, 151.7),
-    (75.1, 140.6),
-    (70.8, 118.4),
-    (79.9, 107.8),
-    (95.8, 44.5),
-    (93.9, 42.6),
-    (77.5, 40.0),
-    (72.1, 36.9),
-    (51.3, 32.5),
-    (39.9, 18.4),
-    (36.9, 8.6),
-    (49.9, 4.9),
-    (132.0, 0.0),
-    (142.8, 1.1),
+    (0.0, 6.8),
+    (0.6, 35.1),
+    (5.5, 57.4),
+    (13.0, 77.5),
+    (32.7, 118.1),
+    (35.8, 130.5),
+    (35.6, 138.5),
+    (32.5, 146.0),
+    (9.5, 166.3),
+    (8.7, 172.2),
+    (12.9, 186.2),
+    (24.9, 194.4),
+    (100.1, 205.4),
+    (108.7, 212.2),
+    (117.0, 215.1),
+    (127.8, 214.6),
+    (143.3, 208.4),
+    (151.1, 189.9),
+    (150.8, 181.6),
+    (145.0, 159.9),
+    (136.8, 156.4),
+    (98.8, 154.5),
+    (97.4, 153.1),
+    (107.6, 149.3),
+    (112.6, 145.3),
+    (117.0, 137.3),
+    (117.0, 128.9),
+    (114.1, 130.3),
+    (112.8, 137.3),
+    (106.3, 145.2),
+    (98.8, 147.0),
+    (93.8, 143.2),
+    (92.2, 135.0),
+    (94.5, 130.1),
+    (101.9, 123.9),
+    (95.4, 123.7),
+    (88.0, 130.3),
+    (80.2, 152.8),
+    (75.8, 151.7),
+    (76.0, 140.6),
+    (80.3, 118.4),
+    (71.2, 107.8),
+    (55.3, 44.5),
+    (57.2, 42.6),
+    (73.6, 40.0),
+    (79.0, 36.9),
+    (99.8, 32.5),
+    (111.2, 18.4),
+    (114.2, 8.6),
+    (101.2, 4.9),
+    (19.1, 0.0),
+    (8.3, 1.1),
 ]
 
 CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
@@ -144,7 +153,7 @@ MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
 # auf dem Material auf, bis zu 15,4 mm tief. Die Lage ist relativ zur
 # linken unteren Ecke der KONTUR angegeben -- so bleibt sie richtig,
 # wenn MULDE_LUFT sich aendert.
-ABZUG_X0, ABZUG_X1 = 34.4, 69.8
+ABZUG_X0, ABZUG_X1 = 82.1, 117.5
 ABZUG_Y0, ABZUG_Y1 = 124.9, 156.1
 ABZUG_LUFT = 5.0           # grob aussparen, nicht formzutreu (Wunsch)
 ABZUG_ECKE = 6.0           # Eckradius der Aussparung
@@ -153,10 +162,10 @@ ABZUG_ECKE = 6.0           # Eckradius der Aussparung
 # nicht ausgespart -- er ist der PRUEFKOERPER: jeder Punkt muss nach dem
 # Einschmelzen der Aussparung frei in der Mulde liegen.
 ABZUG_UMRISS = [
-    (69.8, 154.9), (56.2, 156.1), (54.4, 152.3), (41.8, 149.3),
-    (35.4, 140.1), (34.6, 130.7), (36.9, 131.0), (38.3, 138.1),
-    (43.1, 144.9), (52.5, 148.1), (57.5, 145.1), (59.6, 138.2),
-    (56.8, 131.3), (50.1, 125.8), (58.4, 126.8), (63.4, 134.1),
+    (82.1, 154.9), (95.7, 156.1), (97.5, 152.3), (110.1, 149.3),
+    (116.5, 140.1), (117.3, 130.7), (115.0, 131.0), (113.6, 138.1),
+    (108.8, 144.9), (99.4, 148.1), (94.4, 145.1), (92.3, 138.2),
+    (95.1, 131.3), (101.8, 125.8), (93.5, 126.8), (88.5, 134.1),
 ]
 
 KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
@@ -194,6 +203,13 @@ TRENNWAND  = 3.0
 RIPPE_DICK = 1.1      # Klemmrippen: duenn genug zum Federn
 RIPPE_TIEF = 5.0      # wie weit sie ins Fach ragen
 RIPPE_BREIT = 8.0     # Auflagebreite pro Rippe
+# Uebermass je Rippe, das beim Einlegen weggedrueckt wird. DAS ist die
+# Groesse, die eine Klemmrippe ausmacht -- nicht ihre Tiefe. Vorher wurde
+# das Fach mit 2*(RIPPE_TIEF-1) Zuschlag gebaut, die Rippen ragten aber
+# volle 5 mm hinein: die Auto-Box bekam 48 mm fuer 50 mm Breite und ging
+# nicht hinein. Das Fachmass muss die Rippentiefe voll enthalten und
+# zusaetzlich dieses kleine Uebermass abziehen.
+RIPPE_PRESS = 0.4
 
 # Stufenfalz: der Deckel traegt eine umlaufende Lippe, die in eine
 # Aussparung an der Wanneninnenkante greift. Aussen bleibt die Fuge eine
@@ -610,7 +626,11 @@ def abzug_rechteck(kontur):
 
 def abgeleitet():
     g = {}
-    zuschlag = 2.0 * (RIPPE_TIEF - 1.0)
+    # Fachmass fuer rippengeklemmten Inhalt: die Rippen ragen VOLL ins
+    # Fach, also muss ihre Tiefe im Mass stecken. Nur das Uebermass
+    # RIPPE_PRESS wird abgezogen -- das ist der Teil, den die Rippe beim
+    # Einlegen nachgibt.
+    zuschlag = 2.0 * (RIPPE_TIEF - RIPPE_PRESS)
     kontur = ctrl_kontur()
     mulde = schlaufen_entfernen(offset_polygon(kontur, MULDE_LUFT))
     xs = [x for (x, _) in mulde]
@@ -715,19 +735,23 @@ def abgeleitet():
     # Zusatzfaecher fuer lose Hot Wheels (LICHTE Masze).
     hb, hl = HW_B + 2 * HW_LUFT, HW_L + 2 * HW_LUFT
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    # Fach A: an die linke Wand, so weit nach vorn wie die Muldenkontur
-    # es zulaesst. Die Lage wird GESUCHT statt gesetzt -- die Kontur ist
-    # gemessen und kann sich beim naechsten Nachmessen wieder aendern,
-    # feste Koordinaten waeren dann still falsch.
-    ax0 = -ix + HW_WAND
+    # Fach 1 liegt in der Kerbe der Controllerkontur. Die Lage wird
+    # GESUCHT statt gesetzt -- die Kontur ist gemessen und kann sich beim
+    # naechsten Nachmessen aendern, feste Koordinaten waeren dann still
+    # falsch. Gesucht wird an BEIDEN Waenden des Controllerfachs: nach dem
+    # Spiegeln der Kontur liegt die Kerbe auf der anderen Seite, und die
+    # alte Suche nur an der linken Wand lief erfolglos durch und nahm dann
+    # trotzdem die letzte Position -- mitten in der Mulde.
     mulde_abs = [(x + g["fachC_x0"], y - g["fachC_t"] / 2.0)
                  for (x, y) in g["mulde"]]
 
-    def frei_bei(y0):
+    def frei_bei(x0, y0):
         # den RAHMEN pruefen, nicht die lichte Kontur -- sonst findet die
         # Suche eine Lage, die die spaetere Pruefung verwirft.
-        rx0, rx1 = ax0 - HW_WAND, ax0 + hb + HW_WAND
+        rx0, rx1 = x0 - HW_WAND, x0 + hb + HW_WAND
         ry0, ry1 = y0 - HW_WAND, y0 + hl + HW_WAND
+        if rx0 < -ix or rx1 > g["fachC_x1"]:
+            return False
         for t in [i / 30.0 for i in range(31)]:
             for q in ((rx0 + (rx1 - rx0) * t, ry0), (rx0 + (rx1 - rx0) * t, ry1),
                       (rx0, ry0 + (ry1 - ry0) * t), (rx1, ry0 + (ry1 - ry0) * t)):
@@ -735,9 +759,23 @@ def abgeleitet():
                     return False
         return True
 
-    ay0 = -iy + HW_WAND
-    while ay0 + hl + HW_WAND < iy and not frei_bei(ay0):
-        ay0 += 1.0
+    platz = None
+    for x0 in (-ix + HW_WAND, g["fachC_x1"] - hb - HW_WAND):
+        y0 = -iy + HW_WAND
+        while y0 + hl + HW_WAND < iy:
+            if frei_bei(x0, y0):
+                platz = (x0, y0)
+                break
+            y0 += 1.0
+        if platz:
+            break
+    if platz is None:
+        raise SystemExit(
+            "FEHLER: kein freier Platz fuer Hot-Wheels-Fach 1 neben der "
+            "Controllermulde (%.0f x %.0f mm Rahmen gesucht). Fach "
+            "weglassen (HW_ANZAHL) oder das Controllerfach verbreitern."
+            % (hb + 2 * HW_WAND, hl + 2 * HW_WAND))
+    ax0, ay0 = platz
     # Faecher B (und C): vorn im rechten Streifen, vor der Auto-Box.
     by1 = g["fachA_y0"] - HW_WAND
     g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl)]
@@ -1743,9 +1781,11 @@ def hw_fach(x0, x1, y0, y1, z1, feder_vorn=True, rahmen=True):
                   rundrechteck(bx + 2 * HW_WAND, by + 2 * HW_WAND,
                                HW_ECKE + HW_WAND)]
         schalen.append(loch_prisma(aussen, innen, 0.0, z1))
-    for dy in (-by * 0.26, by * 0.26):
-        schalen.append(rippe(x0, cy + dy, "+x", 0.0, z1))
-        schalen.append(rippe(x1, cy + dy, "-x", 0.0, z1))
+    # KEINE seitlichen Klemmrippen. Sie standen hier mit voller Tiefe im
+    # Fach: 38 mm licht minus 2 x 5 mm Rippe = 28 mm frei fuer ein 35 mm
+    # breites Auto -- es ging schlicht keines hinein. Die Autobreite ist
+    # gemessen, also braucht es die Rippen gar nicht; 1,5 mm Luft je Seite
+    # reichen, und die 30 mm hohen Fachwaende verhindern das Kippen.
     if feder_vorn:
         schalen.append(hw_feder(x0 + 4.0, x1 - 4.0, y0, +1.0, z1))
     else:
@@ -2414,6 +2454,57 @@ def hw_hohlraum_pruefen(g, schalen):
     return treffer
 
 
+def klemmung_pruefen(g):
+    """Passt der Inhalt WIRKLICH in sein Fach?
+
+    Die Pruefung, die gefehlt hat. Bisher wurde nur geprueft, dass die
+    Faecher einander nicht ueberlappen -- niemand hat nachgerechnet, was
+    von der lichten Weite uebrig bleibt, wenn Klemmrippen und Federn
+    hineinragen. Ergebnis: die Auto-Box bekam 48 mm fuer 50 mm Breite,
+    die Hot-Wheels-Faecher 28 mm fuer 35 mm breite Autos. Beides fiel
+    erst an der fertig gedruckten Wanne auf.
+
+    Geprueft wird je Fach und Achse:
+      frei = lichte Weite - was hineinragt
+    Rippen duerfen bis RIPPE_PRESS je Seite ins Bauteil greifen (das ist
+    ihr Zweck), mehr nicht. Federn duerfen beliebig weit hineinragen,
+    solange das Bauteil bei flachgedrueckter Feder noch hineinpasst.
+    """
+    fehler = []
+
+    def pruefe(name, achse, licht, inhalt, rippen=0, feder_dick=0.0):
+        frei = licht - rippen * RIPPE_TIEF
+        if rippen:
+            uebermass = inhalt - frei
+            if uebermass > rippen * RIPPE_PRESS + 0.05:
+                fehler.append(
+                    "%s %s: %.1f mm frei zwischen den Rippen, Inhalt %.1f mm "
+                    "-- %.1f mm zu eng (erlaubt sind %.1f mm Rippenuebermass)"
+                    % (name, achse, frei, inhalt, uebermass,
+                       rippen * RIPPE_PRESS))
+            elif uebermass < -2.0:
+                fehler.append("%s %s: %.1f mm frei fuer %.1f mm Inhalt -- die "
+                              "Rippen greifen gar nicht mehr"
+                              % (name, achse, frei, inhalt))
+        if feder_dick:
+            # Feder ganz flachgedrueckt: sie belegt nur noch ihre Dicke
+            if licht - feder_dick < inhalt:
+                fehler.append(
+                    "%s %s: auch mit flachgedrueckter Feder nur %.1f mm fuer "
+                    "%.1f mm Inhalt" % (name, achse, licht - feder_dick, inhalt))
+
+    pruefe("Auto-Box", "quer", g["box_l"], AUTOBOX_B, rippen=2)
+    pruefe("Auto-Box", "laengs", g["fachA_t"], AUTOBOX_L, rippen=2)
+    hb, hl = g["hw_licht"]
+    pruefe("Hot-Wheels-Fach", "breit", hb, HW_B)
+    pruefe("Hot-Wheels-Fach", "lang", hl, HW_L, feder_dick=HW_FEDER)
+    # Hoehe: der Deckelraum muss den Inhalt aufnehmen
+    if AUTOBOX_H > MULDE_HOEHE + DECKEL_INNEN:
+        fehler.append("Auto-Box %.0f mm hoch, Fach+Deckel nur %.0f"
+                      % (AUTOBOX_H, MULDE_HOEHE + DECKEL_INNEN))
+    return fehler
+
+
 def mulde_pruefen(g):
     """Die Mulde muss die gemessene Silhouette ueberall umschliessen.
 
@@ -2590,6 +2681,12 @@ def main():
                          "-- der Deckel liesse sich nicht schliessen" % frei)
     print("Falzzone frei (Lippe %.1f mm tief, %.1f mm dick, %.2f mm Spiel)"
           % (FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
+    kfehler = klemmung_pruefen(g)
+    if kfehler:
+        raise SystemExit("FEHLER Passung: " + "; ".join(kfehler))
+    print("Passung: Auto-Box %.1f mm frei zwischen den Rippen (Box %.0f), "
+          "Hot Wheels %.1f mm licht (Auto %.0f)"
+          % (g["box_l"] - 2 * RIPPE_TIEF, AUTOBOX_B, g["hw_licht"][0], HW_B))
     mfehler, mluft = mulde_pruefen(g)
     if mfehler:
         raise SystemExit("FEHLER Mulde: " + "; ".join(mfehler))

@@ -11,7 +11,7 @@
 | **Muldenluft** | 2,0 mm je Seite |
 | **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
 | **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub |
-| **Scharnierachse** | 179 mm rohes 1,75-mm-Filament |
+| **Verschluss** | Deckel zum **Aufstecken** — kein Scharnier, keine Schnapper. Es hält allein der Stufenfalz. |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
 ### Warum 195 × 234 und nicht mehr
@@ -153,6 +153,21 @@ er rotieren und schlagen könnte.
 | Wanne | `rcbox_1_wanne_1x_drucken.stl` | 1 × |
 | Deckel | `rcbox_2_deckel_1x_drucken.stl` | 1 × |
 | Deckellogo je Farbe (nur mit `logo.svg`) | `rcbox_2b…filament2…`, `rcbox_2c…filament3…` | je 1 × |
+
+### Verschluss: nur noch der Stufenfalz
+
+Scharnier und Schnappzungen sind raus.
+
+- **Die Schnappzungen sind im ersten Druck sofort abgebrochen.** Eine
+  1,5 mm dünne Zunge, die außen über die Wannenkante greift, sitzt genau
+  dort, wo ein Koffer beim Abstellen aufsetzt. Am gedruckten Teil hat
+  sich gezeigt, dass der Falz auch ohne sie bombenfest hält.
+- **Das Scharnier ist entfallen**, weil ein aufgesteckter Deckel dieselbe
+  Aufgabe ohne bewegliche Teile erfüllt — und weil die Augen 4 mm über
+  die Rückwand hinausstanden. Kein Rohfilament mehr nötig.
+
+Beides bleibt im Generator erhalten und ist über `MIT_SCHARNIER` bzw.
+`MIT_SCHNAPPER` wieder einschaltbar.
 
 Als Scharnierachse dient **179 mm rohes 1,75-mm-Filament** — es wird
 nichts dafür gedruckt. Nur mit `--gedruckter-stift` entsteht zusätzlich

@@ -300,6 +300,17 @@ HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 # Koffer ist mit 213 x 212 x 66 mm und rund 0,8 kg bequem an den Seiten
 # zu greifen. Mit --mit-griff werden Nuten und Buegel wieder erzeugt.
 MIT_GRIFF = False
+# Deckel wird AUFGESTECKT statt aufgeklappt. Der Stufenfalz ist die
+# Aussparung, die fuehrt, die Rastkeile halten ihn zu -- die letzte
+# gedruckte Version sass damit bombenfest. Das Scharnier faellt weg:
+# keine Augen, keine Achse, kein Rohfilament, und die Augen standen
+# ausserdem 4 mm ueber die Rueckwand hinaus.
+MIT_SCHARNIER = False
+# Schnappzungen: RAUS. Sie sind im ersten Druck sofort abgebrochen --
+# eine 1,5 mm duenne Zunge, die ueber die Wannenkante greift, ist genau
+# die Stelle, an der ein Koffer beim Hinstellen aufsetzt. Der Stufenfalz
+# haelt den Deckel auch ohne sie fest (im gedruckten Teil bestaetigt).
+MIT_SCHNAPPER = False
 GRIFF_BREIT = 90.0    # lichte Grifflaenge
 GRIFF_HOCH  = 24.0
 GRIFF_PROFIL = 12.0   # Querschnitt des Buegels
@@ -1872,37 +1883,38 @@ def teil_wanne(g):
         schalen.append(rippe(ax + dx, g["box_y0"], "+y", 0.0, z1))
         schalen.append(rippe(ax + dx, g["box_y1"], "-y", 0.0, z1))
 
-    # Scharnieraugen hinten aussen (Achse X, Lochmitte 4 ueber Randkante)
-    z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
-    y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
-    sb = g["schar_breite"]
-    loch_w = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_DREH
-    for nr, x0 in enumerate(g["schar_wanne"]):
-        # Das linke Aussensegment bekommt die Ansenkung (dort wird die
-        # Achse eingeschoben), das rechte das Blindende.
-        erstes = (nr == 0)
-        letztes = (nr == len(g["schar_wanne"]) - 1)
-        auge = scharnier_auge(
-            loch_w, sb,
-            sack=SACK_T if (letztes and not GEDRUCKTER_STIFT) else 0.0,
-            senkung=SENKUNG_T if (erstes and not GEDRUCKTER_STIFT) else 0.0)
-        for teil in auge:
-            schalen.append(verschieben(teil, x0, y_auge, z_achse))
-        # Stuetzsteg vom Auge zur Rueckwand, ueber die volle Segmentbreite
-        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
-                (x0 + sb, y_auge), (x0, y_auge)]
-        schalen.append(prisma(steg, z_rand - 8.0, z_achse))
+    # Scharnieraugen -- nur wenn das Scharnier ueberhaupt gebaut wird.
+    if MIT_SCHARNIER:
+        z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
+        y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
+        sb = g["schar_breite"]
+        loch_w = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_DREH
+        for nr, x0 in enumerate(g["schar_wanne"]):
+            erstes = (nr == 0)
+            letztes = (nr == len(g["schar_wanne"]) - 1)
+            auge = scharnier_auge(
+                loch_w, sb,
+                sack=SACK_T if (letztes and not GEDRUCKTER_STIFT) else 0.0,
+                senkung=SENKUNG_T if (erstes and not GEDRUCKTER_STIFT) else 0.0)
+            for teil in auge:
+                schalen.append(verschieben(teil, x0, y_auge, z_achse))
+            steg = [(x0, g["aussen_y"] / 2.0 - 1.0),
+                    (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
+                    (x0 + sb, y_auge), (x0, y_auge)]
+            schalen.append(prisma(steg, z_rand - 8.0, z_achse))
 
-    # Rastkeile vorn (halbe Raute quer): Zunge des Deckels schnappt darunter
-    y_front = -g["aussen_y"] / 2.0
-    for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
-        keil_profil = [(y_front, z_rand - 6.0),
-                       (y_front - HAKEN, z_rand - 6.0 + HAKEN),
-                       (y_front, z_rand - 6.0 + 2 * HAKEN)]
-        # Profil liegt in (y,z); entlang X extrudieren
-        t = prisma(keil_profil, xm - ZUNGE_BREIT / 2.0, xm + ZUNGE_BREIT / 2.0)
-        t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
-        schalen.append(t)
+    # Rastkeile vorn -- nur mit Schnappern. Ohne sie bleibt die
+    # Aussenflaeche vollstaendig glatt.
+    if MIT_SCHNAPPER:
+        y_front = -g["aussen_y"] / 2.0
+        for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
+            keil_profil = [(y_front, z_rand - 6.0),
+                           (y_front - HAKEN, z_rand - 6.0 + HAKEN),
+                           (y_front, z_rand - 6.0 + 2 * HAKEN)]
+            t = prisma(keil_profil, xm - ZUNGE_BREIT / 2.0,
+                       xm + ZUNGE_BREIT / 2.0)
+            t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
+            schalen.append(t)
 
     return schalen
 
@@ -2039,60 +2051,56 @@ def teil_deckel(g):
                 "Drehrad (Radmitte x=%.0f y=%.0f, D=%.0f) -- Federposition "
                 "oder Spannweite anpassen" % (cx, y, rad_x, rad_y, RAD_D))
 
-    # Scharnieraugen (versetzt zu denen der Wanne, Presssitz)
+    # Scharnieraugen des Deckels -- nur wenn ein Scharnier gebaut wird.
     z_rand = BODEN + DECKEL_INNEN
-    y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
-    sb = g["schar_breite"]
-    # ACHTUNG Spiegelung: der Deckel wird um Y gespiegelt gedruckt
-    # ((x,y,z)->(-x,y,z_top-z)). Ein Segment, das im GEBRAUCH bei
-    # [a, a+sb] sitzen soll, muss hier also bei [-(a+sb), -a] stehen.
-    # Ohne diese Umrechnung landen Deckel- und Wannensegmente
-    # uebereinander statt ineinander -- der Deckel liesse sich nicht
-    # anscharnieren.
-    loch_d_ = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_PRESS
-    for a in g["schar_deckel"]:
-        x0 = -(a + sb)
-        for teil in scharnier_auge(loch_d_, sb):
-            schalen.append(verschieben(teil, x0, y_auge,
-                                       z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
-        steg = [(x0, g["aussen_y"] / 2.0 - 1.0), (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
-                (x0 + sb, y_auge), (x0, y_auge)]
-        schalen.append(prisma(steg, z_rand - 10.0,
-                              z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
+    if MIT_SCHARNIER:
+        y_auge = g["aussen_y"] / 2.0 + SCHARNIER_AUGE / 2.0 - 1.5
+        sb = g["schar_breite"]
+        # ACHTUNG Spiegelung: der Deckel wird um Y gespiegelt gedruckt
+        # ((x,y,z)->(-x,y,z_top-z)). Ein Segment, das im GEBRAUCH bei
+        # [a, a+sb] sitzen soll, muss hier bei [-(a+sb), -a] stehen.
+        loch_d_ = LOCH_ACHSE if not GEDRUCKTER_STIFT else LOCH_PRESS
+        for a in g["schar_deckel"]:
+            x0 = -(a + sb)
+            for teil in scharnier_auge(loch_d_, sb):
+                schalen.append(verschieben(teil, x0, y_auge,
+                                           z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
+            steg = [(x0, g["aussen_y"] / 2.0 - 1.0),
+                    (x0 + sb, g["aussen_y"] / 2.0 - 1.0),
+                    (x0 + sb, y_auge), (x0, y_auge)]
+            schalen.append(prisma(steg, z_rand - 10.0,
+                                  z_rand - SCHARNIER_AUGE / 2.0 + 2.0))
 
-    # Schnappzungen vorn. Geometrie im GEBRAUCH: der Rastkeil der Wanne
-    # sitzt aussen auf der Frontwand (Unterkante wanne_innen_h - 6, Spitze
-    # 2.2 vor der Wand). Die Zunge muss also 0.4 mm VOR der Keilspitze
-    # herabhaengen und ihr Haken nach innen unter den Keil schnappen --
-    # nicht an der Wand anliegen. Anbindung an den Deckel ueber einen
-    # Ausleger, der oberhalb des Keils ueber die Wannenkante greift.
-    def gz(z_gebrauch):
-        """Gebrauchs-z -> Druck-z des Deckels (gespiegelt)."""
-        return (g["wanne_innen_h"] + DECKEL_INNEN + BODEN) - z_gebrauch
-    y_wand = -g["aussen_y"] / 2.0
-    keil_unter = g["wanne_innen_h"] - 6.0            # Gebrauch (Wannenoberkante)
-    y_zunge_i = y_wand - HAKEN - 0.4                 # Innenflaeche der Zunge
-    for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
-        x0, x1 = xm - ZUNGE_BREIT / 2.0, xm + ZUNGE_BREIT / 2.0
-        # Ausleger: vom Wandring ueber die Wannenkante nach aussen
-        ausleger = [(y_zunge_i - ZUNGE_DICK, z_rand - 3.0),
-                    (y_wand + 2.0, z_rand - 3.0),
-                    (y_wand + 2.0, z_rand),
-                    (y_zunge_i - ZUNGE_DICK, z_rand)]
-        # Zungensteg: steht im Druck nach oben, aussen am Ausleger
-        steg = [(y_zunge_i - ZUNGE_DICK, z_rand - 3.0),
-                (y_zunge_i, z_rand - 3.0),
-                (y_zunge_i, gz(keil_unter) + 2.5),
-                (y_zunge_i - ZUNGE_DICK, gz(keil_unter) + 2.5)]
-        # Rautenhaken auf Keilhoehe (45/45: schnappt beim Schliessen ueber
-        # den Keil und rastet unter seiner Unterkante ein)
-        haken = [(y_zunge_i, gz(keil_unter) - 2.2),
-                 (y_zunge_i + HAKEN, gz(keil_unter)),
-                 (y_zunge_i, gz(keil_unter) + 2.2)]
-        for profil in (ausleger, steg, haken):
-            t = prisma(profil, x0, x1)
-            t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
-            schalen.append(t)
+    # Schnappzungen vorn -- nur mit MIT_SCHNAPPER. Sie sind im ersten
+    # Druck sofort abgebrochen; der Stufenfalz haelt allein.
+    if MIT_SCHNAPPER:
+        def gz(z_gebrauch):
+            """Gebrauchs-z -> Druck-z des Deckels (gespiegelt)."""
+            return (g["wanne_innen_h"] + DECKEL_INNEN + BODEN) - z_gebrauch
+        y_wand = -g["aussen_y"] / 2.0
+        keil_unter = g["wanne_innen_h"] - 6.0            # Gebrauch (Wannenoberkante)
+        y_zunge_i = y_wand - HAKEN - 0.4                 # Innenflaeche der Zunge
+        for xm in (-g["aussen_x"] * 0.25, g["aussen_x"] * 0.25):
+            x0, x1 = xm - ZUNGE_BREIT / 2.0, xm + ZUNGE_BREIT / 2.0
+            # Ausleger: vom Wandring ueber die Wannenkante nach aussen
+            ausleger = [(y_zunge_i - ZUNGE_DICK, z_rand - 3.0),
+                        (y_wand + 2.0, z_rand - 3.0),
+                        (y_wand + 2.0, z_rand),
+                        (y_zunge_i - ZUNGE_DICK, z_rand)]
+            # Zungensteg: steht im Druck nach oben, aussen am Ausleger
+            steg = [(y_zunge_i - ZUNGE_DICK, z_rand - 3.0),
+                    (y_zunge_i, z_rand - 3.0),
+                    (y_zunge_i, gz(keil_unter) + 2.5),
+                    (y_zunge_i - ZUNGE_DICK, gz(keil_unter) + 2.5)]
+            # Rautenhaken auf Keilhoehe (45/45: schnappt beim Schliessen ueber
+            # den Keil und rastet unter seiner Unterkante ein)
+            haken = [(y_zunge_i, gz(keil_unter) - 2.2),
+                     (y_zunge_i + HAKEN, gz(keil_unter)),
+                     (y_zunge_i, gz(keil_unter) + 2.2)]
+            for profil in (ausleger, steg, haken):
+                t = prisma(profil, x0, x1)
+                t = [tuple((z, x, y) for (x, y, z) in tri) for tri in t]
+                schalen.append(t)
 
     if not MIT_GRIFF:
         return schalen
@@ -2586,15 +2594,23 @@ def main():
     hw_fehler = hw_faecher_pruefen(g)
     if hw_fehler:
         raise SystemExit("FEHLER: " + "; ".join(hw_fehler))
-    sfehler, tragend = scharnier_pruefen(g)
-    if sfehler:
-        raise SystemExit("FEHLER Scharnier: " + "; ".join(sfehler))
-    achse = "gedruckter Stift %.1f mm" % STIFT_D if GEDRUCKTER_STIFT \
-        else "Rohfilament %.2f mm" % FILAMENT_D
-    print("Scharnierband: %d Segmente a %.0f mm (Wanne %d / Deckel %d), "
-          "tragende Breite %.0f mm, Achse: %s"
-          % (SCHARNIER_SEG, g["schar_breite"], len(g["schar_wanne"]),
-             len(g["schar_deckel"]), tragend, achse))
+    if MIT_SCHARNIER:
+        sfehler, tragend = scharnier_pruefen(g)
+        if sfehler:
+            raise SystemExit("FEHLER Scharnier: " + "; ".join(sfehler))
+    if MIT_SCHARNIER:
+        achse = "gedruckter Stift %.1f mm" % STIFT_D if GEDRUCKTER_STIFT \
+            else "Rohfilament %.2f mm" % FILAMENT_D
+        print("Scharnierband: %d Segmente a %.0f mm (Wanne %d / Deckel %d), "
+              "tragende Breite %.0f mm, Achse: %s"
+              % (SCHARNIER_SEG, g["schar_breite"], len(g["schar_wanne"]),
+                 len(g["schar_deckel"]), tragend, achse))
+    else:
+        print("Deckel: zum AUFSTECKEN, kein Scharnier%s. Gefuehrt und "
+              "gehalten wird er allein vom Stufenfalz: %.0f mm tief, "
+              "%.1f mm Lippe, %.2f mm Spiel je Flanke."
+              % ("" if MIT_SCHNAPPER else ", keine Schnappzungen",
+                 FALZ_H, FALZ_T - 2 * FALZ_SP, FALZ_SP))
 
     voll = hw_hohlraum_pruefen(g, wanne)
     if voll:
@@ -2672,7 +2688,12 @@ def main():
         print("Griff-Variante aus: alte %s geloescht"
               % os.path.basename(griff_datei))
     stift_datei = os.path.join(ziel, "rcbox_4_achsstift_2x_drucken.stl")
-    if GEDRUCKTER_STIFT:
+    if not MIT_SCHARNIER:
+        # Ohne Scharnier gibt es keine Achse -- und eine alte Stift-STL
+        # darf nicht als Falle im Ordner liegen bleiben.
+        if os.path.exists(stift_datei):
+            os.remove(stift_datei)
+    elif GEDRUCKTER_STIFT:
         # Stehend gedruckt laegen alle Lagen quer zur Achse; flach legen:
         # (x,y,z) -> (z, x, y) plus Hub, damit die Fasern laengs laufen.
         stift_flach = [[tuple((z_, x_, y_ + 5.0) for (x_, y_, z_) in tri)

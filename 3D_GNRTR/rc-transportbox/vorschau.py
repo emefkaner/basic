@@ -578,8 +578,8 @@ def main():
          [(deckel, blau)],
          drehung=math.radians(205), skala=2.0,
          titel="Deckel in Drucklage (Innenseite oben)",
-         untertitel="Federboegen halten den Inhalt nieder - vorn "
-                    "Schnappzungen - hinten Scharnieraugen"
+         untertitel="Federboegen halten den Inhalt nieder, ringsum die "
+                    "Falzlippe - kein Scharnier, keine Schnapper"
                     + (" - aussen T-Nuten" if g.MIT_GRIFF else ""),
          tilt=math.radians(42))
 

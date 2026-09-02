@@ -32,9 +32,41 @@ clip, not at one timestamp.
 | S16_02 | plate | — | prompt delivered | Young alone, small window, greenscreen |
 | S16_03 | 13.3 s | portrait blur slipped | rejected | dynamic, greenscreen, prop from 10.0 s |
 | S16_05 | 15.6 s | yes (tracked + keyframes 0.55–2.6 s) | came back driving | prompt reworked: altitude leads, flare at 0:04, artifact from 0:12 |
+| S16_06 | 10.3 s | not needed (no portrait) | 1st run re-staged; 2nd prompt hit the NSFW text filter | artifact close-up; final prompt de-personalises the light ("lantern inside the brass"), veins only under the hand, max 10 cm, no liquid |
 | S16_07 | 15.0 s | yes (tracker alone) | prompt delivered | second small window on the left matters |
+| S16_10 | 14.3 s | not needed (no portrait) | prompt delivered | Young seated, window left, scaffold in plate named in the exclusion list |
 | S16_11 | 10.3 s | yes (tracked + keyframes to 2.0 s) | passed | |
+| S16_12 | 7.5 s | not needed (no portrait) | prompt delivered | same setup as S16_10, closer |
 | S16_13 | 15.0 s | yes (tracked) | passed | first proof that the portrait was the cause |
+| S16_14 | 11.0 s | yes (tracked, box to frame bottom) | 1st run re-staged (panorama window); pure-post sky version rejected by user | current prompt: KEEP-first minimal window block, 30 m, TRACKED plate; if it works, restore the original Lincoln region in post from the tracking data |
+
+## S17 (prison compartment, airborne)
+
+- Height in S17 is **20 m** (S16 flies at 40 m, S16_14 was reworked at 30 m per
+  user — heights are per-shot, always confirm).
+- S17_02 (4.0 s): VILLAIN from behind at the grille, hand on the grimy pane.
+  No portrait, no prop — original plate uploads as-is. Prompt delivered: view
+  through the pane → @WILDWEST from 20 m, left to right, dirt on the glass
+  explicitly preserved (the model must not "clean" the pane).
+- S17_04 (10 s): passed with the defused packaging (three timed flashes).
+- S17_05 (4 s): one flash at 0:02 toward the lens; prompt delivered.
+
+## Music keeps sneaking in
+
+Despite a closing "No music." the model scored the first artifact shot. Since
+then every prompt carries a dedicated block: "AUDIO — DOCUMENTARY SOUND ONLY,
+ABSOLUTELY NO MUSIC", listing the excluded categories, a falsification clause,
+and any low tone described as physical resonance ("metal resonating in a room,
+no melody, no rhythm, no rising pitch") — never as a "deep tone" alone.
+
+## The NSFW text filter has a body cluster
+
+The S16_06 effect prompt was rejected: "light seeping through the gaps between
+his fingers", "rims their edges", "warm glow under his palm", "skin", plus
+"he has done this many times and is braced for it" read as a different kind of
+scene to a cluster matcher. Fix: de-personalise light near bodies — the light
+belongs to the object ("a lantern inside the brass", "traces the outline of
+the hand"), minimise finger/skin vocabulary, cut experience-innuendo lines.
 
 ## S16_05 — the extras in that shot
 

@@ -181,6 +181,12 @@ The plate carries the action — the prompt never has to name it. Rules:
   when the restraint itself must be named.
 - **Effects on objects may be fully described** — a metal fitting bursting in sparks
   and scattering pieces is fine; it is person-directed wording that trips the filter.
+- **The NSFW filter has a body cluster.** Light effects described on skin trip it:
+  "seeping through the gaps between his fingers", "rims their edges", "glow under
+  his palm", repeated "skin", plus lines like "he has done this many times and is
+  braced for it". De-personalise: the light belongs to the object ("a lantern lit
+  inside the metal", "traces the outline of the hand"), name fingers/skin at most
+  once, and cut experience-phrasing entirely.
 - The image-side scanner is separate: dark frames + hood + gun pointed at people can
   reject the *upload* regardless of text. Fixes there: brighter export, shifted
   in-point, small crop, re-tries.

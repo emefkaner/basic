@@ -145,13 +145,12 @@ def falz_detail(pfad, p):
 def draufsicht(pfad, p):
     """Massstaebliche Belegung der Wanne von oben.
 
-    Zeigt, was den Platz wirklich belegt: die Controller-Silhouette, die
-    Auto-Box und die zwei Hot-Wheels-Faecher -- plus die Restflaechen mit
-    ihren Maszen. Die Restflaechen sehen im 3D-Bild groesser aus als sie
+    Zeigt, was den Platz wirklich belegt: die Controller-Silhouette und
+    die Auto-Box in der Kerbe daneben. Die Restflaechen sehen im 3D-Bild groesser aus als sie
     sind, weil die Mulde konkav ist."""
     ix, iy = p["innen_x"] / 2.0, p["innen_y"] / 2.0
     ax, ay = p["aussen_x"] / 2.0, p["aussen_y"] / 2.0
-    mx0, my0 = p["fachC_x0"], -p["fachC_t"] / 2.0
+    mx0, my0 = p["mulde_off"]
     kontur = [(x + mx0, y + my0) for (x, y) in p["kontur"]]
     s = 2.2
     rand = 26.0
@@ -193,26 +192,13 @@ def draufsicht(pfad, p):
     txt(mx0 + p["schnauz_pos"][0] + 26, my0 + p["schnauz_pos"][1] - 26,
         "Controller", 11, "#fff", fett=True)
 
-    # Zubehoerfach links neben der Box (Rest des verbreiterten Streifens)
-    z.append(poly([(p["fachA_x0"], p["fachA_y0"]),
-                   (p["box_x0"] - g.TRENNWAND, p["fachA_y0"]),
-                   (p["box_x0"] - g.TRENNWAND, p["fachA_y1"]),
-                   (p["fachA_x0"], p["fachA_y1"])],
-                  "#ece7dd", "#a9a196", 1.0))
-    zmx = (p["fachA_x0"] + p["box_x0"] - g.TRENNWAND) / 2.0
-    zmy = (p["fachA_y0"] + p["fachA_y1"]) / 2.0
-    txt(zmx, zmy + 6, "Zubehoer", 9.5, "#5c5348", fett=True)
-    txt(zmx, zmy - 6, "%.0f x %.0f"
-        % (p["box_x0"] - g.TRENNWAND - p["fachA_x0"],
-           p["fachA_y1"] - p["fachA_y0"]), 8.5, "#7d766c")
-
-    z.append(poly([(p["box_x0"], p["fachA_y0"]), (p["fachA_x1"], p["fachA_y0"]),
-                   (p["fachA_x1"], p["fachA_y1"]), (p["box_x0"], p["fachA_y1"])],
+    z.append(poly([(p["box_x0"], p["box_y0"]), (p["box_x1"], p["box_y0"]),
+                   (p["box_x1"], p["box_y1"]), (p["box_x0"], p["box_y1"])],
                   "#b1483f", "#7d2a23", 1.0))
-    txt((p["box_x0"] + p["fachA_x1"]) / 2.0,
-        (p["fachA_y0"] + p["fachA_y1"]) / 2.0 + 6, "Auto-Box", 10, "#fff", fett=True)
-    txt((p["box_x0"] + p["fachA_x1"]) / 2.0,
-        (p["fachA_y0"] + p["fachA_y1"]) / 2.0 - 6, "100 x 50", 9, "#f4d7d2")
+    txt((p["box_x0"] + p["box_x1"]) / 2.0,
+        (p["box_y0"] + p["box_y1"]) / 2.0 + 6, "Auto-Box", 10, "#fff", fett=True)
+    txt((p["box_x0"] + p["box_x1"]) / 2.0,
+        (p["box_y0"] + p["box_y1"]) / 2.0 - 6, "100 x 50", 9, "#f4d7d2")
 
     hb, hl = p["hw_licht"]
     for nr, (x0, x1, y0, y1) in enumerate(p["hw"], 1):
@@ -231,9 +217,9 @@ def draufsicht(pfad, p):
 
     txt(0, iy + 12, "aussen %.0f x %.0f mm" % (p["aussen_x"], p["aussen_y"]),
         10, "#555")
-    txt(0, -iy - 17, "Rest links: Keilform, unter 43 mm breit &#8212; kein "
-                     "weiteres Auto. Rechts ist der Streifen voll belegt: "
-                     "Box, zwei Faecher, Zubehoer.", 9, "#777")
+    txt(0, -iy - 17, "Auto-Box in der Kerbe neben dem Griff &#8212; kleinste "
+                     "Flaeche, die Mulde und Box zusammen fassen "
+                     "(Packtest ueber alle Lagen)", 9, "#777")
     z.append('</svg>')
     with open(pfad, "w") as f:
         f.write("\n".join(z))
@@ -313,7 +299,7 @@ def controller_lage(pfad, p):
     lag; oben rechts dieselbe Form um 90 Grad gedreht in der Wanne; unten
     ein Hoehenschnitt, der zeigt, was in der 30 mm tiefen Mulde steckt und
     was frei in den Deckelraum ragt."""
-    mx0, my0 = p["fachC_x0"], -p["fachC_t"] / 2.0
+    mx0, my0 = p["mulde_off"]
     kontur = p["kontur"]
     # in die Fotolage drehen (Rad links, Griffende rechts). Der Bezug muss
     # aus der Kontur kommen, nicht aus einer festen Zahl -- die 190 mm von
@@ -345,19 +331,19 @@ def controller_lage(pfad, p):
         "middle", True)
     txt(ox + 30 * fs, oy + 30 * fs, "Rad", 12, "#fff")
     txt(ox + 150 * fs, oy + 95 * fs, "Griff", 12, "#fff")
-    # Fach 1 an seiner ECHTEN Stelle zeigen, in dieselbe Lage gedreht
-    hx0, hx1, hy0, hy1 = p["hw"][0]
-    hm = [(hx0 - mx0, hy0 - my0), (hx1 - mx0, hy1 - my0)]
-    hf = [(kymax - y, x) for (x, y) in hm]
-    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="5" '
-             'fill="#e5dcf2" fill-opacity="0.75" stroke="#7d3fa8" '
+    # Auto-Box an ihrer echten Stelle, in dieselbe Lage gedreht
+    bm = [(p["box_x0"] - mx0, p["box_y0"] - my0),
+          (p["box_x1"] - mx0, p["box_y1"] - my0)]
+    bf = [(kymax - y, x) for (x, y) in bm]
+    z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" rx="4" '
+             'fill="#e8c9c3" fill-opacity="0.85" stroke="#7d2a23" '
              'stroke-width="2"/>'
-             % (ox + min(hf[0][0], hf[1][0]) * fs,
-                oy + min(hf[0][1], hf[1][1]) * fs,
-                abs(hf[1][0] - hf[0][0]) * fs, abs(hf[1][1] - hf[0][1]) * fs))
-    txt(ox + (hf[0][0] + hf[1][0]) / 2.0 * fs,
-        oy + (hf[0][1] + hf[1][1]) / 2.0 * fs,
-        "Hot Wheels", 12, "#4b2570", "middle", True)
+             % (ox + min(bf[0][0], bf[1][0]) * fs,
+                oy + min(bf[0][1], bf[1][1]) * fs,
+                abs(bf[1][0] - bf[0][0]) * fs, abs(bf[1][1] - bf[0][1]) * fs))
+    txt(ox + (bf[0][0] + bf[1][0]) / 2.0 * fs,
+        oy + (bf[0][1] + bf[1][1]) / 2.0 * fs,
+        "Auto-Box", 12, "#7d2a23", "middle", True)
     # Der Abzug sitzt in seiner eigenen Aussparung -- die war im ersten
     # Lehrendruck zu, deshalb hier mitzeichnen.
     af = [(kymax - y, x) for (x, y) in p["abzug"]]
@@ -392,16 +378,16 @@ def controller_lage(pfad, p):
                  % (X(x0), Y(y1), (x1 - x0) * sc, (y1 - y0) * sc))
     z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" '
              'fill="#b1483f" stroke="#7d2a23" stroke-width="1.4"/>'
-             % (X(p["fachA_x0"]), Y(p["fachA_y1"]),
-                (p["fachA_x1"] - p["fachA_x0"]) * sc,
-                (p["fachA_y1"] - p["fachA_y0"]) * sc))
+             % (X(p["box_x0"]), Y(p["box_y1"]),
+                (p["box_x1"] - p["box_x0"]) * sc,
+                (p["box_y1"] - p["box_y0"]) * sc))
     txt(bx + ix * sc, 74, "2 - dieselbe Form in der Wanne (90 Grad gedreht)",
         14, "#1a1a1a", "middle", True)
     txt(X(mx0 + p["rad_pos"][0]), Y(my0 + p["rad_pos"][1]), "Rad", 12, "#fff")
     txt(X(mx0 + p["griff_pos"][0]), Y(my0 + p["griff_pos"][1]) + 4, "Griff",
         12, "#fff")
-    txt(X((p["fachA_x0"] + p["fachA_x1"]) / 2.0),
-        Y((p["fachA_y0"] + p["fachA_y1"]) / 2.0), "Auto-Box", 12, "#fff",
+    txt(X((p["box_x0"] + p["box_x1"]) / 2.0),
+        Y((p["box_y0"] + p["box_y1"]) / 2.0), "Auto-Box", 12, "#fff",
         "middle", True)
 
     # ---- unten: Hoehenschnitt
@@ -547,12 +533,14 @@ def main():
     griff = flach(g.teil_griff(p)) if g.MIT_GRIFF else []
 
     # 1) Wanne offen, Blick in die Faecher; Attrappen des Inhalts
-    box_att = g.prisma([(p["fachA_x0"] + 4, -g.AUTOBOX_L / 2),
-                        (p["fachA_x0"] + 4 + g.AUTOBOX_B, -g.AUTOBOX_L / 2),
-                        (p["fachA_x0"] + 4 + g.AUTOBOX_B, g.AUTOBOX_L / 2),
-                        (p["fachA_x0"] + 4, g.AUTOBOX_L / 2)], 0.0, g.AUTOBOX_H)
-    mx0 = p["fachC_x0"]
-    my0 = -p["fachC_t"] / 2.0
+    bmx = (p["box_x0"] + p["box_x1"]) / 2.0
+    bmy = (p["box_y0"] + p["box_y1"]) / 2.0
+    box_att = g.prisma([(bmx - g.AUTOBOX_B / 2, bmy - g.AUTOBOX_L / 2),
+                        (bmx + g.AUTOBOX_B / 2, bmy - g.AUTOBOX_L / 2),
+                        (bmx + g.AUTOBOX_B / 2, bmy + g.AUTOBOX_L / 2),
+                        (bmx - g.AUTOBOX_B / 2, bmy + g.AUTOBOX_L / 2)],
+                       0.0, g.AUTOBOX_H)
+    mx0, my0 = p["mulde_off"]
     # Attrappe zweiteilig: Gehaeuse bis CTRL_GEHAEUSE_D, darueber das
     # Drehrad -- so ist sichtbar, dass das Rad nach OBEN frei ausragt
     ctrl_att = g.prisma([(x + mx0, y + my0) for (x, y) in p["kontur"]],
@@ -572,7 +560,7 @@ def main():
          drehung=math.radians(28), skala=1.8,
          titel="Wanne: Konturmulde + Auto-Box (Attrappen rot)",
          untertitel="Gehaeuse (hell) in der Mulde, Drehrad (dunkel) frei "
-                    "nach oben, drei Hot Wheels (violett) in Einzelfaechern",
+                    "nach oben, Auto-Box (rot) in der Kerbe daneben",
          tilt=math.radians(52))
 
     # 1b) Wanne leer, damit die Mulde selbst sichtbar ist

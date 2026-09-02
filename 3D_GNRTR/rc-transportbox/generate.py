@@ -180,8 +180,16 @@ KLEMMWEG   = 4.0      # was die Rippen je Seite schlucken koennen
 # Seite wachsen -- das deckt genau den Weg zurueck zur alten Muldenluft
 # von 4 mm ab. Reicht das nicht, bricht der Generator ab, statt still ein
 # anderes Aussenmasz zu erzeugen.
-FACHC_FEST = (166.0, 230.0)
-STEG_MIN = 3.0        # Mindestmaterial zwischen Mulde und Fachwand
+STEG_MIN = 3.0        # Mindestmaterial zwischen Mulde, Box und Aussenwand
+
+# Lage der Auto-Box relativ zur linken unteren Ecke der Muldenkontur.
+# Nicht von Hand gesetzt, sondern aus einem vollstaendigen Packtest: alle
+# Positionen im 1-mm-Raster, beide Achslagen, Ziel war die kleinste
+# umschliessende Flaeche. Die Box rutscht dabei in die Kerbe neben dem
+# Pistolengriff -- genau die Anordnung, die der Nutzer am gedruckten Teil
+# vorgemacht hat. Ergebnis: 195 x 234 statt 266 x 238 mm Aussenmasz.
+# Nachrechnen laesst sich das mit packtest_box() (Aufruf am Ende).
+BOX_NEBEN_MULDE = (122.0, 0.0)
 
 # Bauraum Bambu H2S. Nennmass 350 x 350; vorsichtshalber 350 x 320
 # gerechnet, und 20 mm Rand je Seite fuer Brim und Bettschiefe.
@@ -635,35 +643,20 @@ def abgeleitet():
     mulde = schlaufen_entfernen(offset_polygon(kontur, MULDE_LUFT))
     xs = [x for (x, _) in mulde]
     ys = [y for (_, y) in mulde]
-    # Das Controllerfach hat ein FESTES Aussenmasz (FACHC_FEST), die Mulde
-    # wird darin zentriert. Frueher wuchs das Fach aus der Mulde heraus --
-    # damit haette jede Muldenkorrektur den ganzen Koffer und den Deckel
-    # verschoben, und ein bereits gedruckter Deckel waere Ausschuss.
-    g["fachC_l"], g["fachC_t"] = FACHC_FEST
-    steg_x = (g["fachC_l"] - (max(xs) - min(xs))) / 2.0
-    steg_y = (g["fachC_t"] - (max(ys) - min(ys))) / 2.0
-    if steg_x < STEG_MIN or steg_y < STEG_MIN:
-        raise SystemExit(
-            "FEHLER: Mulde %.1f x %.1f passt nicht mehr in das feste Fach "
-            "%.0f x %.0f (Randsteg %.1f / %.1f, mindestens %.1f). Entweder "
-            "MULDE_LUFT zuruecknehmen -- oder FACHC_FEST vergroessern, dann "
-            "aendert sich aber das Aussenmasz und der Deckel muss neu."
-            % (max(xs) - min(xs), max(ys) - min(ys), g["fachC_l"],
-               g["fachC_t"], steg_x, steg_y, STEG_MIN))
-    g["steg"] = (steg_x, steg_y)
-    g["mulde"] = [(x - min(xs) + steg_x, y - min(ys) + steg_y)
-                  for (x, y) in mulde]
-    g["kontur"] = [(x - min(xs) + steg_x, y - min(ys) + steg_y)
-                   for (x, y) in kontur]
+    # Mulde und Kontur auf den Ursprung normieren. Wo sie im Koffer
+    # liegen, entscheidet spaeter mulde_off -- der Innenraum ergibt sich
+    # aus der Packung von Mulde und Auto-Box, nicht umgekehrt.
+    g["mulde"] = [(x - min(xs), y - min(ys)) for (x, y) in mulde]
+    g["kontur"] = [(x - min(xs), y - min(ys)) for (x, y) in kontur]
     # Grobe Aussparung fuer den Abzug, in die Mulde eingeschmolzen.
     g["abzug"] = abzug_rechteck(g["kontur"])
     g["mulde"] = polygon_vereinigen(g["mulde"], g["abzug"])
     xs = [x for (x, _) in g["mulde"]]
     ys = [y for (_, y) in g["mulde"]]
-    if (min(xs) < STEG_MIN - 0.01 or min(ys) < STEG_MIN - 0.01
-            or max(xs) > g["fachC_l"] - STEG_MIN + 0.01
-            or max(ys) > g["fachC_t"] - STEG_MIN + 0.01):
-        raise SystemExit("FEHLER: Abzugsaussparung durchbricht den Randsteg")
+    g["mulde"] = [(x - min(xs), y - min(ys)) for (x, y) in g["mulde"]]
+    g["kontur"] = [(x - min(xs), y - min(ys)) for (x, y) in g["kontur"]]
+    xs = [x for (x, _) in g["mulde"]]
+    ys = [y for (_, y) in g["mulde"]]
     # Bezugspunkte ueber ihre LAGE bestimmen, nicht ueber Konturindizes:
     # das Glaetten des Kopfes aendert die Punktzahl, Indizes waeren still
     # falsch geworden.
@@ -689,19 +682,28 @@ def abgeleitet():
     # gemessen, die Rippen standen als "Nubsis" in der Mulde und wurden
     # nicht gebraucht. Die Laengsfeder nimmt das Restspiel.
     g["rippen_idx"] = []
-    # fachC_l / fachC_t stehen schon fest (FACHC_FEST), siehe oben.
-    # Rechter Streifen: er traegt die Auto-Box UND die Hot-Wheels-Faecher
-    # 2 und 3 nebeneinander. Zwei Faecher brauchen mehr Breite als die
-    # Box allein -- das kostet 30 mm Aussenmasz und ist der billigste Weg
-    # zum dritten Auto (hintereinander waeren es 70 mm, quer vorn 46).
-    hb_ = HW_B + 2 * HW_LUFT + 2 * HW_WAND
-    g["box_l"] = AUTOBOX_B + zuschlag            # Box liegt quer: B in X
-    g["fachA_l"] = max(g["box_l"], 2 * hb_ + HW_WAND) if HW_ANZAHL >= 3 \
-        else g["box_l"]
-    g["fachA_t"] = AUTOBOX_L + zuschlag
-
-    g["innen_x"] = g["fachC_l"] + TRENNWAND + g["fachA_l"]
-    g["innen_y"] = max(g["fachC_t"], g["fachA_t"])
+    # ---- Anordnung: EIN Innenraum, Mulde und Auto-Box dicht gepackt.
+    #
+    # Vorher lagen Controller und Box in zwei nebeneinanderliegenden
+    # Rechteckfaechern -- das kostete die volle Breite beider Teile
+    # (266 mm). Die Controllersilhouette ist aber L-foermig: neben dem
+    # Griff bleibt eine grosse Kerbe frei, und genau dort liegt die Box
+    # (so hat der Nutzer es am gedruckten Teil vorgemacht). Die Lage
+    # stammt aus einem vollstaendigen Packtest ueber alle Positionen und
+    # beide Achslagen im 1-mm-Raster, Zielgroesse war die kleinste
+    # umschliessende Flaeche: 195 x 234 statt 266 x 238, ein Drittel
+    # weniger Grundflaeche.
+    g["box_l"] = AUTOBOX_B + zuschlag            # Box quer: B in X
+    g["box_t"] = AUTOBOX_L + zuschlag
+    mw = max(xs) - min(xs)                       # Muldenbreite
+    mh = max(ys) - min(ys)                       # Muldenlaenge
+    bx0, by0 = BOX_NEBEN_MULDE                   # Box relativ zur Mulde
+    ix0 = min(0.0, bx0) - STEG_MIN
+    ix1 = max(mw, bx0 + g["box_l"]) + STEG_MIN
+    iy0 = min(0.0, by0) - STEG_MIN
+    iy1 = max(mh, by0 + g["box_t"]) + STEG_MIN
+    g["innen_x"] = ix1 - ix0
+    g["innen_y"] = iy1 - iy0
     # Die Wanne besteht innen aus zwei Zonen: unten die Muldenzone (dort
     # sitzen Fuellschale, Trennwand, Bloecke und Rippen), darueber die
     # Falzzone, die vollstaendig frei bleiben MUSS -- dort greift die
@@ -716,76 +718,22 @@ def abgeleitet():
     g["wanne_h"] = BODEN + g["wanne_innen_h"]
     g["deckel_h"] = DECKEL_INNEN + BODEN
 
-    # Fachmitten (X): Controller links, Auto rechts
-    g["fachC_x0"] = -g["innen_x"] / 2.0
-    g["fachC_x1"] = g["fachC_x0"] + g["fachC_l"]
-    g["fachA_x1"] = g["innen_x"] / 2.0
-    g["fachA_x0"] = g["fachA_x1"] - g["fachA_l"]
-    # Die Box sitzt an der Aussenwand; neben ihr bleibt der Rest des
-    # Streifens frei (Platz fuer Ladekabel und Kleinkram).
-    g["box_x1"] = g["fachA_x1"]
-    g["box_x0"] = g["box_x1"] - g["box_l"]
+    # Lage in Kofferkoordinaten (Ursprung = Mitte des Innenraums).
+    # mulde_off verschiebt die Muldenkontur an ihren Platz; alles andere
+    # haengt daran.
+    g["mulde_off"] = (-g["innen_x"] / 2.0 - ix0, -g["innen_y"] / 2.0 - iy0)
+    ox, oy = g["mulde_off"]
+    g["box_x0"] = bx0 + ox
+    g["box_x1"] = g["box_x0"] + g["box_l"]
+    g["box_y0"] = by0 + oy
+    g["box_y1"] = g["box_y0"] + g["box_t"]
 
-    # Die Auto-Box sitzt nicht mehr mittig, sondern ganz HINTEN im rechten
-    # Fach. Damit wird aus den zwei ungenutzten Streifen (je 48 mm) vorn
-    # ein Stueck von 96 mm -- gerade genug fuer ein Hot-Wheels-Fach.
-    g["fachA_y1"] = g["innen_y"] / 2.0
-    g["fachA_y0"] = g["fachA_y1"] - g["fachA_t"]
-
-    # Zusatzfaecher fuer lose Hot Wheels (LICHTE Masze).
-    hb, hl = HW_B + 2 * HW_LUFT, HW_L + 2 * HW_LUFT
-    ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    # Fach 1 liegt in der Kerbe der Controllerkontur. Die Lage wird
-    # GESUCHT statt gesetzt -- die Kontur ist gemessen und kann sich beim
-    # naechsten Nachmessen aendern, feste Koordinaten waeren dann still
-    # falsch. Gesucht wird an BEIDEN Waenden des Controllerfachs: nach dem
-    # Spiegeln der Kontur liegt die Kerbe auf der anderen Seite, und die
-    # alte Suche nur an der linken Wand lief erfolglos durch und nahm dann
-    # trotzdem die letzte Position -- mitten in der Mulde.
-    mulde_abs = [(x + g["fachC_x0"], y - g["fachC_t"] / 2.0)
-                 for (x, y) in g["mulde"]]
-
-    def frei_bei(x0, y0):
-        # den RAHMEN pruefen, nicht die lichte Kontur -- sonst findet die
-        # Suche eine Lage, die die spaetere Pruefung verwirft.
-        rx0, rx1 = x0 - HW_WAND, x0 + hb + HW_WAND
-        ry0, ry1 = y0 - HW_WAND, y0 + hl + HW_WAND
-        if rx0 < -ix or rx1 > g["fachC_x1"]:
-            return False
-        for t in [i / 30.0 for i in range(31)]:
-            for q in ((rx0 + (rx1 - rx0) * t, ry0), (rx0 + (rx1 - rx0) * t, ry1),
-                      (rx0, ry0 + (ry1 - ry0) * t), (rx1, ry0 + (ry1 - ry0) * t)):
-                if punkt_in_polygon(q, mulde_abs):
-                    return False
-        return True
-
-    platz = None
-    for x0 in (-ix + HW_WAND, g["fachC_x1"] - hb - HW_WAND):
-        y0 = -iy + HW_WAND
-        while y0 + hl + HW_WAND < iy:
-            if frei_bei(x0, y0):
-                platz = (x0, y0)
-                break
-            y0 += 1.0
-        if platz:
-            break
-    if platz is None:
-        raise SystemExit(
-            "FEHLER: kein freier Platz fuer Hot-Wheels-Fach 1 neben der "
-            "Controllermulde (%.0f x %.0f mm Rahmen gesucht). Fach "
-            "weglassen (HW_ANZAHL) oder das Controllerfach verbreitern."
-            % (hb + 2 * HW_WAND, hl + 2 * HW_WAND))
-    ax0, ay0 = platz
-    # Faecher B (und C): vorn im rechten Streifen, vor der Auto-Box.
-    by1 = g["fachA_y0"] - HW_WAND
-    g["hw"] = [(ax0, ax0 + hb, ay0, ay0 + hl)]
-    n_rechts = max(1, HW_ANZAHL - 1)
-    breite_ges = n_rechts * (hb + 2 * HW_WAND) + (n_rechts - 1) * HW_WAND
-    bx = (g["fachA_x0"] + g["fachA_x1"]) / 2.0 - breite_ges / 2.0 + HW_WAND
-    for _ in range(n_rechts):
-        g["hw"].append((bx, bx + hb, by1 - hl, by1))
-        bx += hb + 3 * HW_WAND
-    g["hw_licht"] = (hb, hl)
+    # Keine Zusatzfaecher mehr: der Koffer nimmt nur noch Controller und
+    # Auto-Box auf ("nur controller und das auto in eine box - so kompakt
+    # wie moeglich"). HW_ANZAHL = 0 laesst die Faecher weg, der Code dafuer
+    # bleibt erhalten -- er ist geprueft und kann jederzeit zurueck.
+    g["hw"] = []
+    g["hw_licht"] = (HW_B + 2 * HW_LUFT, HW_L + 2 * HW_LUFT)
 
     # Scharnierband: SCHARNIER_SEG gleich breite Segmente, abwechselnd
     # Wanne / Deckel. Wanne bekommt die geraden Indizes (aussen 0 und
@@ -1729,7 +1677,7 @@ def ctrl_feder(g, z1, mx0=None, my0=None):
     Gehaeusekante -- damit ist die Laengslage definiert, egal wie der
     Radueberstand ausfaellt."""
     if mx0 is None:
-        mx0, my0 = g["fachC_x0"], -g["fachC_t"] / 2.0
+        mx0, my0 = g["mulde_off"]
     mulde = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
     ys = [p[1] for p in mulde]
     grenze = min(ys) + 0.80 * (max(ys) - min(ys))
@@ -1878,44 +1826,24 @@ def teil_wanne(g):
     schalen.append(loch_prisma(aussen, innen_falz,
                                g["z_fach"], g["wanne_innen_h"]))
 
-    # Trennwand
-    tw = [(g["fachC_x1"], -g["innen_y"] / 2), (g["fachC_x1"] + TRENNWAND, -g["innen_y"] / 2),
-          (g["fachC_x1"] + TRENNWAND, g["innen_y"] / 2), (g["fachC_x1"], g["innen_y"] / 2)]
-    schalen.append(prisma(tw, 0.0, g["z_fach"]))
-
     z1 = g["z_fach"]          # Oberkante aller Innenteile
     z_rand = g["wanne_innen_h"]   # Oberkante der Wannenwand
 
-    # Die Auto-Box liegt hinten im rechten Fach; davor sitzt das
-    # Hot-Wheels-Fach B. Ein Fuellblock ist nicht mehr noetig -- die
-    # Rueckwand von Fach B ist zugleich der Anschlag der Box.
-
-    # Zusatzfaecher fuer lose Hot Wheels
-    for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
-        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0),
-                               rahmen=(hx1 > g["fachC_x1"])))
-
-    # Controllerfach: Konturmulde nach dem Vorbild des Original-Trays.
-    # Eine Fuellschale mit pistolenfoermigem Loch (Bruecken-Triangulierung)
-    # bildet die Mulde; Klemmrippen an markanten Konturpunkten uebernehmen
-    # die Toleranz. Die Mulde ist MULDE_HOEHE tief -- darueber haelt der
-    # Federbogen des Deckels.
-    mx0 = g["fachC_x0"]
-    my0 = -g["fachC_t"] / 2.0
-    mulde_pos = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
-    kontur_pos = [(x + mx0, y + my0) for (x, y) in g["kontur"]]
-    fachrect = [(g["fachC_x0"], -g["innen_y"] / 2.0),
-                (g["fachC_x1"], -g["innen_y"] / 2.0),
-                (g["fachC_x1"], g["innen_y"] / 2.0),
-                (g["fachC_x0"], g["innen_y"] / 2.0)]
-    # Loecher der Fuellschale: die Controllermulde -- und jedes
-    # Hot-Wheels-Fach, das im Controllerfach liegt. Ohne dieses zweite
-    # Loch stuende die Fachwand zwar da, das Fach waere aber bis oben
-    # massiv gefuellt (der Fehler, der beim Durchsehen der Ansicht auffiel).
-    loecher = [mulde_pos]
+    # EINE Fuellschale ueber den ganzen Innenraum, mit zwei Loechern:
+    # der Controllermulde und dem Fach der Auto-Box. Keine Trennwand mehr
+    # und keine getrennten Fachrechtecke -- die Box liegt in der Kerbe
+    # neben dem Pistolengriff, das Material dazwischen ist genau der
+    # Steg, den die Packung uebrig laesst.
+    ox, oy = g["mulde_off"]
+    mulde_pos = [(x + ox, y + oy) for (x, y) in g["mulde"]]
+    kontur_pos = [(x + ox, y + oy) for (x, y) in g["kontur"]]
+    ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
+    fachrect = [(-ix, -iy), (ix, -iy), (ix, iy), (-ix, iy)]
+    boxloch = [(g["box_x0"], g["box_y0"]), (g["box_x1"], g["box_y0"]),
+               (g["box_x1"], g["box_y1"]), (g["box_x0"], g["box_y1"])]
+    loecher = [mulde_pos, boxloch]
     for (hx0, hx1, hy0, hy1) in g["hw"]:
-        if hx1 <= g["fachC_x1"]:
-            loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
+        loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
     schalen.append((prisma_mit_loechern(fachrect, loecher,
                                         0.0, MULDE_HOEHE), True))
     g["fuellung"] = (fachrect, loecher)
@@ -1924,34 +1852,25 @@ def teil_wanne(g):
     # Griffende, damit die Laengslage vom Radueberstand unabhaengig ist.
     schalen.extend(ctrl_feder(g, MULDE_HOEHE))
 
-    # Rippen: Muldenwand -> Richtung Originalkontur (dort sitzt das Teil).
-    # Nicht am Radbogen -- dort wuerde die Rippe das Drehrad klemmen.
     for idx in g["rippen_idx"]:
         px, py = mulde_pos[idx]
         qx, qy = kontur_pos[idx]
         schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
 
-    # Trennwand links neben der Auto-Box. Der rechte Streifen ist wegen
-    # der zwei nebeneinanderliegenden Hot-Wheels-Faecher 88 mm breit, die
-    # Box braucht davon nur 58 -- ohne diese Wand stuende die linke
-    # Klemmrippe frei auf dem Boden (1,1 mm Blatt, 30 mm hoch: bricht ab)
-    # und die Box koennte seitlich auswandern. Mit ihr wird aus dem Rest
-    # ein sauberes Zubehoerfach (Ladekabel, Ersatzraeder).
-    zw = [(g["box_x0"] - TRENNWAND, g["fachA_y0"]),
-          (g["box_x0"], g["fachA_y0"]),
-          (g["box_x0"], g["fachA_y1"]),
-          (g["box_x0"] - TRENNWAND, g["fachA_y1"])]
-    schalen.append(prisma(zw, 0.0, g["z_fach"]))
+    for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
+        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0),
+                               rahmen=False))
 
-    # Klemmrippen Autofach (Box sitzt jetzt hinten: fachA_y0..fachA_y1)
+    # Klemmrippen der Auto-Box: je zwei an den Laengs- und Querwaenden
+    # ihres Lochs.
     ax = (g["box_x0"] + g["box_x1"]) / 2.0
-    aym = (g["fachA_y0"] + g["fachA_y1"]) / 2.0
-    for dy in (-g["fachA_t"] * 0.25, g["fachA_t"] * 0.25):
+    aym = (g["box_y0"] + g["box_y1"]) / 2.0
+    for dy in (-g["box_t"] * 0.25, g["box_t"] * 0.25):
         schalen.append(rippe(g["box_x0"], aym + dy, "+x", 0.0, z1))
         schalen.append(rippe(g["box_x1"], aym + dy, "-x", 0.0, z1))
     for dx in (-g["box_l"] * 0.22, g["box_l"] * 0.22):
-        schalen.append(rippe(ax + dx, g["fachA_y0"], "+y", 0.0, z1))
-        schalen.append(rippe(ax + dx, g["fachA_y1"], "-y", 0.0, z1))
+        schalen.append(rippe(ax + dx, g["box_y0"], "+y", 0.0, z1))
+        schalen.append(rippe(ax + dx, g["box_y1"], "-y", 0.0, z1))
 
     # Scharnieraugen hinten aussen (Achse X, Lochmitte 4 ueber Randkante)
     z_achse = z_rand + SCHARNIER_AUGE / 2.0 - 2.0
@@ -2072,8 +1991,7 @@ def teil_deckel(g):
     # ueber der Auto-Box. ACHTUNG: der Deckel wird beim Schliessen um die
     # X-Achse... nein: um Y gespiegelt ((x,y,z)->(-x,y,z_top-z)), die
     # x-Positionen der Wanne erscheinen im Deckel daher negiert.
-    mx0 = g["fachC_x0"]
-    my0 = -g["fachC_t"] / 2.0
+    mx0, my0 = g["mulde_off"]
 
     # Wie weit ragt der jeweilige Inhalt in den Deckel? Daraus folgt der
     # noetige Federhub. Ueber dem Drehrad darf KEINE Feder stehen -- das
@@ -2089,10 +2007,10 @@ def teil_deckel(g):
              (-(mx0 + g["griff_pos"][0]), my0 + g["griff_pos"][1],
               48.0, hub_ctrl),
              (-(g["box_x0"] + g["box_x1"]) / 2.0,
-              (g["fachA_y0"] + g["fachA_y1"]) / 2.0 - g["fachA_t"] * 0.22,
+              (g["box_y0"] + g["box_y1"]) / 2.0 - g["box_t"] * 0.22,
               g["box_l"] * 0.8, hub_box),
              (-(g["box_x0"] + g["box_x1"]) / 2.0,
-              (g["fachA_y0"] + g["fachA_y1"]) / 2.0 + g["fachA_t"] * 0.22,
+              (g["box_y0"] + g["box_y1"]) / 2.0 + g["box_t"] * 0.22,
               g["box_l"] * 0.8, hub_box)]
     for cx, y, spann, hub in ziele:
         profil = feder(cx, spann, hub)
@@ -2315,13 +2233,24 @@ def teil_lehre(g):
     nicht, misst man den Restspalt und korrigiert CTRL_BREITE /
     CTRL_LAENGE / MULDE_LUFT."""
     h = 8.0
-    platte = [(0.0, 0.0), (g["fachC_l"], 0.0),
-              (g["fachC_l"], g["fachC_t"]), (0.0, g["fachC_t"])]
-    schalen = [(prisma_mit_loechern(platte, [g["mulde"]], 0.0, h), True)]
-    schalen.extend(ctrl_feder(g, h, 0.0, 0.0))
+    # Die Lehre bildet den Innenraum ab, damit die Mulde an derselben
+    # Stelle sitzt wie in der Wanne (frueher lag sie in der Plattenecke,
+    # ohne Material am Rand). Zusaetzlich das Loch der Auto-Box -- so
+    # laesst sich in einem 40-Minuten-Druck beides pruefen.
+    ox = g["mulde_off"][0] + g["innen_x"] / 2.0
+    oy = g["mulde_off"][1] + g["innen_y"] / 2.0
+    platte = [(0.0, 0.0), (g["innen_x"], 0.0),
+              (g["innen_x"], g["innen_y"]), (0.0, g["innen_y"])]
+    mulde = [(x + ox, y + oy) for (x, y) in g["mulde"]]
+    box = [(g["box_x0"] + g["innen_x"] / 2.0, g["box_y0"] + g["innen_y"] / 2.0),
+           (g["box_x1"] + g["innen_x"] / 2.0, g["box_y0"] + g["innen_y"] / 2.0),
+           (g["box_x1"] + g["innen_x"] / 2.0, g["box_y1"] + g["innen_y"] / 2.0),
+           (g["box_x0"] + g["innen_x"] / 2.0, g["box_y1"] + g["innen_y"] / 2.0)]
+    schalen = [(prisma_mit_loechern(platte, [mulde, box], 0.0, h), True)]
+    schalen.extend(ctrl_feder(g, h, ox, oy))
     for idx in g["rippen_idx"]:
-        px, py = g["mulde"][idx]
-        qx, qy = g["kontur"][idx]
+        px, py = mulde[idx]
+        qx, qy = [(x + ox, y + oy) for (x, y) in g["kontur"]][idx]
         schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, h))
     return schalen
 
@@ -2349,10 +2278,10 @@ def hw_faecher_pruefen(g):
     noch aus der Wanne ragen. Geprueft wird der Rahmenrand Punkt fuer
     Punkt -- die Mulde ist konkav, ein Test nur der Ecken uebersaehe die
     Kerbe zwischen Rad- und Griffkontur."""
-    mx0, my0 = g["fachC_x0"], -g["fachC_t"] / 2.0
+    mx0, my0 = g["mulde_off"]
     mulde = [(x + mx0, y + my0) for (x, y) in g["mulde"]]
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    box = (g["box_x0"], g["box_x1"], g["fachA_y0"], g["fachA_y1"])
+    box = (g["box_x0"], g["box_x1"], g["box_y0"], g["box_y1"])
     fehler = []
     # Liegt ein Fach in einer Fuellschale, MUSS es dort als Loch stehen --
     # sonst ist es bis oben massiv und man sieht es der STL nicht an.
@@ -2494,7 +2423,7 @@ def klemmung_pruefen(g):
                     "%.1f mm Inhalt" % (name, achse, licht - feder_dick, inhalt))
 
     pruefe("Auto-Box", "quer", g["box_l"], AUTOBOX_B, rippen=2)
-    pruefe("Auto-Box", "laengs", g["fachA_t"], AUTOBOX_L, rippen=2)
+    pruefe("Auto-Box", "laengs", g["box_t"], AUTOBOX_L, rippen=2)
     hb, hl = g["hw_licht"]
     pruefe("Hot-Wheels-Fach", "breit", hb, HW_B)
     pruefe("Hot-Wheels-Fach", "lang", hl, HW_L, feder_dick=HW_FEDER)
@@ -2647,9 +2576,10 @@ def main():
           % (g["aussen_x"], g["aussen_y"],
              BODEN + g["wanne_innen_h"] + DECKEL_INNEN + BODEN,
              g["innen_x"], g["innen_y"], g["innen_h"]))
-    print("Fach Controller: %.0f x %.0f | Fach Auto-Box: %.0f x %.0f "
-          "(Rippen schlucken +/- %.0f mm)\n"
-          % (g["fachC_l"], g["fachC_t"], g["fachA_l"], g["fachA_t"], KLEMMWEG))
+    print("Anordnung: Mulde %.0f x %.0f und Auto-Box %.0f x %.0f dicht "
+          "gepackt, Box liegt in der Kerbe neben dem Griff\n"
+          % (max(x for x, _ in g["mulde"]), max(y for _, y in g["mulde"]),
+             g["box_l"], g["box_t"]))
 
     fehler = 0
     wanne = teil_wanne(g)          # setzt g["fuellung"] fuer die Pruefung
@@ -2697,11 +2627,9 @@ def main():
           "(%.0f x %.0f mm Aussparung, %.0f mm Luft), Feder %.0f mm Hub"
           % (mluft, ABZUG_X1 - ABZUG_X0 + 2 * ABZUG_LUFT,
              ABZUG_Y1 - ABZUG_Y0 + 2 * ABZUG_LUFT, ABZUG_LUFT, CTRL_FED_HUB))
-    print("Schale fest auf %.0f x %.0f: Randsteg %.1f / %.1f mm, die Mulde "
-          "darf noch %.1f / %.1f mm je Seite wachsen -- so lange bleibt ein "
-          "gedruckter Deckel gueltig."
-          % (g["fachC_l"], g["fachC_t"], g["steg"][0], g["steg"][1],
-             g["steg"][0] - STEG_MIN, g["steg"][1] - STEG_MIN))
+    print("Packung: Innenraum %.0f x %.0f mm -- das ist die kleinste "
+          "Flaeche, die Mulde und Box zusammen fassen (Packtest ueber alle "
+          "Lagen)." % (g["innen_x"], g["innen_y"]))
     eng = bauraum_pruefen(g)
     if eng:
         raise SystemExit("FEHLER Bauraum: " + "; ".join(eng))

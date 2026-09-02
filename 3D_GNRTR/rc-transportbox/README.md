@@ -1,34 +1,34 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
-## Projektstand (nach dem ersten Lehrendruck korrigiert)
+## Projektstand (kompakt neu angeordnet)
 
 | | |
 |---|---|
-| **Koffer außen** | 266 × 238 × 66 mm (Bett 350 × 320: 42/41 mm Rand) |
-| **Controllerfach** | fest auf 166 × 230 — davon hängt der Deckel ab |
+| **Koffer außen** | 195 × 234 × 66 mm (vorher 266 × 238 — ein Drittel weniger Fläche) |
+| **Inhalt** | Controller + Auto in seiner Originalbox. Sonst nichts. |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
-| **Muldenluft** | 2,0 mm je Seite (war 4,0 — im Lehrendruck zu viel) |
+| **Auto-Box** | 100 × 50 × 50 mm, liegt in der Kerbe neben dem Pistolengriff |
+| **Muldenluft** | 2,0 mm je Seite |
 | **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
-| **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub (war 5) |
-| **Auto-Box** | 100 × 50 × 50 mm |
-| **Hot Wheels (längstes)** | 88 × 35 × 30 mm, **drei** Einzelfächer |
-| **Zubehörfach** | 28 × 108 mm neben der Auto-Box (Ladekabel, Ersatzräder) |
+| **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub |
 | **Scharnierachse** | 179 mm rohes 1,75-mm-Filament |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
-**Als Nächstes:** die korrigierte Passlehre gegenprüfen
-(`rcbox_0_passlehre_zuerst_drucken.stl`, rund 40 min). Sitzt der
-Controller samt Abzug, ist die Wanne dran.
+### Warum 195 × 234 und nicht mehr
 
-**Der Deckel darf schon vorher gedruckt werden.** Das Controllerfach hat
-seit dieser Änderung ein festes Außenmaß (`FACHC_FEST` = 166 × 230), die
-Mulde wird darin zentriert. Damit hängt die Kofferhülle — und mit ihr
-Deckel, Scharnier, Falz und Logo — nicht mehr an der Muldenform. Reserve:
-die Mulde darf noch 2,0 mm je Seite wachsen, bevor der Randsteg unter
-3 mm fällt; das deckt den ganzen Weg zurück zur alten Muldenluft von
-4 mm ab. Reicht es doch nicht, bricht der Generator ab und sagt es, statt
-still ein anderes Außenmaß zu erzeugen — ein bereits gedruckter Deckel
-wäre sonst Ausschuss.
+Die Controllersilhouette ist L-förmig: neben dem Pistolengriff bleibt
+eine große Kerbe frei. Vorher lagen Controller und Auto-Box in zwei
+nebeneinanderliegenden Rechteckfächern — das kostete die volle Breite
+beider Teile. Jetzt liegt die Box **in** der Kerbe.
+
+Die Lage ist nicht geschätzt, sondern das Ergebnis eines vollständigen
+Packtests: alle Positionen im 1-mm-Raster, beide Achslagen, bewertet nach
+der kleinsten umschließenden Fläche. 159 239 gültige Lagen, die beste
+ergibt 187 × 226 mm innen. Von Hand hätte man die Box in die Kerbe
+schieben können, aber nicht wissen, dass es das Optimum ist.
+
+Die Hot-Wheels-Fächer und das Zubehörfach sind entfallen (`HW_ANZAHL = 0`);
+der Code dafür bleibt im Generator und ist jederzeit reaktivierbar.
 
 ### Was die erste gedruckte Wanne gezeigt hat
 
@@ -62,7 +62,7 @@ die Bezugsfläche, über ihre vier Ecken wird das Foto entzerrt.
 | Befund | Messung | Korrektur |
 |---|---|---|
 | Abzug lag auf dem Material auf | der orangene Hebel belegt 35,4 × 31,2 mm, davon lagen 44 von 90 Umrisspunkten auf Material, bis 15,4 mm tief | 45 × 41 mm große, grob gerundete Aussparung, in die Mulde eingeschmolzen |
-| „fast ein bisschen zu lang" | durch das Loch war ringsum Holz zu sehen, rund 10 % der Muldenfläche | `MULDE_LUFT` 4,0 → 2,0 mm; die 4 mm werden nicht am Außenmaß gespart, sondern als Randsteg-Reserve gelassen (siehe oben) |
+| „fast ein bisschen zu lang" | durch das Loch war ringsum Holz zu sehen, rund 10 % der Muldenfläche | `MULDE_LUFT` 4,0 → 2,0 mm |
 | Feder zu klein | 5 mm Hub greifen nicht bis ans Gehäuse — die Silhouette von oben enthält das überstehende Drehrad, in der Muldenzone endet das Gehäuse früher | 10 mm Hub, 55 mm Sehne, 1,4 mm dick |
 
 Der Abzug ist damit nicht formgetreu ausgespart, sondern grob — ein
@@ -135,8 +135,8 @@ weil die Silhouette von oben das überstehende Drehrad enthält).
 ## Überblick
 
 Kompakter Klappkoffer für das RC-Auto **in seiner Originalbox**, den
-Pistolengriff-Controller und **drei lose Hot Wheels** in Einzelfächern.
-Außen **266 × 238 × 66 mm**, verschließbar, außen glatt — komplett
+Pistolengriff-Controller. Nur diese beiden — so kompakt wie möglich.
+Außen **195 × 234 × 66 mm**, verschließbar, außen glatt — komplett
 gedruckt, keine Schrauben, keine Metallteile.
 Ein Steck-Tragegriff ist als Option eingebaut (`--mit-griff`), gehört
 aber nicht zur Standardausgabe.
@@ -213,51 +213,18 @@ gewachsen: im Lehrendruck war zu sehen, dass 5 mm gar nicht bis ans
 Gehäuse reichen. Randdehnung selbst flachgedrückt 0,7 % — die Feder darf
 auf Anschlag gehen.
 
-### Drei Einzelfächer für lose Hot Wheels
+### Hot-Wheels-Fächer — entfallen
 
-Lichte Maße **38 × 91 × 30 mm** je Fach, runde Ecken (R5), ausgelegt auf
-das längste gemessene Auto (88 × 35 × 30). Gehalten wird jedes Auto
-dreifach: vier **Klemmrippen** an den Längsseiten, eine **Stirn-Blattfeder**
-(1,2 mm dünn, 8 mm Hub, biegt in der Lagenebene) drückt auch kürzere Autos
-ab etwa 80 mm gegen die Gegenseite, und die 30 mm hohen Fachwände lassen
-das Auto gar nicht erst kippen.
+Der Koffer nimmt nur noch Controller und Auto-Box auf. Der Code für die
+Einzelfächer (lichte Maße 38 × 91 × 30 mm, Stirn-Blattfeder, Platzsuche
+in der Kerbe) bleibt im Generator und ist über `HW_ANZAHL` jederzeit
+reaktivierbar — dann wächst der Koffer aber wieder.
 
-- **Fach 1** liegt im Keil zwischen Rad- und Griffkontur des Controllers —
-  genau die Stelle, an der im Original-Tray auch Luft ist.
-- **Fach 2 und 3** liegen nebeneinander vorn im rechten Streifen. Dafür
-  rückt die **Auto-Box nach hinten** statt mittig zu sitzen: aus zwei
-  ungenutzten Streifen von je 48 mm wird einer von 96 mm.
-
-**Warum der Koffer für das dritte Auto 30 mm breiter wurde.** Der Engpass
-ist die Breite, nicht die Länge: ein Fach braucht 35 mm Auto + 2 × 1,5
-Luft + 2 × 2,5 Wand = **43 mm**. Der Keil links läuft nach hinten spitz zu
-(bei y = +60 sind nur noch 28 mm frei), der rechte Streifen war 58 mm
-breit — für zwei Fächer nebeneinander fehlten 28 mm. Ein Packtest über
-alle Winkel und Positionen fand im alten Gehäuse für Autolängen von 55 bis
-90 mm immer dieselbe Zahl: zwei. Kürzere Autos bringen also nichts, nur
-mehr Koffer. Drei Wege dorthin, gerechnet:
-
-| Variante | Kosten | |
-|---|---|---|
-| Streifen auf 88 mm verbreitern, Fächer nebeneinander | **+30 mm in X** | gewählt |
-| Fach hinter der Auto-Box | +70 mm in Y | mehr als doppelt so teuer |
-| Fach quer vor der Box | +46 mm in Y | teurer, und die Box verliert den Anschlag |
-
-Gewählt ist also die schmalste: **266 × 238 mm**, auf dem 350er Bett
-bleiben 42 bzw. 41 mm Rand (`bauraum_pruefen()` rechnet das mit, seit der
-Koffer wächst).
-
-Der Streifen ist damit 88 mm breit, die Auto-Box braucht davon 58. Die
-übrigen 28 mm sind kein Restmüll, sondern durch eine 3-mm-Trennwand ein
-**Zubehörfach 28 × 108 mm** (Ladekabel, Ersatzräder). Die Wand muss sein:
-ohne sie stünde die linke Klemmrippe der Box frei auf dem Boden — ein
-1,1 mm dünnes Blatt, 30 mm hoch, das beim ersten Anstoßen abbricht.
-
-Die Maße sind Parameter (`HW_L`, `HW_B`, `HW_H`, `HW_LUFT`, `HW_WAND`,
-`HW_ECKE`, `HW_FED_HUB`). `hw_faecher_pruefen()` testet den Rahmenrand
-Punkt für Punkt gegen Mulde, Auto-Box und Wannenwand — die Mulde ist
-konkav, ein reiner Eckentest würde die Kerbe zwischen Rad und Griff
-übersehen.
+Zwei Erkenntnisse daraus sind geblieben: der Engpass ist die **Breite**
+(35 mm Auto + 2 × 1,5 Luft + 2 × 2,5 Wand = 43 mm), nicht die Länge — ein
+Packtest über Autolängen von 55 bis 90 mm fand immer dieselbe Zahl. Und
+die seitlichen Klemmrippen mussten raus: sie ragten mit voller Tiefe ins
+Fach und ließen 28 mm frei für ein 35 mm breites Auto.
 
 ### Einbaulage: Rad nach oben
 

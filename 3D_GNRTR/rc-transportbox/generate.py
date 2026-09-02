@@ -44,9 +44,10 @@ import struct
 # Parameter: Inhalt
 # ---------------------------------------------------------------------------
 
-AUTOBOX_L  = 100.0    # Originalbox des Autos, Nennmasz vom Nutzer
+AUTOBOX_L  = 113.0    # Originalbox des Autos, vom Nutzer nachgemessen
+                      # (war als 100 angesagt -- 12 mm zu kurz)
 AUTOBOX_B  = 50.0
-AUTOBOX_H  = 50.0
+AUTOBOX_H  = 53.0     # nachgemessen (war als 50 angesagt)
 # Luft je Seite. Das Fach war vorher genau so gross wie die Box: 49,2 mm
 # frei fuer 50 mm Breite, weil die Klemmrippen die ganze Zugabe wieder
 # aufgefressen haben. Ein Presssitz ist bei einer Kartonschachtel Unsinn
@@ -236,7 +237,7 @@ FALZ_SP    = 0.25     # Spiel je Seite zwischen Lippe und Falz
 
 # Der Controller ragt jetzt weniger in den Deckel (die Wanne ist um die
 # Falzzone hoeher), der Deckel darf also flacher werden.
-DECKEL_INNEN = 21.0   # lichte Hoehe im Deckel
+DECKEL_INNEN = 20.0   # lichte Hoehe im Deckel
 KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
 
 # Deckellogo: SVG (bevorzugt) oder Bilddatei neben generate.py. Das Logo
@@ -2442,10 +2443,14 @@ def klemmung_pruefen(g):
     hb, hl = g["hw_licht"]
     pruefe("Hot-Wheels-Fach", "breit", hb, HW_B)
     pruefe("Hot-Wheels-Fach", "lang", hl, HW_L, feder_dick=HW_FEDER)
-    # Hoehe: der Deckelraum muss den Inhalt aufnehmen
-    if AUTOBOX_H > MULDE_HOEHE + DECKEL_INNEN:
-        fehler.append("Auto-Box %.0f mm hoch, Fach+Deckel nur %.0f"
-                      % (AUTOBOX_H, MULDE_HOEHE + DECKEL_INNEN))
+    # Hoehe: die Box steht auf dem WANNENBODEN (ihr Fach ist ein Loch in
+    # der Fuellschale), ihr steht also die volle lichte Hoehe zur
+    # Verfuegung -- Wanne bis Oberkante plus Deckelraum. Vorher wurde hier
+    # falsch gegen die Muldentiefe gerechnet.
+    licht_h = g["wanne_innen_h"] + DECKEL_INNEN
+    if AUTOBOX_H > licht_h - 2.0:
+        fehler.append("Auto-Box %.0f mm hoch, lichte Hoehe nur %.0f "
+                      "(mindestens 2 mm Luft noetig)" % (AUTOBOX_H, licht_h))
     return fehler
 
 

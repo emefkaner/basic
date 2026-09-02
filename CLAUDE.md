@@ -256,6 +256,30 @@ element fixes look direction and which side of frame the track sits on. If the p
 puts the camera on the other side, the shot comes back mirrored and no amount of
 no-mirroring wording fixes it — the element is the one telling the truth.
 
+## A lock can be the bug
+
+Locks are obeyed literally, so a lock written to *prevent* something must still say what
+is there instead. "The interior of the opening stays in deep shadow for the whole shot"
+was written to stop the model committing to an envelope colour that would clash with the
+tagged reference in the neighbouring shot. It worked — and the roof opened onto a
+completely empty hold. Before sealing a state off, decide what fills it.
+
+The same shot gives the positive version: what has to be seen needs **its own block,
+before the action** — a `WHAT IS UNDER THE ROOF` paragraph describing the deck, the
+packed envelope, the straps and the brass fittings. Named in a subclause inside `ACTION`
+it stays empty; named up front it gets built. And the sentence that makes an intermediate
+deck read as a deck rather than as the floor of a hold is "the carriage below it is not
+visible at any point".
+
+## Text may own appearance when no image owns it
+
+"One owner for appearance" forbids *two* owners, not text. In a shot with no reference
+tagged for a given object, the text is the only owner and should describe that object
+precisely — which is only possible once the reference it has to match has actually been
+opened and looked at. Where two shots must cut together on the same object, the durable
+fix is a still of that object saved as its own element, so one image owns the colour for
+both.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

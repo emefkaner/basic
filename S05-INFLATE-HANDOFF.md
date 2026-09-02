@@ -118,10 +118,55 @@ Kamera klettert und fällt durchgehend zurück.
 - Noch nicht gebaut: ein Element „Zug aufgeblasen **mit offenem Dach**". Solange es
   fehlt, kann kein Shot das offene Dach bis zum Schlussframe halten.
 
-## Vorgeschlagener zweiter Shot — DACH
+## Zweiter Shot — DACH (Nahaufnahme)
 
-Halbtotale auf den grünen Waggon, Dach formatfüllend. Erst in dieser Bildgröße ist die
-Mechanik überhaupt darstellbar. Noch nicht geschrieben.
+Halbtotale bis Halbnah auf den grünen Waggon, Dach formatfüllend. Erst in dieser
+Bildgröße ist die Mechanik überhaupt darstellbar. Vorgehen: erst ein `start_image` als
+Kamerafahrt auf der vorhandenen Totale erzeugen („vier Meter an die Waggonflanke, zwei
+Meter über die Dachlinie, zwanzig Prozent nach unten kippen"), dann das Video darauf.
+
+**Gegen Morphen und Slop** trägt ein eigener `PHYSICS`-Block, der jedes Teil namentlich
+als starr benennt — Scharnierbänder, Bolzen, Nieten, Kolbenstangen, Verriegelungsstifte —
+und den einen entscheidenden Satz enthält: *das Einzige, was sich an den Klappen ändert,
+ist ihr Winkel um die Scharnierachse.* Dazu hartes Kantenlicht: weiches, gummiartiges
+Verhalten braucht weiches Licht, harte helle Linien an jeder Stahlkante erzwingen Form.
+Alles positiv formuliert, kein einziges Verbot.
+
+### Was in den Runden gelernt wurde
+
+- **Kein Referenz-Element für die Umgebung war ein Fehlschlag mit Ansage.** `@WILDWEST`
+  ist eine Breitbild-Panoramaplatte und zieht enge Einstellungen auf — deshalb hatte ich
+  sie weggelassen, und der Hintergrund kam generisch zurück. Die Lösung ist nicht
+  weglassen, sondern **„a photograph, not a subject"**: taggen und im Prompt darauf
+  festlegen, dass sie nur als weit hinten liegender, unscharfer Streifen vorkommt und
+  die Kamera nie zurückfährt, um sie einzufangen. Das `start_image` hält dabei die
+  Einstellung, der Tag färbt nur noch den Hintergrund.
+- **Unschärfe allein macht keine Location.** Ein weichgezeichneter Streifen liest sich
+  nur dann als Monument Valley, wenn Farbe und Silhouette erkennbar bleiben. Drei
+  Hintergrundebenen mit *unterschiedlichem Tempo* — rasende Sträucher, einzeln
+  durchschnippende Saguaro-Silhouetten, fast stehende rostrote Butte — machen die Tiefe,
+  die die Schärfe nicht machen darf.
+- **Ein Lock kann selbst der Fehler sein.** „The interior of the opening stays in deep
+  shadow" sollte verhindern, dass sich das Modell auf eine Hüllenfarbe festlegt. Ergebnis:
+  das Dach fuhr auf und gab einen komplett leeren Lagerraum frei. Das Modell hielt sich
+  exakt an die Anweisung. Bevor man einen Zustand wegsperrt, muss klar sein, was
+  stattdessen zu sehen ist.
+- **Ein Zwischenboden gehört in einen eigenen Block, vor die Aktion.** Ein leerer Raum
+  entsteht, wenn nicht beschrieben ist, was da sein soll. `WHAT IS UNDER THE ROOF` steht
+  deshalb weit oben, mit dem Satz „der Waggon darunter ist zu keinem Zeitpunkt sichtbar"
+  — der macht die Zwischendecke erst zur Decke statt zum Lagerraumboden.
+- **Text darf das Aussehen besitzen, wenn kein Bild es besitzt.** In diesem Shot ist
+  keine Hüllen-Referenz getaggt, also beschreibt der Text die gepackte Hülle: tiefes
+  Marineblau, mattes gummiertes Segeltuch, goldfarbene Längsbänder, Messingbeschläge —
+  rekonstruiert aus `@IRON-CLOUD-Inflated`. „One owner for appearance" verbietet *zwei*
+  Besitzer, nicht den Text an sich.
+- **Das gepackte Paket braucht seinen eigenen Stillstands-Lock**, sonst fängt die Hülle
+  hier schon an, sich zu entfalten: gepackt, verzurrt, flach, gleiche Größe, und das
+  Einzige, was sich daran ändert, ist das Licht.
+
+**Offen:** wenn die Marineblau-Beschreibung im Schnitt gegen die INFLATE-Hülle driftet,
+ein Standbild des gepackten Decks als eigenes Element speichern — dann besitzt ein Bild
+die Farbe für beide Shots.
 
 ## Tag-Registry — Stand 2026-08-31 (frisch aus dem Account)
 

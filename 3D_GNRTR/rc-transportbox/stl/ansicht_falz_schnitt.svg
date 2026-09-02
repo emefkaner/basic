@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="484" height="402" viewBox="-19.00 -54.00 44.00 36.50">
-<rect x="-19.00" y="-54.00" width="44.00" height="36.50" fill="#fbfbfa"/>
-<text x="3.00" y="-50.70" font-family="sans-serif" font-size="1.7" font-weight="600" text-anchor="middle" fill="#1a1a1a">Stufenfalz im Schnitt &#8212; aussen rechts</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="484" height="396" viewBox="-19.00 -53.50 44.00 36.00">
+<rect x="-19.00" y="-53.50" width="44.00" height="36.00" fill="#fbfbfa"/>
+<text x="3.00" y="-50.20" font-family="sans-serif" font-size="1.7" font-weight="600" text-anchor="middle" fill="#1a1a1a">Stufenfalz im Schnitt &#8212; aussen rechts</text>
 <polygon points="0.000,-23.000 4.000,-23.000 4.000,-39.000 2.000,-39.000 2.000,-30.000 0.000,-30.000" fill="#78818c" fill-opacity="0.9" stroke="#39414b" stroke-width="0.12"/>
-<polygon points="0.250,-30.500 1.750,-30.500 1.750,-39.000 4.000,-39.000 4.000,-49.500 0.000,-49.500 0.000,-39.000 0.250,-39.000" fill="#3a6eb2" fill-opacity="0.9" stroke="#12294a" stroke-width="0.12"/>
+<polygon points="0.250,-30.500 1.750,-30.500 1.750,-39.000 4.000,-39.000 4.000,-49.000 0.000,-49.000 0.000,-39.000 0.250,-39.000" fill="#3a6eb2" fill-opacity="0.9" stroke="#12294a" stroke-width="0.12"/>
 <line x1="5.50" y1="-30.00" x2="5.50" y2="-39.00" stroke="#1a1a1a" stroke-width="0.09"/>
 <text x="6.00" y="-34.50" font-family="sans-serif" font-size="1.15" text-anchor="start" fill="#1a1a1a">Falz 9 tief</text>
 <line x1="0.25" y1="-31.50" x2="1.75" y2="-31.50" stroke="#1a1a1a" stroke-width="0.09"/>

@@ -154,6 +154,11 @@ CTRL_FOTO_RAD    = 40.0    # Rad-Durchmesser laut Foto
 # Seite, genug zum Einlegen, und die Laengsfeder nimmt den Rest.
 MULDE_LUFT = 2.0           # Offset der Mulde um die Silhouette
 MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
+# Am Griffende (Handballenauflage) stand die Mulde rund 1 cm weiter als
+# noetig -- am gedruckten Teil nachgesehen. Dort wird die Kontur gerade
+# abgeschnitten; das kostet den Koffer nichts an Funktion und spart
+# Laenge.
+GRIFF_KAPPEN = 8.0
 
 # Abzug (der orangene Hebel). Aus dem Foto der gedruckten Lehre gemessen
 # (Homographie ueber die vier Plattenecken, der Hebel ist am Orange
@@ -238,7 +243,8 @@ FALZ_SP    = 0.25     # Spiel je Seite zwischen Lippe und Falz
 # Der Controller ragt jetzt weniger in den Deckel (die Wanne ist um die
 # Falzzone hoeher), der Deckel darf also flacher werden.
 DECKEL_INNEN = 20.0   # lichte Hoehe im Deckel
-KANTE_R    = 3.0      # Verrundung der Deckeloberkante (Loft-Einzug)
+KANTE_R    = 0.0      # Verrundung der Deckelkante am Druckbett;
+                      # 0 = scharf, volle Auflage (siehe teil_deckel)
 
 # Deckellogo: SVG (bevorzugt) oder Bilddatei neben generate.py. Das Logo
 # wird als eigenes Bauteil buendig in die Deckelaussenflaeche eingelassen
@@ -659,6 +665,16 @@ def abgeleitet():
     # Einlegen nachgibt.
     zuschlag = 2.0 * (RIPPE_TIEF - RIPPE_PRESS)
     kontur = ctrl_kontur()
+    # Griffende kappen: am Handballen-Ende steht die gemessene Silhouette
+    # weiter heraus, als der Controller in der Muldenzone wirklich
+    # braucht -- am gedruckten Teil war dort rund 1 cm Luft. Gekappt wird
+    # die Kontur, nicht die Mulde, damit MULDE_LUFT als Luft erhalten
+    # bleibt: der Koffer wird um GRIFF_KAPPEN kuerzer, der Abstand zur
+    # Wand bleibt MULDE_LUFT.
+    if GRIFF_KAPPEN:
+        ymin = min(y for (_, y) in kontur)
+        kontur = [(x, max(y, ymin + GRIFF_KAPPEN)) for (x, y) in kontur]
+        kontur = polygon_saeubern(kontur)
     mulde = schlaufen_entfernen(offset_polygon(kontur, MULDE_LUFT))
     xs = [x for (x, _) in mulde]
     ys = [y for (_, y) in mulde]
@@ -1830,11 +1846,13 @@ def teil_wanne(g):
     aussen = rundrechteck(g["aussen_x"], g["aussen_y"], ECKRADIUS)
     innen = rundrechteck(g["innen_x"], g["innen_y"], max(2.0, ECKRADIUS - WAND))
 
-    # Boden mit Fusskante (unten 1.5 mm eingezogen = kleine Fase)
-    boden_klein = rundrechteck(g["aussen_x"] - 3.0, g["aussen_y"] - 3.0,
-                               ECKRADIUS)
-    schalen.append(loften([boden_klein, aussen, aussen],
-                          [-BODEN, -BODEN + 1.5, 0.5]))
+    # Boden ohne Fusskante: die Flaeche, die auf dem Druckbett liegt,
+    # bleibt voll und scharfkantig. Eine Fase dort bringt nichts (man
+    # sieht sie nicht, sie steht auf dem Tisch) und kostet Haftung --
+    # ausserdem drucken die ersten Lagen einer eingezogenen Kante
+    # schlechter als eine durchgehende Flaeche. Die senkrechten Ecken
+    # bleiben mit ECKRADIUS verrundet.
+    schalen.append(prisma(aussen, -BODEN, 0.5))
     # Wandring, zweiteilig: unten volle Wandstaerke, oben die Falzstufe.
     # In der Stufe (die obersten FALZ_H mm) springt die Innenkante um
     # FALZ_T nach aussen -- genau dort sitzt spaeter die Deckellippe.
@@ -1848,24 +1866,39 @@ def teil_wanne(g):
     z1 = g["z_fach"]          # Oberkante aller Innenteile
     z_rand = g["wanne_innen_h"]   # Oberkante der Wannenwand
 
-    # EINE Fuellschale ueber den ganzen Innenraum, mit zwei Loechern:
-    # der Controllermulde und dem Fach der Auto-Box. Keine Trennwand mehr
-    # und keine getrennten Fachrechtecke -- die Box liegt in der Kerbe
-    # neben dem Pistolengriff, das Material dazwischen ist genau der
-    # Steg, den die Packung uebrig laesst.
+    # Die Faecher als WAENDE, nicht als massive Fuellung. Vorher war der
+    # ganze Innenraum 30 mm hoch zugefuellt und nur Mulde und Autofach
+    # ausgespart -- rund 470 cm3 umbautes Volumen, das der Slicer mit
+    # Infill und Deckflaechen fuellt. Jetzt steht um jedes Fach nur eine
+    # Wand von STEG_MIN Dicke; dazwischen und aussen herum ist der Koffer
+    # bis auf den Boden offen. Spart Material und Druckzeit, und die
+    # Fuehrung des Inhalts aendert sich nicht -- die kommt von der
+    # Fachwand, nicht von der Fuellung dahinter.
     ox, oy = g["mulde_off"]
     mulde_pos = [(x + ox, y + oy) for (x, y) in g["mulde"]]
     kontur_pos = [(x + ox, y + oy) for (x, y) in g["kontur"]]
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    fachrect = [(-ix, -iy), (ix, -iy), (ix, iy), (-ix, iy)]
     boxloch = [(g["box_x0"], g["box_y0"]), (g["box_x1"], g["box_y0"]),
                (g["box_x1"], g["box_y1"]), (g["box_x0"], g["box_y1"])]
+
+    def begrenzen(poly):
+        """Die Fachwand darf nicht aus dem Innenraum herausragen."""
+        return [(min(max(x, -ix), ix), min(max(y, -iy), iy))
+                for (x, y) in poly]
+
+    mulde_wand = begrenzen(schlaufen_entfernen(
+        offset_polygon(mulde_pos, STEG_MIN)))
+    schalen.append((prisma_mit_loechern(mulde_wand, [mulde_pos],
+                                        0.0, MULDE_HOEHE), True))
+    box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
+                          (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
+                          (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),
+                          (g["box_x0"] - STEG_MIN, g["box_y1"] + STEG_MIN)])
+    schalen.append(loch_prisma(box_wand, boxloch, 0.0, MULDE_HOEHE))
     loecher = [mulde_pos, boxloch]
     for (hx0, hx1, hy0, hy1) in g["hw"]:
         loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
-    schalen.append((prisma_mit_loechern(fachrect, loecher,
-                                        0.0, MULDE_HOEHE), True))
-    g["fuellung"] = (fachrect, loecher)
+    g["fuellung"] = ([(-ix, -iy), (ix, -iy), (ix, iy), (-ix, iy)], loecher)
 
     # Laengsfeder am Kopfende: drueckt den Controller gegen die Wand am
     # Griffende, damit die Laengslage vom Radueberstand unabhaengig ist.
@@ -1934,15 +1967,24 @@ def teil_deckel(g):
     innen = rundrechteck(g["innen_x"], g["innen_y"], max(2.0, ECKRADIUS - WAND))
 
     # Deckelplatte mit verrundeter Kante (im Druck unten)
+    # Die im Gebrauch obere Aussenkante liegt beim Drucken UNTEN, also am
+    # Bett. Verrundet man sie, faengt der Druck mit einer eingezogenen
+    # Flaeche an -- schlechtere Haftung, schlechtere erste Lagen. Mit
+    # KANTE_R = 0 bleibt sie scharf und die Platte liegt voll auf; die
+    # senkrechten Ecken sind ohnehin mit ECKRADIUS verrundet.
     profile, hoehen = [], []
-    stufen = 5
-    for i in range(stufen + 1):
-        w = math.radians(90.0 * i / stufen)
-        einzug = KANTE_R * (1.0 - math.sin(w))
-        z = KANTE_R * (1.0 - math.cos(w))
-        profile.append(rundrechteck(g["aussen_x"] - 2 * einzug,
-                                    g["aussen_y"] - 2 * einzug, ECKRADIUS))
-        hoehen.append(z)
+    if KANTE_R > 0.01:
+        stufen = 5
+        for i in range(stufen + 1):
+            w = math.radians(90.0 * i / stufen)
+            einzug = KANTE_R * (1.0 - math.sin(w))
+            z = KANTE_R * (1.0 - math.cos(w))
+            profile.append(rundrechteck(g["aussen_x"] - 2 * einzug,
+                                        g["aussen_y"] - 2 * einzug, ECKRADIUS))
+            hoehen.append(z)
+    else:
+        profile.append(rundrechteck(g["aussen_x"], g["aussen_y"], ECKRADIUS))
+        hoehen.append(0.0)
     profile.append(profile[-1])
     hoehen.append(BODEN + 0.5)
 

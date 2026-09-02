@@ -186,7 +186,19 @@ def draufsicht(pfad, p):
                   "#e9e9e6", "#8a8f96", 1.2))
     z.append(poly(g.rundrechteck(2 * ix, 2 * iy, g.ECKRADIUS - g.WAND),
                   "#f7f7f5", "#b8bcc2", 1.0))
+    # ZUERST die Mulde (das Loch im Boden), dann die Silhouette darauf.
+    # Vorher war hier nur die Silhouette zu sehen -- dann sieht man die
+    # Abzugsaussparung nicht, obwohl sie im Teil steckt, und das Bild
+    # behauptet etwas anderes als die STL.
+    z.append(poly([(x + mx0, y + my0) for (x, y) in p["mulde"]],
+                  "#ffffff", "#8d4225", 1.6))
     z.append(poly(kontur, "#c8663f", "#8d4225", 1.0))
+    # Aussparung fuer den Abzug hervorheben
+    abz = [(x + mx0, y + my0) for (x, y) in p["abzug"]]
+    z.append(poly(abz, "none", "#12a150", 2.0, "6,4"))
+    txt(sum(q[0] for q in abz) / len(abz),
+        sum(q[1] for q in abz) / len(abz) - 26,
+        "Aussparung Abzug", 9, "#0b6b36", fett=True)
     txt(mx0 + p["rad_pos"][0], my0 + p["rad_pos"][1] - 4, "Rad", 10, "#fff")
     txt(mx0 + p["griff_pos"][0] - 14, my0 + p["griff_pos"][1], "Griff", 10, "#fff")
     txt(mx0 + p["schnauz_pos"][0] + 26, my0 + p["schnauz_pos"][1] - 26,

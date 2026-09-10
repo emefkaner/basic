@@ -175,10 +175,13 @@ ABZUG_X0, ABZUG_X1 = 82.1, 117.5
 ABZUG_Y0, ABZUG_Y1 = 124.9, 156.1
 ABZUG_LUFT = 5.0           # grob aussparen, nicht formzutreu (Wunsch)
 ABZUG_ECKE = 6.0           # Eckradius der Aussparung
-# Zusaetzlich zur Aussparung wird die FACHWAND am Abzug ganz weggelassen:
-# der Hebel soll frei im offenen Innenraum liegen, ohne Wand ringsum. Eine
-# Aussparung MIT Wand drumherum hat ihn im Druck weiter behindert.
-ABZUG_WAND_WEG = 6.0       # wieviel weiter als die Aussparung die Wand fehlt
+# In der Fachwand fehlt genau EIN Stueck: der gerade Ost-West-Steg, den
+# das Glaetten quer ueber die Abzugskerbe gelegt hat (eine einzelne
+# 33 mm lange Kante). Der stand vor dem Gaspedal. Alles andere bleibt
+# stehen -- vom Nutzer an der Zeichnung markiert, nachdem ein grosszuegig
+# weggelassener Bereich zu viel war.
+# Rechteck konturrelativ, wie ABZUG_X0 usw.
+STEG_WEG = (80.0, 120.0, 115.0, 125.0)   # x0, x1, y0, y1
 
 # Der gemessene Umriss des Hebels selbst (C-Form), konturrelativ. Wird
 # nicht ausgespart -- er ist der PRUEFKOERPER: jeder Punkt muss nach dem
@@ -1967,24 +1970,15 @@ def teil_wanne(g):
         return [(min(max(x, -ix), ix), min(max(y, -iy), iy))
                 for (x, y) in poly]
 
-    # Wand um die Controllermulde -- mit LUECKE am Abzug. Dort steht kein
-    # Material mehr, der Hebel liegt frei im offenen Innenraum.
-    abzug_frei = [(x + ox, y + oy) for (x, y) in
-                  abzug_rechteck(g["kontur"], ABZUG_LUFT + ABZUG_WAND_WEG)]
-    g["abzug_frei"] = abzug_frei
-    # Zweite Luecke: der Ost-West-Steg in der Griffkehle, direkt ueber dem
-    # Pistolengriff. Er stand quer im Weg; die Nord-Sued-Wand daneben (die
-    # zwischen Griff und Auto-Box) bleibt stehen und fuehrt weiter.
-    gx = g["griff_pos"][0] + ox
-    gy = g["griff_pos"][1] + oy
-    # nach Westen begrenzen, sonst nimmt das Band auch ein Stueck der
-    # linken Aussenwand mit -- die soll stehen bleiben.
-    kx0 = gx - GRIFF_KEHLE[2]
-    kehle = [(kx0, gy + GRIFF_KEHLE[0]), (ix, gy + GRIFF_KEHLE[0]),
-             (ix, gy + GRIFF_KEHLE[1]), (kx0, gy + GRIFF_KEHLE[1])]
-    g["kehle"] = kehle
+    # Wand um die Controllermulde -- mit genau EINER Luecke: dem geraden
+    # Ost-West-Steg vor dem Gaspedal (STEG_WEG).
+    x0k = min(x for (x, _) in g["kontur"]) + ox
+    y0k = min(y for (_, y) in g["kontur"]) + oy
+    a0, a1, b0, b1 = STEG_WEG
+    g["steg_weg"] = [(x0k + a0, y0k + b0), (x0k + a1, y0k + b0),
+                     (x0k + a1, y0k + b1), (x0k + a0, y0k + b1)]
     schalen.extend(fachwand(mulde_pos, STEG_MIN, 0.0, MULDE_HOEHE,
-                            aussparungen=(abzug_frei, kehle)))
+                            aussparungen=(g["steg_weg"],)))
     box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),
@@ -2656,7 +2650,7 @@ def abzug_strahltest(g, schalen):
     x0k = min(x for (x, _) in g["kontur"])
     y0k = min(y for (_, y) in g["kontur"])
     umriss = [(x0k + a + ox, y0k + b + oy) for (a, b) in ABZUG_UMRISS]
-    zone = schlaufen_entfernen(offset_polygon(umriss, 3.0))
+    zone = schlaufen_entfernen(offset_polygon(umriss, 1.0))
     zx0 = min(p[0] for p in zone); zx1 = max(p[0] for p in zone)
     zy0 = min(p[1] for p in zone); zy1 = max(p[1] for p in zone)
     schlecht = []
@@ -2834,10 +2828,11 @@ def main():
             "FEHLER Abzug: an %d Stellen steht Material im Weg, z.B. bei "
             "(%.1f, %.1f) bis z = %.1f" % (len(imweg), imweg[0][0],
                                            imweg[0][1], imweg[0][2]))
-    print("Mulde: %.1f mm weiter als die gemessene Silhouette. Abzug: "
-          "Fachwand dort ganz weggelassen, Strahltest durch das Netz -- "
-          "rund um den Hebel plus 3 mm Bewegungsluft steht nichts. "
-          "Feder %.0f mm Hub" % (mluft, CTRL_FED_HUB))
+    print("Mulde: %.1f mm weiter als die gemessene Silhouette. Vor dem "
+          "Gaspedal fehlt der gerade Ost-West-Steg in der Fachwand "
+          "(%.0f mm breit); Strahltest durch das Netz: um den Hebel steht "
+          "nichts. Feder %.0f mm Hub"
+          % (mluft, STEG_WEG[1] - STEG_WEG[0], CTRL_FED_HUB))
     print("Packung: Innenraum %.0f x %.0f mm -- das ist die kleinste "
           "Flaeche, die Mulde und Box zusammen fassen (Packtest ueber alle "
           "Lagen)." % (g["innen_x"], g["innen_y"]))

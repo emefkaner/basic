@@ -1,10 +1,16 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
-## Projektstand (kompakt neu angeordnet)
+## Projektstand — Generation 7
+
+Die STLs tragen die Generationsnummer im Namen (`rcbox_g7_…`), und beim
+Erzeugen löscht der Generator die STLs aller anderen Generationen aus
+`stl/`. Nach sieben Runden mit je neuer Wanne war sonst nicht mehr sicher
+zu sagen, welcher Deckel zu welcher Wanne gehört — und ein Fehldruck
+kostet hier Stunden.
 
 | | |
 |---|---|
-| **Koffer außen** | 191 × 234 × 66 mm (vorher 266 × 238 — 35 % weniger Fläche) |
+| **Koffer außen** | 191 × 226 × 65 mm (Generation 1: 266 × 238 — 32 % weniger Fläche) |
 | **Inhalt** | Controller + Auto in seiner Originalbox. Sonst nichts. |
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
 | **Auto-Box** | 100 × 50 × 50 mm, Fach 105 × 55 (2,5 mm Luft je Seite), liegt in der Kerbe neben dem Pistolengriff |

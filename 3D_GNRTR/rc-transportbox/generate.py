@@ -325,6 +325,13 @@ HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 # Deckelring vor und machen den Koffer 18 mm tiefer -- der geschlossene
 # Koffer ist mit 213 x 212 x 66 mm und rund 0,8 kg bequem an den Seiten
 # zu greifen. Mit --mit-griff werden Nuten und Buegel wieder erzeugt.
+# Generation des Entwurfs. Steht in jedem Dateinamen, und beim Erzeugen
+# werden die STLs aller ANDEREN Generationen aus stl/ geloescht. Bei
+# sieben Runden mit je neuer Wanne war sonst nicht mehr sicher zu sagen,
+# welche Datei zu welchem Deckel gehoert -- und ein Fehldruck kostet hier
+# Stunden.
+GENERATION = 7
+
 MIT_GRIFF = False
 # Deckel wird AUFGESTECKT statt aufgeklappt. Der Stufenfalz ist die
 # Aussparung, die fuehrt, die Rastkeile halten ihn zu -- die letzte
@@ -668,6 +675,27 @@ def abzug_rechteck(kontur, luft=None):
     cx = x0k + (ABZUG_X0 + ABZUG_X1) / 2.0
     cy = y0k + (ABZUG_Y0 + ABZUG_Y1) / 2.0
     return [(x + cx, y + cy) for (x, y) in rundrechteck(bx, by, ABZUG_ECKE)]
+
+
+def dateiname(teil):
+    """STL-Name mit Generationsnummer."""
+    return "rcbox_g%d_%s.stl" % (GENERATION, teil)
+
+
+def alte_generationen_loeschen(ziel):
+    """STLs frueherer Generationen aus stl/ entfernen.
+
+    Sonst liegen sieben Waennen nebeneinander und im Slicer wird die
+    falsche erwischt -- der teuerste denkbare Fehler in diesem Projekt.
+    """
+    weg = []
+    for name in sorted(os.listdir(ziel)):
+        if not name.startswith("rcbox") or not name.endswith(".stl"):
+            continue
+        if not name.startswith("rcbox_g%d_" % GENERATION):
+            os.remove(os.path.join(ziel, name))
+            weg.append(name)
+    return weg
 
 
 def abgeleitet():
@@ -2760,6 +2788,10 @@ def main():
     g = abgeleitet()
     ziel = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stl")
     os.makedirs(ziel, exist_ok=True)
+    weg = alte_generationen_loeschen(ziel)
+    if weg:
+        print("Alte Generationen aus stl/ geloescht: %d Dateien" % len(weg))
+    print("Generation %d" % GENERATION)
 
     print("Griff: %s" % ("Buegel + T-Nuten" if MIT_GRIFF
                          else "keiner (Aussenflaeche glatt)"))
@@ -2842,20 +2874,20 @@ def main():
     print("Bauraum: %.0f x %.0f mm auf %.0f x %.0f -- Rand %.0f / %.0f mm"
           % (g["aussen_x"], g["aussen_y"], BETT_X, BETT_Y,
              (BETT_X - g["aussen_x"]) / 2.0, (BETT_Y - g["aussen_y"]) / 2.0))
-    fehler += bauen(ziel, "rcbox_0_passlehre_zuerst_drucken.stl",
+    fehler += bauen(ziel, dateiname("0_passlehre_zuerst_drucken"),
                     teil_lehre(g))
-    fehler += bauen(ziel, "rcbox_1_wanne_1x_drucken.stl", wanne)
-    fehler += bauen(ziel, "rcbox_2_deckel_1x_drucken.stl", teil_deckel(g))
+    fehler += bauen(ziel, dateiname("1_wanne_1x_drucken"), wanne)
+    fehler += bauen(ziel, dateiname("2_deckel_1x_drucken"), teil_deckel(g))
     for alt_nr in range(2, 6):
         alt_pfad = os.path.join(
-            ziel, "rcbox_2%s_deckellogo_filament%d_1x_drucken.stl"
-            % ("bcde"[alt_nr - 2], alt_nr))
+            ziel, dateiname("2%s_deckellogo_filament%d_1x_drucken"
+                            % ("bcde"[alt_nr - 2], alt_nr)))
         if os.path.exists(alt_pfad):
             os.remove(alt_pfad)
     logo_teile = teil_logo(g)
     for nr, (farbe, schalen) in enumerate(logo_teile, start=2):
-        name = ("rcbox_2%s_deckellogo_filament%d_1x_drucken.stl"
-                % ("bcde"[nr - 2], nr))
+        name = dateiname("2%s_deckellogo_filament%d_1x_drucken"
+                         % ("bcde"[nr - 2], nr))
         fehler += bauen(ziel, name, schalen)
         print("   Farbe %s -> Filament %d" % (farbe, nr))
     if logo_teile:
@@ -2864,20 +2896,20 @@ def main():
               "Objekt?' -> Ja), dann je Teil das Filament setzen."
               % (g.get("logo_datei", LOGO_DATEI), LOGO_BREITE, LOGO_TIEFE,
                  len(logo_teile)))
-    griff_datei = os.path.join(ziel, "rcbox_3_griff_1x_drucken.stl")
+    griff_datei = os.path.join(ziel, dateiname("3_griff_1x_drucken"))
     if MIT_GRIFF:
         griff = teil_griff(g)
         # flach legen: Buegelebene (YZ) aufs Bett -> (x,y,z) -> (y, z, x+8)
         griff_flach = [[tuple((y_, z_, x_ + 8.0) for (x_, y_, z_) in tri)
                         for tri in s_] for s_ in griff]
-        fehler += bauen(ziel, "rcbox_3_griff_1x_drucken.stl", griff_flach)
+        fehler += bauen(ziel, dateiname("3_griff_1x_drucken"), griff_flach)
     elif os.path.exists(griff_datei):
         # Keine Alternativ-Variante im Ordner liegen lassen -- sonst wird
         # im Slicer ein Teil gedruckt, das nirgends hineinpasst.
         os.remove(griff_datei)
         print("Griff-Variante aus: alte %s geloescht"
               % os.path.basename(griff_datei))
-    stift_datei = os.path.join(ziel, "rcbox_4_achsstift_2x_drucken.stl")
+    stift_datei = os.path.join(ziel, dateiname("4_achsstift_2x_drucken"))
     if not MIT_SCHARNIER:
         # Ohne Scharnier gibt es keine Achse -- und eine alte Stift-STL
         # darf nicht als Falle im Ordner liegen bleiben.
@@ -2888,7 +2920,7 @@ def main():
         # (x,y,z) -> (z, x, y) plus Hub, damit die Fasern laengs laufen.
         stift_flach = [[tuple((z_, x_, y_ + 5.0) for (x_, y_, z_) in tri)
                         for tri in s_] for s_ in teil_stift(g)]
-        fehler += bauen(ziel, "rcbox_4_achsstift_2x_drucken.stl", stift_flach)
+        fehler += bauen(ziel, dateiname("4_achsstift_2x_drucken"), stift_flach)
     else:
         if os.path.exists(stift_datei):
             os.remove(stift_datei)

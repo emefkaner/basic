@@ -21,6 +21,30 @@ gedruckt wurde — was nur geplant ist, bleibt dieselbe Generation.
 | **Verschluss** | Deckel zum **Aufstecken** — kein Scharnier, keine Schnapper. Es hält allein der Stufenfalz. |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |
 
+### Duo: zwei Controller und zwei Autos in einem Koffer
+
+Gleiche Grundfläche, nur höher: **191 × 226 × 128 mm** statt 65. Aufbau
+von unten nach oben:
+
+| Höhe | |
+|---|---|
+| 0 | Wannenboden, darauf Mulde 1 und Boxfach 1 (Box auf 4 mm Podest, endet damit wie das Drehrad bei 57) |
+| 57 | Oberkante Drehrad des unteren Controllers |
+| 60 | Auflageleiste (3 × 3 mm, zweistufig, druckt ohne Stützen) — hier liegt das Tablett auf |
+| 63 | Oberkante Tablettboden, darauf Mulde 2 und Boxfach 2 — das komplette Innenleben der Einzelwanne, 0,5 mm schmaler |
+| 102 | Wannenrand mit Stufenfalz |
+| 128 | Oberkante Deckel — **derselbe Deckel wie für die Einzelwanne** |
+
+Teile: `rcbox_g7_duo_1_wanne_tief_1x_drucken.stl` (595 cm³),
+`rcbox_g7_duo_2_tablett_1x_drucken.stl` (215 cm³), dazu der normale
+Deckel mit Logo. Das Tablett hat keine Außenwand — man greift an den
+30 mm hohen Fachwänden oder ins Boxfach und hebt es heraus.
+
+Geprüft: Drehrad unten 3 mm unter dem Tablett, Box auf Podest ebenso,
+Tablett liegt ringsum 2,5 mm auf der Leiste auf und ragt nirgends über
+seinen Plattenrand, Falzzone der tiefen Wanne frei, Abzug auf dem Tablett
+per Strahltest frei, alles wasserdicht.
+
 ### Warum 191 × 234 und nicht mehr
 
 Die Controllersilhouette ist L-förmig: neben dem Pistolengriff bleibt

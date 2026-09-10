@@ -518,6 +518,86 @@ def deckel_aussen(pfad, p):
         f_.write("\n".join(z))
 
 
+def duo_schnitt(pfad, p):
+    """Hoehenschnitt durch den Duo-Koffer: was liegt in welcher Hoehe.
+
+    Schematisch in (y, z): links die Controllerseite mit Drehrad, rechts
+    die Auto-Box auf ihrem Podest, dazwischen Leiste, Tablett, Deckel.
+    Alle Hoehen sind die echten Werte aus dem Generator."""
+    S = 3.4
+    H_ges = p["duo_h"] + g.DECKEL_INNEN + g.BODEN
+    W = int(p["aussen_y"] * S) + 260
+    Hh = int(H_ges * S) + 90
+    z = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d">' % (W, Hh),
+         '<rect width="100%%" height="100%%" fill="#fbfbfa"/>',
+         '<text x="%d" y="24" font-family="sans-serif" font-size="15" '
+         'font-weight="600" text-anchor="middle">Duo: Hoehenschnitt, %.0f mm '
+         'hoch bei gleicher Grundflaeche</text>' % (W / 2, H_ges)]
+    ox, oz = 30, Hh - 40
+
+    def R(y0, y1, z0, z1, fill, stroke="#333", op=1.0):
+        z.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" '
+                 'stroke="%s" stroke-width="0.8" fill-opacity="%.2f"/>'
+                 % (ox + y0 * S, oz - z1 * S, (y1 - y0) * S, (z1 - z0) * S,
+                    fill, stroke, op))
+
+    def T(y, zz, t, anker="start", farbe="#333", size=11):
+        z.append('<text x="%.1f" y="%.1f" font-family="sans-serif" font-size="%d" '
+                 'text-anchor="%s" fill="%s">%s</text>'
+                 % (ox + y * S, oz - zz * S, size, anker, farbe, t))
+
+    ay = p["aussen_y"]
+    wand = g.WAND
+    # Wanne: Boden + Waende
+    R(0, ay, -g.BODEN, 0, "#78818c")
+    R(0, wand, 0, p["duo_rand"], "#78818c")
+    R(ay - wand, ay, 0, p["duo_rand"], "#78818c")
+    # Leiste
+    zl = p["duo_leiste_z"]
+    R(wand, wand + g.LEISTE, zl - g.LEISTE, zl, "#5c6672")
+    R(ay - wand - g.LEISTE, ay - wand, zl - g.LEISTE, zl, "#5c6672")
+    # Ebene 1: Mulde-Wand, Controller (Gehaeuse + Rad), Box auf Podest
+    R(wand + 8, wand + 11, 0, g.MULDE_HOEHE, "#9aa3ad")
+    R(wand + 11, wand + 11 + 150, 0, g.CTRL_GEHAEUSE_D, "#c8663f", "#8d4225")
+    R(wand + 60, wand + 105, g.CTRL_GEHAEUSE_D, g.CTRL_H, "#2b2b2f")
+    T(wand + 14, g.CTRL_GEHAEUSE_D / 2 - 3, "Controller 1 (Gehaeuse %.0f)" % g.CTRL_GEHAEUSE_D, farbe="#fff")
+    T(wand + 62, g.CTRL_H - 6, "Rad bis %.0f" % g.CTRL_H, farbe="#fff")
+    by0 = ay - wand - 3 - g.AUTOBOX_L
+    R(by0, by0 + g.AUTOBOX_L, 0, p["duo_podest"], "#5c6672")
+    R(by0, by0 + g.AUTOBOX_L, p["duo_podest"], p["duo_podest"] + g.AUTOBOX_H, "#b1483f", "#7d2a23")
+    T(by0 + 4, p["duo_podest"] + g.AUTOBOX_H / 2 - 3, "Auto-Box 1", farbe="#fff")
+    T(by0 + 4, 1.5, "Podest %.0f" % p["duo_podest"], farbe="#fff", size=9)
+    # Tablett
+    zt0, zt1 = zl, p["duo_tablett_z"]
+    R(wand + g.TABLETT_SPIEL, ay - wand - g.TABLETT_SPIEL, zt0, zt1, "#3a6eb2", "#12294a")
+    R(wand + 8, wand + 11, zt1, zt1 + g.MULDE_HOEHE, "#3a6eb2", "#12294a")
+    R(wand + 11, wand + 11 + 150, zt1, zt1 + g.CTRL_GEHAEUSE_D, "#c8663f", "#8d4225")
+    R(wand + 60, wand + 105, zt1 + g.CTRL_GEHAEUSE_D, zt1 + g.CTRL_H, "#2b2b2f")
+    T(wand + 14, zt1 + g.CTRL_GEHAEUSE_D / 2 - 3, "Controller 2", farbe="#fff")
+    R(by0, by0 + g.AUTOBOX_L, zt1, zt1 + g.AUTOBOX_H, "#b1483f", "#7d2a23")
+    T(by0 + 4, zt1 + g.AUTOBOX_H / 2 - 3, "Auto-Box 2", farbe="#fff")
+    # Deckel
+    zr = p["duo_rand"]
+    R(0, ay, zr + g.DECKEL_INNEN, zr + g.DECKEL_INNEN + g.BODEN, "#3a6eb2", "#12294a")
+    R(0, wand, zr, zr + g.DECKEL_INNEN, "#3a6eb2", "#12294a")
+    R(ay - wand, ay, zr, zr + g.DECKEL_INNEN, "#3a6eb2", "#12294a")
+    # Masse rechts
+    mx = ay + 6
+    for zz, t in ((0, "0  Wannenboden"), (g.CTRL_H, "%.0f  Rad unten" % g.CTRL_H),
+                  (zl, "%.0f  Leiste / Tablett unten" % zl),
+                  (zt1, "%.0f  Tablettboden oben" % zt1),
+                  (zr, "%.0f  Wannenrand" % zr),
+                  (zr + g.DECKEL_INNEN, "%.0f  Deckelplatte" % (zr + g.DECKEL_INNEN)),
+                  (H_ges - g.BODEN + g.BODEN, "%.0f  Oberkante" % H_ges)):
+        z.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#999" '
+                 'stroke-width="0.6" stroke-dasharray="3,3"/>'
+                 % (ox, oz - zz * S, ox + mx * S, oz - zz * S))
+        T(mx + 1, zz - 1.5, t, farbe="#555", size=10)
+    z.append("</svg>")
+    with open(pfad, "w") as f:
+        f.write("\n".join(z))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mit-griff", action="store_true",
@@ -621,12 +701,13 @@ def main():
                       wanne, deckel_zu)
     g.logo_flaechen(p)
     deckel_aussen(os.path.join(ziel, "ansicht_deckel_aussen.svg"), p)
+    duo_schnitt(os.path.join(ziel, "ansicht_duo_schnitt.svg"), p)
 
     for name in ("ansicht_wanne_offen.svg", "ansicht_deckel_innen.svg",
                  "ansicht_koffer_zu.svg", "ansicht_falz_schnitt.svg",
                  "ansicht_draufsicht.svg", "ansicht_schnitt.svg",
                  "ansicht_controller_lage.svg", "ansicht_scharnier.svg",
-                 "ansicht_deckel_aussen.svg"):
+                 "ansicht_deckel_aussen.svg", "ansicht_duo_schnitt.svg"):
         print("%-28s %6.0f kB"
               % (name, os.path.getsize(os.path.join(ziel, name)) / 1024.0))
 

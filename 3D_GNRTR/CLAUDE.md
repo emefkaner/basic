@@ -321,6 +321,18 @@ Formschluss-Prinzipien, die sich bewährt haben:
   zwei Gruenden: er wird zum brauchbaren Zubehoerfach, und die Klemmrippe
   des Nachbarfachs bekommt wieder eine Wand unter sich. Eine Rippe ist ein
   1,1-mm-Blatt; frei auf dem Boden stehend bricht sie ab.
+- **Ebenen stapeln: Innenleben als Funktion mit Hoehenversatz.** Fuer
+  den Duo-Koffer (zwei Controller uebereinander) wurde das komplette
+  Innenleben der Wanne (Mulde, Boxfach, Feder) zu `innenleben(g,
+  schalen, z0, ix, iy)` -- einmal auf dem Wannenboden, einmal auf dem
+  Tablett. Drei Fallen dabei: (1) alle Pruefungen, die "ueber dem
+  Boden" testen, brauchen den Bodenversatz (der Strahltest schlug am
+  Tablettboden an); (2) Fachwaende muessen auf den Plattenrand begrenzt
+  werden, wenn die Platte schmaler ist als der Innenraum, sonst ragen
+  sie 0,5 mm ueber; (3) die Falzzonenpruefung muss die ECHTE Falzhoehe
+  (Rand minus FALZ_H) nehmen, nicht die Fachoberkante -- bei einer
+  tiefen Wanne ist das nicht dasselbe. Eine Auflageleiste als zwei
+  Ringe halber Breite drucken, dann ist jeder Ueberhang nur 1,5 mm.
 - **Klemmrippen nur dort, wo das Gegenstueck starr ist** — nie auf einem
   beweglichen Teil (das Drehrad des Controllers) und nie auf einer
   Flaeche, die in der Fachhoehe gar nicht anliegt.

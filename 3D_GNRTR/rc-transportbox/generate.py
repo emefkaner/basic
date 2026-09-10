@@ -333,6 +333,15 @@ HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 GENERATION = 7
 
 MIT_GRIFF = False
+
+# ---- Duo: zwei Controller und zwei Auto-Boxen in EINEM Koffer, Ebene
+# ueber Ebene. Grundflaeche bleibt, nur die Hoehe waechst. Aufbau: eine
+# tiefe Wanne, darin ein herausnehmbares Tablett mit zweiter Mulde und
+# zweitem Boxfach, das auf einer Leiste aufliegt; oben der normale Deckel.
+DUO_LUFT = 3.0          # Luft zwischen Drehrad der unteren Ebene und Tablett
+TABLETT_BODEN = 3.0     # Bodenplatte des Tabletts
+TABLETT_SPIEL = 0.5     # je Seite zum Wanneninneren (muss leicht rausgehen)
+LEISTE = 3.0            # Auflageleiste fuer das Tablett: so breit und so hoch
 # Deckel wird AUFGESTECKT statt aufgeklappt. Der Stufenfalz ist die
 # Aussparung, die fuehrt, die Rastkeile halten ihn zu -- die letzte
 # gedruckte Version sass damit bombenfest. Das Scharnier faellt weg:
@@ -788,6 +797,17 @@ def abgeleitet():
     g["wanne_innen_h"] = MULDE_HOEHE + FALZ_H
     g["z_fach"] = MULDE_HOEHE
     g["innen_h"] = g["wanne_innen_h"] + DECKEL_INNEN
+
+    # Duo-Hoehen. Unter dem Tablett muss der untere Controller samt
+    # Drehrad Platz haben; ueber dem Tablettboden dann genau das, was die
+    # Einzelwanne bietet (Mulde + Falz), darueber der unveraenderte Deckel.
+    g["duo_leiste_z"] = CTRL_H + DUO_LUFT                     # Unterkante Tablett
+    g["duo_tablett_z"] = g["duo_leiste_z"] + TABLETT_BODEN    # Oberkante Tablettboden
+    g["duo_rand"] = g["duo_tablett_z"] + g["wanne_innen_h"]   # Wannenoberkante
+    g["duo_h"] = BODEN + g["duo_rand"]
+    # Box der unteren Ebene auf ein Podest, damit sie wie das Rad knapp
+    # unter dem Tablett endet und nicht 7 mm Luft nach oben hat.
+    g["duo_podest"] = max(0.0, CTRL_H - AUTOBOX_H)
 
     g["aussen_x"] = g["innen_x"] + 2 * WAND
     g["aussen_y"] = g["innen_y"] + 2 * WAND
@@ -1740,7 +1760,7 @@ def sehnenfeder(pa, pb, richtpunkt, hub, dick, z0, z1):
     return prisma(vorn + hint, z0, z1)
 
 
-def ctrl_feder(g, z1, mx0=None, my0=None):
+def ctrl_feder(g, z1, mx0=None, my0=None, z0=0.0):
     """Laengsfeder am Kopfende der Controllermulde.
 
     Das Drehrad sitzt OBEN auf dem Gehaeuse (z = 42..57) und ragt in
@@ -1776,7 +1796,7 @@ def ctrl_feder(g, z1, mx0=None, my0=None):
                          "(max 4) -- Hub verkleinern oder Sehne verlaengern"
                          % (100 * dehnung))
     return [sehnenfeder(pa, pb, mitte, CTRL_FED_HUB, CTRL_FED_DICK,
-                        0.0, z1)]
+                        z0, z1)]
 
 
 def hw_kontur(x0, x1, y0, y1):
@@ -1882,7 +1902,7 @@ def scharnier_auge(loch_d, laenge, sack=0.0, senkung=0.0):
 # Teil 1: Wanne
 # ---------------------------------------------------------------------------
 
-def fachwand(poly, dicke, z0, z1, aussparungen=()):
+def fachwand(poly, dicke, z0, z1, aussparungen=(), grenze=None):
     """Wand um ein Fach, aus Einzelstuecken statt als geschlossener Ring.
 
     Warum nicht als Ring (aussen = Kontur nach aussen versetzt, innen =
@@ -1919,6 +1939,15 @@ def fachwand(poly, dicke, z0, z1, aussparungen=()):
             weg.append(i)
     weg = set(weg)
 
+    def klemm(pts):
+        # Beim Tablett darf die Wand nicht ueber die Bodenplatte hinaus --
+        # die Platte ist TABLETT_SPIEL schmaler als der Wanneninnenraum,
+        # die Mulde aber nur STEG_MIN von der Innenwand entfernt.
+        if grenze is None:
+            return pts
+        gx, gy = grenze
+        return [(min(max(x, -gx), gx), min(max(y, -gy), gy)) for (x, y) in pts]
+
     schalen = []
     for i in range(n):
         if i in weg:
@@ -1927,8 +1956,11 @@ def fachwand(poly, dicke, z0, z1, aussparungen=()):
         if math.dist(a, b) < 1e-6:
             continue
         nx, ny = normale(a, b)
-        schalen.append(prisma([a, b, (b[0] + nx * dicke, b[1] + ny * dicke),
-                               (a[0] + nx * dicke, a[1] + ny * dicke)], z0, z1))
+        q = klemm([a, b, (b[0] + nx * dicke, b[1] + ny * dicke),
+                   (a[0] + nx * dicke, a[1] + ny * dicke)])
+        if len(set(q)) < 4:
+            continue
+        schalen.append(prisma(q, z0, z1))
     # Ecken schliessen: Keil zwischen den beiden Kantenversaetzen
     for i in range(n):
         vor, nach = (i - 1) % n, i
@@ -1944,8 +1976,10 @@ def fachwand(poly, dicke, z0, z1, aussparungen=()):
         kreuz = n1[0] * n2[1] - n1[1] * n2[0]
         if abs(kreuz) < 1e-9:
             continue
-        keil = [p, (p[0] + n1[0] * dicke, p[1] + n1[1] * dicke),
-                (p[0] + n2[0] * dicke, p[1] + n2[1] * dicke)]
+        keil = klemm([p, (p[0] + n1[0] * dicke, p[1] + n1[1] * dicke),
+                      (p[0] + n2[0] * dicke, p[1] + n2[1] * dicke)])
+        if len(set(keil)) < 3:
+            continue
         if abs((keil[1][0] - keil[0][0]) * (keil[2][1] - keil[0][1])
                - (keil[1][1] - keil[0][1]) * (keil[2][0] - keil[0][0])) < 1e-6:
             continue
@@ -1953,7 +1987,73 @@ def fachwand(poly, dicke, z0, z1, aussparungen=()):
     return schalen
 
 
-def teil_wanne(g):
+def innenleben(g, schalen, z0, ix, iy):
+    """Mulde, Boxfach und Laengsfeder -- das Innenleben einer Ebene.
+
+    Fuer die Einzelwanne auf dem Wannenboden (z0 = 0), fuer das Duo-
+    Tablett auf dessen Bodenplatte (z0 = TABLETT_BODEN). ix/iy begrenzen,
+    wie weit die Fachwaende nach aussen duerfen -- beim Tablett ist das
+    dessen Plattenrand, nicht die Wanneninnenwand.
+    """
+    # Die Faecher als WAENDE, nicht als massive Fuellung. Vorher war der
+    # ganze Innenraum 30 mm hoch zugefuellt und nur Mulde und Autofach
+    # ausgespart -- rund 470 cm3 umbautes Volumen, das der Slicer mit
+    # Infill und Deckflaechen fuellt. Jetzt steht um jedes Fach nur eine
+    # Wand von STEG_MIN Dicke; dazwischen und aussen herum ist der Koffer
+    # bis auf den Boden offen. Spart Material und Druckzeit, und die
+    # Fuehrung des Inhalts aendert sich nicht -- die kommt von der
+    # Fachwand, nicht von der Fuellung dahinter.
+    ox, oy = g["mulde_off"]
+    mulde_pos = [(x + ox, y + oy) for (x, y) in g["mulde"]]
+    kontur_pos = [(x + ox, y + oy) for (x, y) in g["kontur"]]
+    boxloch = [(g["box_x0"], g["box_y0"]), (g["box_x1"], g["box_y0"]),
+               (g["box_x1"], g["box_y1"]), (g["box_x0"], g["box_y1"])]
+
+    def begrenzen(poly):
+        """Die Fachwand darf nicht aus dem Innenraum herausragen."""
+        return [(min(max(x, -ix), ix), min(max(y, -iy), iy))
+                for (x, y) in poly]
+
+    # Wand um die Controllermulde -- mit genau EINER Luecke: dem geraden
+    # Ost-West-Steg vor dem Gaspedal (STEG_WEG).
+    x0k = min(x for (x, _) in g["kontur"]) + ox
+    y0k = min(y for (_, y) in g["kontur"]) + oy
+    a0, a1, b0, b1 = STEG_WEG
+    g["steg_weg"] = [(x0k + a0, y0k + b0), (x0k + a1, y0k + b0),
+                     (x0k + a1, y0k + b1), (x0k + a0, y0k + b1)]
+    schalen.extend(fachwand(mulde_pos, STEG_MIN, z0, z0 + MULDE_HOEHE,
+                            aussparungen=(g["steg_weg"],), grenze=(ix, iy)))
+    box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
+                          (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
+                          (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),
+                          (g["box_x0"] - STEG_MIN, g["box_y1"] + STEG_MIN)])
+    schalen.append(loch_prisma(box_wand, boxloch, z0, z0 + MULDE_HOEHE))
+    loecher = [mulde_pos, boxloch]
+    for (hx0, hx1, hy0, hy1) in g["hw"]:
+        loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
+    g["fuellung"] = ([(-ix, -iy), (ix, -iy), (ix, iy), (-ix, iy)], loecher)
+
+    # Laengsfeder am Kopfende: drueckt den Controller gegen die Wand am
+    # Griffende, damit die Laengslage vom Radueberstand unabhaengig ist.
+    schalen.extend(ctrl_feder(g, z0 + MULDE_HOEHE, z0=z0))
+
+    for idx in g["rippen_idx"]:
+        px, py = mulde_pos[idx]
+        qx, qy = kontur_pos[idx]
+        schalen.append(rippe_frei(px, py, qx - px, qy - py, z0, z0 + MULDE_HOEHE))
+
+    for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
+        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z0 + MULDE_HOEHE, feder_vorn=(i == 0),
+                               rahmen=False))
+
+    # KEINE Klemmrippen im Autofach: sie ragten mit voller Tiefe hinein
+    # und liessen 49,2 mm frei fuer eine 50 mm breite Box. Jetzt hat das
+    # Fach AUTOBOX_LUFT je Seite; niedergehalten wird die Box von den
+    # Federboegen im Deckel.
+
+
+
+def teil_wanne(g, duo=False):
     schalen = []
     aussen = rundrechteck(g["aussen_x"], g["aussen_y"], ECKRADIUS)
     innen = rundrechteck(g["innen_x"], g["innen_y"], max(2.0, ECKRADIUS - WAND))
@@ -1971,69 +2071,33 @@ def teil_wanne(g):
     r_i = max(2.0, ECKRADIUS - WAND)
     innen_falz = rundrechteck(g["innen_x"] + 2 * FALZ_T,
                               g["innen_y"] + 2 * FALZ_T, r_i + FALZ_T)
-    schalen.append(loch_prisma(aussen, innen, 0.0, g["z_fach"]))
-    schalen.append(loch_prisma(aussen, innen_falz,
-                               g["z_fach"], g["wanne_innen_h"]))
-
+    # Duo: die Wanne ist tiefer, der Falz sitzt entsprechend hoeher.
+    z_rand = g["duo_rand"] if duo else g["wanne_innen_h"]
+    schalen.append(loch_prisma(aussen, innen, 0.0, z_rand - FALZ_H))
+    schalen.append(loch_prisma(aussen, innen_falz, z_rand - FALZ_H, z_rand))
     z1 = g["z_fach"]          # Oberkante aller Innenteile
-    z_rand = g["wanne_innen_h"]   # Oberkante der Wannenwand
 
-    # Die Faecher als WAENDE, nicht als massive Fuellung. Vorher war der
-    # ganze Innenraum 30 mm hoch zugefuellt und nur Mulde und Autofach
-    # ausgespart -- rund 470 cm3 umbautes Volumen, das der Slicer mit
-    # Infill und Deckflaechen fuellt. Jetzt steht um jedes Fach nur eine
-    # Wand von STEG_MIN Dicke; dazwischen und aussen herum ist der Koffer
-    # bis auf den Boden offen. Spart Material und Druckzeit, und die
-    # Fuehrung des Inhalts aendert sich nicht -- die kommt von der
-    # Fachwand, nicht von der Fuellung dahinter.
-    ox, oy = g["mulde_off"]
-    mulde_pos = [(x + ox, y + oy) for (x, y) in g["mulde"]]
-    kontur_pos = [(x + ox, y + oy) for (x, y) in g["kontur"]]
+    if duo:
+        # Auflageleiste fuer das Tablett: zwei Ringe, der untere halb so
+        # breit -- so ist jeder Ueberhang nur 1,5 mm und druckt sich ohne
+        # Stuetzen. Oberkante = Unterkante des Tablettbodens.
+        zl = g["duo_leiste_z"]
+        for breite, za, zb in ((LEISTE / 2.0, zl - LEISTE, zl - LEISTE / 2.0),
+                               (LEISTE, zl - LEISTE / 2.0, zl)):
+            innen_l = rundrechteck(g["innen_x"] - 2 * breite,
+                                   g["innen_y"] - 2 * breite,
+                                   max(1.0, r_i - breite))
+            schalen.append(loch_prisma(innen, innen_l, za, zb))
+        # Podest unter der Box der unteren Ebene (siehe abgeleitet)
+        if g["duo_podest"] > 0.0:
+            schalen.append(prisma([(g["box_x0"], g["box_y0"]),
+                                   (g["box_x1"], g["box_y0"]),
+                                   (g["box_x1"], g["box_y1"]),
+                                   (g["box_x0"], g["box_y1"])],
+                                  0.0, g["duo_podest"]))
+
     ix, iy = g["innen_x"] / 2.0, g["innen_y"] / 2.0
-    boxloch = [(g["box_x0"], g["box_y0"]), (g["box_x1"], g["box_y0"]),
-               (g["box_x1"], g["box_y1"]), (g["box_x0"], g["box_y1"])]
-
-    def begrenzen(poly):
-        """Die Fachwand darf nicht aus dem Innenraum herausragen."""
-        return [(min(max(x, -ix), ix), min(max(y, -iy), iy))
-                for (x, y) in poly]
-
-    # Wand um die Controllermulde -- mit genau EINER Luecke: dem geraden
-    # Ost-West-Steg vor dem Gaspedal (STEG_WEG).
-    x0k = min(x for (x, _) in g["kontur"]) + ox
-    y0k = min(y for (_, y) in g["kontur"]) + oy
-    a0, a1, b0, b1 = STEG_WEG
-    g["steg_weg"] = [(x0k + a0, y0k + b0), (x0k + a1, y0k + b0),
-                     (x0k + a1, y0k + b1), (x0k + a0, y0k + b1)]
-    schalen.extend(fachwand(mulde_pos, STEG_MIN, 0.0, MULDE_HOEHE,
-                            aussparungen=(g["steg_weg"],)))
-    box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
-                          (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
-                          (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),
-                          (g["box_x0"] - STEG_MIN, g["box_y1"] + STEG_MIN)])
-    schalen.append(loch_prisma(box_wand, boxloch, 0.0, MULDE_HOEHE))
-    loecher = [mulde_pos, boxloch]
-    for (hx0, hx1, hy0, hy1) in g["hw"]:
-        loecher.append(hw_kontur(hx0, hx1, hy0, hy1))
-    g["fuellung"] = ([(-ix, -iy), (ix, -iy), (ix, iy), (-ix, iy)], loecher)
-
-    # Laengsfeder am Kopfende: drueckt den Controller gegen die Wand am
-    # Griffende, damit die Laengslage vom Radueberstand unabhaengig ist.
-    schalen.extend(ctrl_feder(g, MULDE_HOEHE))
-
-    for idx in g["rippen_idx"]:
-        px, py = mulde_pos[idx]
-        qx, qy = kontur_pos[idx]
-        schalen.append(rippe_frei(px, py, qx - px, qy - py, 0.0, MULDE_HOEHE))
-
-    for i, (hx0, hx1, hy0, hy1) in enumerate(g["hw"]):
-        schalen.extend(hw_fach(hx0, hx1, hy0, hy1, z1, feder_vorn=(i == 0),
-                               rahmen=False))
-
-    # KEINE Klemmrippen im Autofach: sie ragten mit voller Tiefe hinein
-    # und liessen 49,2 mm frei fuer eine 50 mm breite Box. Jetzt hat das
-    # Fach AUTOBOX_LUFT je Seite; niedergehalten wird die Box von den
-    # Federboegen im Deckel.
+    innenleben(g, schalen, 0.0, ix, iy)
 
     # Scharnieraugen -- nur wenn das Scharnier ueberhaupt gebaut wird.
     if MIT_SCHARNIER:
@@ -2407,6 +2471,21 @@ def teil_logo(g):
     return teile
 
 
+def teil_tablett(g):
+    """Einlegetablett fuer das Duo: Bodenplatte plus das komplette
+    Innenleben der Einzelwanne (Mulde, Boxfach, Laengsfeder), TABLETT_SPIEL
+    schmaler als der Wanneninnenraum. Es liegt auf der Leiste der tiefen
+    Wanne auf; der Controller darauf wird vom Deckel niedergehalten wie in
+    der Einzelwanne."""
+    r_i = max(2.0, ECKRADIUS - WAND)
+    tx, ty = (g["innen_x"] / 2.0 - TABLETT_SPIEL,
+              g["innen_y"] / 2.0 - TABLETT_SPIEL)
+    platte = rundrechteck(2 * tx, 2 * ty, max(1.0, r_i - TABLETT_SPIEL))
+    schalen = [prisma(platte, 0.0, TABLETT_BODEN)]
+    innenleben(g, schalen, TABLETT_BODEN, tx, ty)
+    return schalen
+
+
 def teil_lehre(g):
     """Passlehre: der Muldenquerschnitt als flache Platte mit Klemmrippen.
 
@@ -2677,7 +2756,7 @@ def abzug_pruefen(g):
     return None
 
 
-def abzug_strahltest(g, schalen):
+def abzug_strahltest(g, schalen, boden=0.0):
     """Liegt der Abzug WIRKLICH frei? Strahlen durch das fertige Netz.
 
     Die Polygonpruefung (abzug_pruefen) sagt nur, dass der Hebel im
@@ -2711,7 +2790,7 @@ def abzug_strahltest(g, schalen):
                 if l1 < 0 or l2 < 0 or 1 - l1 - l2 < 0:
                     continue
                 z = l1 * z1 + l2 * z2 + (1 - l1 - l2) * z3
-                if z > 0.6:
+                if z > boden + 0.6:
                     schlecht.append((px, py, z))
                     break
     return schlecht
@@ -2740,6 +2819,38 @@ def umriss_pruefen(g, schalen, name, hoehe):
                 "%.2f mm in y (%d Punkte)"
                 % (name, max(0.0, x), max(0.0, y), len(schlimm)))
     return None
+
+
+def duo_pruefen(g, tablett):
+    """Passt das Tablett in die tiefe Wanne -- und alles darunter?"""
+    fehler = []
+    # Rad der unteren Ebene unter dem Tablett
+    if CTRL_H + 1.0 > g["duo_leiste_z"]:
+        fehler.append("Drehrad (%.0f) stoesst ans Tablett (%.0f)"
+                      % (CTRL_H, g["duo_leiste_z"]))
+    # Podest + Box unter dem Tablett
+    if g["duo_podest"] + AUTOBOX_H + 1.0 > g["duo_leiste_z"]:
+        fehler.append("Box auf Podest (%.0f) stoesst ans Tablett"
+                      % (g["duo_podest"] + AUTOBOX_H))
+    # Tablett liegt ringsum auf der Leiste auf und passt durch die Wanne
+    tx = g["innen_x"] / 2.0 - TABLETT_SPIEL
+    if tx <= g["innen_x"] / 2.0 - LEISTE:
+        fehler.append("Tablett liegt nicht auf der Leiste auf")
+    # kein Punkt des Tabletts ausserhalb des Wanneninneren minus Spiel
+    ex, ey = (g["innen_x"] / 2.0 - TABLETT_SPIEL + 0.05,
+              g["innen_y"] / 2.0 - TABLETT_SPIEL + 0.05)
+    raus = 0
+    for sch in tablett:
+        for tri in (sch[0] if isinstance(sch, tuple) else sch):
+            for (x, y, z) in tri:
+                if abs(x) > ex or abs(y) > ey:
+                    raus += 1
+    if raus:
+        fehler.append("%d Tablettpunkte ragen ueber den Plattenrand" % raus)
+    # Rad der oberen Ebene unter dem Deckel: wie Einzelwanne
+    if g["duo_tablett_z"] + CTRL_H + 1.0 > g["duo_rand"] + DECKEL_INNEN:
+        fehler.append("oberes Drehrad stoesst an den Deckel")
+    return fehler
 
 
 def bauraum_pruefen(g):
@@ -2775,7 +2886,7 @@ def falzzone_pruefen(g, schalen):
     lippe_a = rundrechteck(g["innen_x"] + 2 * (FALZ_T - FALZ_SP),
                            g["innen_y"] + 2 * (FALZ_T - FALZ_SP),
                            r_i + FALZ_T - FALZ_SP)
-    z0 = g["z_fach"] + 0.1
+    z0 = g["wanne_innen_h"] - FALZ_H + 0.1
     z1 = g["wanne_innen_h"] - 0.1
     # Nicht die Eckpunkte pruefen, sondern die z-INTERVALLE der Dreiecke:
     # ein Prisma, das die Falzzone durchquert, hat dort gar keinen
@@ -2925,6 +3036,37 @@ def main():
           % (g["aussen_x"], g["aussen_y"]))
     fehler += bauen(ziel, dateiname("1_wanne_1x_drucken"), wanne)
     fehler += bauen(ziel, dateiname("2_deckel_1x_drucken"), deckel)
+
+    # ---- Duo: tiefe Wanne + Tablett, derselbe Deckel ----
+    duo_wanne = teil_wanne(g, duo=True)
+    tablett = teil_tablett(g)
+    gd = dict(g)
+    gd["wanne_innen_h"] = g["duo_rand"]
+    frei_d = falzzone_pruefen(gd, duo_wanne)
+    if frei_d:
+        raise SystemExit("FEHLER Duo: %d Punkte in der Falzzone der tiefen "
+                         "Wanne" % frei_d)
+    dfehler = duo_pruefen(g, tablett)
+    if dfehler:
+        raise SystemExit("FEHLER Duo: " + "; ".join(dfehler))
+    ueber = umriss_pruefen(g, duo_wanne, "Duo-Wanne", g["duo_h"])
+    if ueber:
+        raise SystemExit("FEHLER Umriss: " + ueber)
+    imweg = abzug_strahltest(g, tablett, boden=TABLETT_BODEN)
+    if imweg:
+        raise SystemExit("FEHLER Duo-Tablett, Abzug: Material bei (%.1f, %.1f)"
+                         % (imweg[0][0], imweg[0][1]))
+    print("\nDuo: tiefe Wanne %.0f x %.0f x %.0f mm, Leiste bei %.0f mm "
+          "(Drehrad unten endet bei %.0f, Box auf %.0f mm Podest bei %.0f), "
+          "Tablettboden %.0f mm, Wannenrand %.0f mm. Mit Deckel %.0f mm hoch."
+          % (g["aussen_x"], g["aussen_y"], g["duo_h"], g["duo_leiste_z"],
+             CTRL_H, g["duo_podest"], g["duo_podest"] + AUTOBOX_H,
+             g["duo_tablett_z"], g["duo_rand"],
+             g["duo_h"] + DECKEL_INNEN + BODEN))
+    fehler += bauen(ziel, dateiname("duo_1_wanne_tief_1x_drucken"), duo_wanne)
+    fehler += bauen(ziel, dateiname("duo_2_tablett_1x_drucken"), tablett)
+    print("Duo-Deckel: derselbe wie fuer die Einzelwanne (%s)."
+          % dateiname("2_deckel_1x_drucken"))
     for alt_nr in range(2, 6):
         alt_pfad = os.path.join(
             ziel, dateiname("2%s_deckellogo_filament%d_1x_drucken"

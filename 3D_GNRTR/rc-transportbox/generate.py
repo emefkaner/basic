@@ -330,7 +330,7 @@ HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 # sieben Runden mit je neuer Wanne war sonst nicht mehr sicher zu sagen,
 # welche Datei zu welchem Deckel gehoert -- und ein Fehldruck kostet hier
 # Stunden.
-GENERATION = 8
+GENERATION = 7
 
 MIT_GRIFF = False
 # Deckel wird AUFGESTECKT statt aufgeklappt. Der Stufenfalz ist die

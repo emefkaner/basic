@@ -9,7 +9,7 @@
 | **Controller (gemessen)** | 215,1 × 151,1 mm, Gehäuse 42 dick, mit Drehrad 57 |
 | **Auto-Box** | 100 × 50 × 50 mm, Fach 105 × 55 (2,5 mm Luft je Seite), liegt in der Kerbe neben dem Pistolengriff |
 | **Muldenluft** | 2,0 mm je Seite |
-| **Abzugsaussparung** | 45 × 41 mm, grob, aus dem Lehrenfoto gemessen |
+| **Fachwand** | mit zwei Lücken: am Abzug (Hebel liegt frei) und in der Griffkehle (Ost-West-Steg entfernt) |
 | **Längsfeder** | 55 mm Sehne, 1,4 dick, 10 mm Hub |
 | **Verschluss** | Deckel zum **Aufstecken** — kein Scharnier, keine Schnapper. Es hält allein der Stufenfalz. |
 | **Logo** | `logo.svg`, 130 mm breit, zwei Farbteile |

@@ -159,6 +159,11 @@ MULDE_HOEHE = 30.0         # Tiefe der Konturmulde (fuehrt das Gehaeuse)
 # abgeschnitten; das kostet den Koffer nichts an Funktion und spart
 # Laenge.
 GRIFF_KAPPEN = 8.0
+# Band ueber dem Pistolengriff (relativ zur Griffmitte), in dem die
+# Fachwand entfaellt: dort lief ein Steg quer (Ost-West) durch die
+# Griffkehle und stand im Weg. Die Nord-Sued-Wand daneben bleibt.
+GRIFF_KEHLE = (3.0, 30.0, 30.0)   # ab/bis ueber Griffmitte, und wie
+                                  # weit nach Westen
 
 # Abzug (der orangene Hebel). Aus dem Foto der gedruckten Lehre gemessen
 # (Homographie ueber die vier Plattenecken, der Hebel ist am Orange
@@ -1846,7 +1851,7 @@ def scharnier_auge(loch_d, laenge, sack=0.0, senkung=0.0):
 # Teil 1: Wanne
 # ---------------------------------------------------------------------------
 
-def fachwand(poly, dicke, z0, z1, aussparung=None):
+def fachwand(poly, dicke, z0, z1, aussparungen=()):
     """Wand um ein Fach, aus Einzelstuecken statt als geschlossener Ring.
 
     Warum nicht als Ring (aussen = Kontur nach aussen versetzt, innen =
@@ -1878,10 +1883,9 @@ def fachwand(poly, dicke, z0, z1, aussparung=None):
     weg = []
     for i in range(n):
         a, b = poly[i], poly[(i + 1) % n]
-        if aussparung is not None:
-            m = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0)
-            if punkt_in_polygon(m, aussparung):
-                weg.append(i)
+        m = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0)
+        if any(punkt_in_polygon(m, a_) for a_ in aussparungen):
+            weg.append(i)
     weg = set(weg)
 
     schalen = []
@@ -1968,8 +1972,19 @@ def teil_wanne(g):
     abzug_frei = [(x + ox, y + oy) for (x, y) in
                   abzug_rechteck(g["kontur"], ABZUG_LUFT + ABZUG_WAND_WEG)]
     g["abzug_frei"] = abzug_frei
+    # Zweite Luecke: der Ost-West-Steg in der Griffkehle, direkt ueber dem
+    # Pistolengriff. Er stand quer im Weg; die Nord-Sued-Wand daneben (die
+    # zwischen Griff und Auto-Box) bleibt stehen und fuehrt weiter.
+    gx = g["griff_pos"][0] + ox
+    gy = g["griff_pos"][1] + oy
+    # nach Westen begrenzen, sonst nimmt das Band auch ein Stueck der
+    # linken Aussenwand mit -- die soll stehen bleiben.
+    kx0 = gx - GRIFF_KEHLE[2]
+    kehle = [(kx0, gy + GRIFF_KEHLE[0]), (ix, gy + GRIFF_KEHLE[0]),
+             (ix, gy + GRIFF_KEHLE[1]), (kx0, gy + GRIFF_KEHLE[1])]
+    g["kehle"] = kehle
     schalen.extend(fachwand(mulde_pos, STEG_MIN, 0.0, MULDE_HOEHE,
-                            aussparung=abzug_frei))
+                            aussparungen=(abzug_frei, kehle)))
     box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),

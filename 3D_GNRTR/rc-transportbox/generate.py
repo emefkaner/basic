@@ -330,7 +330,7 @@ HAKEN       = 1.8   # ergibt 1.4 mm Rasteingriff
 # sieben Runden mit je neuer Wanne war sonst nicht mehr sicher zu sagen,
 # welche Datei zu welchem Deckel gehoert -- und ein Fehldruck kostet hier
 # Stunden.
-GENERATION = 7
+GENERATION = 8
 
 MIT_GRIFF = False
 # Deckel wird AUFGESTECKT statt aufgeklappt. Der Stufenfalz ist die
@@ -2185,6 +2185,20 @@ def teil_deckel(g):
              (-(g["box_x0"] + g["box_x1"]) / 2.0,
               (g["box_y0"] + g["box_y1"]) / 2.0 + g["box_t"] * 0.22,
               g["box_l"] * 0.8, hub_box)]
+    # Federn in den Innenraum zwingen. Die Feder ueber der Schnauze sass
+    # so weit aussen, dass ihre 48-mm-Sehne durch die Deckelwand ging und
+    # 1,6 mm aussen vorstand -- im Druck ein Nubsi an der Kofferkante, und
+    # der Deckel haette nicht mehr buendig geschlossen. Gefunden erst beim
+    # Vergleich der Huellquader von Wanne und Deckel.
+    rand = 2.0
+    lo, hi = -g["innen_x"] / 2.0 + rand, g["innen_x"] / 2.0 - rand
+    gezaehmt = []
+    for cx, y, spann, hub in ziele:
+        spann = min(spann, hi - lo)
+        cx = min(max(cx, lo + spann / 2.0), hi - spann / 2.0)
+        gezaehmt.append((cx, y, spann, hub))
+    ziele = gezaehmt
+
     for cx, y, spann, hub in ziele:
         profil = feder(cx, spann, hub)
         t = prisma(profil, y - 5.0, y + 5.0)
@@ -2703,6 +2717,31 @@ def abzug_strahltest(g, schalen):
     return schlecht
 
 
+def umriss_pruefen(g, schalen, name, hoehe):
+    """Kein Teil darf ueber sein Aussenmasz hinausragen.
+
+    Anlass: eine Feder im Deckel stand seitlich 1,6 mm aus der Wand
+    heraus -- im Druck ein Nubsi an der Kante, der das buendige
+    Schliessen verhindert haette. In der STL sieht so etwas voellig
+    normal aus; auffaellig wird es erst, wenn man die Huellquader von
+    Wanne und Deckel vergleicht. Also wird genau das jetzt geprueft.
+    """
+    ex, ey = g["aussen_x"] / 2.0 + 0.05, g["aussen_y"] / 2.0 + 0.05
+    schlimm = []
+    for sch in schalen:
+        for tri in (sch[0] if isinstance(sch, tuple) else sch):
+            for (x, y, z) in tri:
+                if abs(x) > ex or abs(y) > ey:
+                    schlimm.append((x, y, z))
+    if schlimm:
+        x = max(abs(p[0]) for p in schlimm) - g["aussen_x"] / 2.0
+        y = max(abs(p[1]) for p in schlimm) - g["aussen_y"] / 2.0
+        return ("%s ragt ueber das Aussenmasz hinaus: %.2f mm in x, "
+                "%.2f mm in y (%d Punkte)"
+                % (name, max(0.0, x), max(0.0, y), len(schlimm)))
+    return None
+
+
 def bauraum_pruefen(g):
     """Passt der Koffer aufs Bett -- mit Rand fuer Brim und Bettschiefe?
 
@@ -2876,8 +2915,16 @@ def main():
              (BETT_X - g["aussen_x"]) / 2.0, (BETT_Y - g["aussen_y"]) / 2.0))
     fehler += bauen(ziel, dateiname("0_passlehre_zuerst_drucken"),
                     teil_lehre(g))
+    deckel = teil_deckel(g)
+    for teil_name, teil_schalen, teil_h in (("Wanne", wanne, g["wanne_h"]),
+                                            ("Deckel", deckel, g["deckel_h"])):
+        ueber = umriss_pruefen(g, teil_schalen, teil_name, teil_h)
+        if ueber:
+            raise SystemExit("FEHLER Umriss: " + ueber)
+    print("Umriss: Wanne und Deckel bleiben beide innerhalb %.0f x %.0f mm"
+          % (g["aussen_x"], g["aussen_y"]))
     fehler += bauen(ziel, dateiname("1_wanne_1x_drucken"), wanne)
-    fehler += bauen(ziel, dateiname("2_deckel_1x_drucken"), teil_deckel(g))
+    fehler += bauen(ziel, dateiname("2_deckel_1x_drucken"), deckel)
     for alt_nr in range(2, 6):
         alt_pfad = os.path.join(
             ziel, dateiname("2%s_deckellogo_filament%d_1x_drucken"

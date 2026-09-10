@@ -1,8 +1,8 @@
 # Transportkoffer — Hot Wheels RC 1:64 Lamborghini Temerario
 
-## Projektstand — Generation 7
+## Projektstand — Generation 8
 
-Die STLs tragen die Generationsnummer im Namen (`rcbox_g7_…`), und beim
+Die STLs tragen die Generationsnummer im Namen (`rcbox_g8_…`), und beim
 Erzeugen löscht der Generator die STLs aller anderen Generationen aus
 `stl/`. Nach sieben Runden mit je neuer Wanne war sonst nicht mehr sicher
 zu sagen, welcher Deckel zu welcher Wanne gehört — und ein Fehldruck

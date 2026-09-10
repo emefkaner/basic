@@ -170,6 +170,10 @@ ABZUG_X0, ABZUG_X1 = 82.1, 117.5
 ABZUG_Y0, ABZUG_Y1 = 124.9, 156.1
 ABZUG_LUFT = 5.0           # grob aussparen, nicht formzutreu (Wunsch)
 ABZUG_ECKE = 6.0           # Eckradius der Aussparung
+# Zusaetzlich zur Aussparung wird die FACHWAND am Abzug ganz weggelassen:
+# der Hebel soll frei im offenen Innenraum liegen, ohne Wand ringsum. Eine
+# Aussparung MIT Wand drumherum hat ihn im Druck weiter behindert.
+ABZUG_WAND_WEG = 6.0       # wieviel weiter als die Aussparung die Wand fehlt
 
 # Der gemessene Umriss des Hebels selbst (C-Form), konturrelativ. Wird
 # nicht ausgespart -- er ist der PRUEFKOERPER: jeder Punkt muss nach dem
@@ -640,7 +644,7 @@ def offset_polygon(poly, d):
     return out
 
 
-def abzug_rechteck(kontur):
+def abzug_rechteck(kontur, luft=None):
     """Grobe, rundgeeckte Aussparung um den Abzug.
 
     Nicht formzutreu: ein exakt ausgesparter Clip laesst sich kaum
@@ -650,8 +654,9 @@ def abzug_rechteck(kontur):
     """
     x0k = min(x for (x, _) in kontur)
     y0k = min(y for (_, y) in kontur)
-    bx = (ABZUG_X1 - ABZUG_X0) + 2 * ABZUG_LUFT
-    by = (ABZUG_Y1 - ABZUG_Y0) + 2 * ABZUG_LUFT
+    luft = ABZUG_LUFT if luft is None else luft
+    bx = (ABZUG_X1 - ABZUG_X0) + 2 * luft
+    by = (ABZUG_Y1 - ABZUG_Y0) + 2 * luft
     cx = x0k + (ABZUG_X0 + ABZUG_X1) / 2.0
     cy = y0k + (ABZUG_Y0 + ABZUG_Y1) / 2.0
     return [(x + cx, y + cy) for (x, y) in rundrechteck(bx, by, ABZUG_ECKE)]
@@ -1841,6 +1846,78 @@ def scharnier_auge(loch_d, laenge, sack=0.0, senkung=0.0):
 # Teil 1: Wanne
 # ---------------------------------------------------------------------------
 
+def fachwand(poly, dicke, z0, z1, aussparung=None):
+    """Wand um ein Fach, aus Einzelstuecken statt als geschlossener Ring.
+
+    Warum nicht als Ring (aussen = Kontur nach aussen versetzt, innen =
+    Kontur)? Weil ein Ring keine Luecke haben kann. Am Abzug des
+    Controllers wird aber genau das gebraucht: dort darf ueberhaupt kein
+    Material stehen, der Hebel soll frei im offenen Innenraum liegen --
+    eine Aussparung mit Waenden drumherum hat ihn weiter behindert.
+
+    Deshalb je Kante ein Rechteck (Kante plus Kante um `dicke` nach
+    aussen versetzt) und an jeder konvexen Ecke ein Keil, der die Fuge
+    schliesst. Beides sind immer einfache Polygone -- im Gegensatz zum
+    Miter-Versatz, der sich an engen konkaven Stellen ueberschlaegt.
+    Kanten, deren Mitte in `aussparung` liegt, werden weggelassen; dort
+    entsteht die Luecke.
+    """
+    n = len(poly)
+    flaeche = 0.0
+    for i in range(n):
+        a, b = poly[i], poly[(i + 1) % n]
+        flaeche += a[0] * b[1] - b[0] * a[1]
+    ccw = flaeche > 0
+
+    def normale(a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        l = math.hypot(dx, dy) or 1.0
+        # CCW: Inneres liegt links von a->b, aussen ist also rechts
+        return (dy / l, -dx / l) if ccw else (-dy / l, dx / l)
+
+    weg = []
+    for i in range(n):
+        a, b = poly[i], poly[(i + 1) % n]
+        if aussparung is not None:
+            m = ((a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0)
+            if punkt_in_polygon(m, aussparung):
+                weg.append(i)
+    weg = set(weg)
+
+    schalen = []
+    for i in range(n):
+        if i in weg:
+            continue
+        a, b = poly[i], poly[(i + 1) % n]
+        if math.dist(a, b) < 1e-6:
+            continue
+        nx, ny = normale(a, b)
+        schalen.append(prisma([a, b, (b[0] + nx * dicke, b[1] + ny * dicke),
+                               (a[0] + nx * dicke, a[1] + ny * dicke)], z0, z1))
+    # Ecken schliessen: Keil zwischen den beiden Kantenversaetzen
+    for i in range(n):
+        vor, nach = (i - 1) % n, i
+        if vor in weg or nach in weg:
+            continue
+        p = poly[i]
+        a = poly[vor]
+        b = poly[(i + 1) % n]
+        if math.dist(a, p) < 1e-6 or math.dist(p, b) < 1e-6:
+            continue
+        n1 = normale(a, p)
+        n2 = normale(p, b)
+        kreuz = n1[0] * n2[1] - n1[1] * n2[0]
+        if abs(kreuz) < 1e-9:
+            continue
+        keil = [p, (p[0] + n1[0] * dicke, p[1] + n1[1] * dicke),
+                (p[0] + n2[0] * dicke, p[1] + n2[1] * dicke)]
+        if abs((keil[1][0] - keil[0][0]) * (keil[2][1] - keil[0][1])
+               - (keil[1][1] - keil[0][1]) * (keil[2][0] - keil[0][0])) < 1e-6:
+            continue
+        schalen.append(prisma(keil, z0, z1))
+    return schalen
+
+
 def teil_wanne(g):
     schalen = []
     aussen = rundrechteck(g["aussen_x"], g["aussen_y"], ECKRADIUS)
@@ -1886,10 +1963,13 @@ def teil_wanne(g):
         return [(min(max(x, -ix), ix), min(max(y, -iy), iy))
                 for (x, y) in poly]
 
-    mulde_wand = begrenzen(schlaufen_entfernen(
-        offset_polygon(mulde_pos, STEG_MIN)))
-    schalen.append((prisma_mit_loechern(mulde_wand, [mulde_pos],
-                                        0.0, MULDE_HOEHE), True))
+    # Wand um die Controllermulde -- mit LUECKE am Abzug. Dort steht kein
+    # Material mehr, der Hebel liegt frei im offenen Innenraum.
+    abzug_frei = [(x + ox, y + oy) for (x, y) in
+                  abzug_rechteck(g["kontur"], ABZUG_LUFT + ABZUG_WAND_WEG)]
+    g["abzug_frei"] = abzug_frei
+    schalen.extend(fachwand(mulde_pos, STEG_MIN, 0.0, MULDE_HOEHE,
+                            aussparung=abzug_frei))
     box_wand = begrenzen([(g["box_x0"] - STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y0"] - STEG_MIN),
                           (g["box_x1"] + STEG_MIN, g["box_y1"] + STEG_MIN),
@@ -2546,6 +2626,46 @@ def abzug_pruefen(g):
     return None
 
 
+def abzug_strahltest(g, schalen):
+    """Liegt der Abzug WIRKLICH frei? Strahlen durch das fertige Netz.
+
+    Die Polygonpruefung (abzug_pruefen) sagt nur, dass der Hebel im
+    Muldenpolygon liegt -- sie kann nicht sehen, ob die Fachwand daneben
+    steht. Genau daran ist es zweimal gescheitert. Deshalb hier senkrechte
+    Strahlen durch das gebaute Netz: im Bereich des gemessenen Hebels plus
+    3 mm Bewegungsluft darf ueber dem Boden nichts stehen.
+    """
+    tris = [t for sch in schalen
+            for t in (sch[0] if isinstance(sch, tuple) else sch)]
+    ox, oy = g["mulde_off"]
+    x0k = min(x for (x, _) in g["kontur"])
+    y0k = min(y for (_, y) in g["kontur"])
+    umriss = [(x0k + a + ox, y0k + b + oy) for (a, b) in ABZUG_UMRISS]
+    zone = schlaufen_entfernen(offset_polygon(umriss, 3.0))
+    zx0 = min(p[0] for p in zone); zx1 = max(p[0] for p in zone)
+    zy0 = min(p[1] for p in zone); zy1 = max(p[1] for p in zone)
+    schlecht = []
+    for i in range(11):
+        for j in range(11):
+            px = zx0 + (zx1 - zx0) * (i + 0.5) / 11.0
+            py = zy0 + (zy1 - zy0) * (j + 0.5) / 11.0
+            if not punkt_in_polygon((px, py), zone):
+                continue
+            for (x1, y1, z1), (x2, y2, z2), (x3, y3, z3) in tris:
+                d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+                if abs(d) < 1e-12:
+                    continue
+                l1 = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / d
+                l2 = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / d
+                if l1 < 0 or l2 < 0 or 1 - l1 - l2 < 0:
+                    continue
+                z = l1 * z1 + l2 * z2 + (1 - l1 - l2) * z3
+                if z > 0.6:
+                    schlecht.append((px, py, z))
+                    break
+    return schlecht
+
+
 def bauraum_pruefen(g):
     """Passt der Koffer aufs Bett -- mit Rand fuer Brim und Bettschiefe?
 
@@ -2693,10 +2813,16 @@ def main():
     schlimm = abzug_pruefen(g)
     if schlimm:
         raise SystemExit("FEHLER Abzug: " + schlimm)
-    print("Mulde: %.1f mm weiter als die gemessene Silhouette; Abzug frei "
-          "(%.0f x %.0f mm Aussparung, %.0f mm Luft), Feder %.0f mm Hub"
-          % (mluft, ABZUG_X1 - ABZUG_X0 + 2 * ABZUG_LUFT,
-             ABZUG_Y1 - ABZUG_Y0 + 2 * ABZUG_LUFT, ABZUG_LUFT, CTRL_FED_HUB))
+    imweg = abzug_strahltest(g, wanne)
+    if imweg:
+        raise SystemExit(
+            "FEHLER Abzug: an %d Stellen steht Material im Weg, z.B. bei "
+            "(%.1f, %.1f) bis z = %.1f" % (len(imweg), imweg[0][0],
+                                           imweg[0][1], imweg[0][2]))
+    print("Mulde: %.1f mm weiter als die gemessene Silhouette. Abzug: "
+          "Fachwand dort ganz weggelassen, Strahltest durch das Netz -- "
+          "rund um den Hebel plus 3 mm Bewegungsluft steht nichts. "
+          "Feder %.0f mm Hub" % (mluft, CTRL_FED_HUB))
     print("Packung: Innenraum %.0f x %.0f mm -- das ist die kleinste "
           "Flaeche, die Mulde und Box zusammen fassen (Packtest ueber alle "
           "Lagen)." % (g["innen_x"], g["innen_y"]))

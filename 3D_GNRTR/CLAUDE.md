@@ -355,6 +355,16 @@ Formschluss-Prinzipien, die sich bewährt haben:
 - Anfahrkanten für Roboter **steil, nie als Rampe** (Rampen sind
   Kletterhilfen); Barrieren ≥ 40 mm hoch, Kletterhöhe der Sauger ~20 mm.
 - Fremd-Fonts: Lizenz (OFL.txt) mit ins Repo.
+- **Schreibschrift aus Fonts: drei Fallen.** (1) Zusammengesetzte
+  Glyphen (das i = Strich + Punkt als Komponenten) liefern mit
+  `RecordingPen` KEINE Kontur -- der Buchstabe fehlt einfach, und man
+  merkt es nur, wenn man die Glyphen zaehlt. `DecomposingRecordingPen`
+  nehmen. (2) Loecher JE GLYPHE bestimmen; bei ueberlappenden
+  Nachbarbuchstaben haelt die globale Zaehlung Aussenkonturen fuer
+  Loecher. (3) Inseln (i-Punkt, Anfangsbuchstabe) ueber Stege an den
+  naechsten Nachbarn anbinden und den Zusammenhang danach PRUEFEN
+  (Union-Find ueber Konturueberlappung). Laufweite bei 100 % lassen --
+  verbundene Schriften treffen nur dort.
 
 ## 7. Neues Projekt anlegen
 
@@ -376,4 +386,5 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
+| `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig zum Kleben | zwei Fonts, Inseln per Steg angebunden, Zusammenhangsprüfung, Klebeflächen-Rasterprobe |
 | `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

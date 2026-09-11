@@ -78,7 +78,10 @@ BUCHSTABE_SCHMAL = 0.72
 NAME_SPUR = 1.0            # Laufweite; Great Vibes verbindet nur bei 100 %
 NAME_DICKE = 4.0
 NAME_BREITE_FAKTOR = 1.7   # Schriftzug so viel breiter als der Buchstabe (Vorlage)
-NAME_MITTE = 0.52          # Schriftzugmitte auf dieser Hoehe des Buchstabens
+# Schriftzugmitte auf dieser Hoehe des Buchstabens. Die Vorlage hat ihn
+# auf halber Hoehe; hier sitzt er tiefer, im unteren Drittel des E, und
+# liegt damit auf dem unteren Balken auf statt ueber dem Mittelbalken.
+NAME_MITTE = 0.32
 STEG_BREITE = 2.5          # Verbindungssteg zwischen Inseln der Schreibschrift
 STEG_UEBER = 1.5           # so weit laeuft der Steg in beide Inseln hinein
 

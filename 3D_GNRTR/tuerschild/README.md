@@ -8,9 +8,13 @@ Serifen-Anfangsbuchstabe (rosa), quer darüber der Name in Schreibschrift
 |---|---|
 | **Buchstabe E** | 158 × 240 mm, 6 mm dick, Liberation Serif Bold, auf 72 % gestaucht |
 | **Schriftzug Elsie** | 269 × 129 mm, 4 mm dick, Great Vibes |
-| **Lage** | Schriftzug mittig über dem Buchstaben, Mitte auf 52 % der Buchstabenhöhe, ragt je 55 mm über |
+| **Lage** | Schriftzug mittig über dem Buchstaben, Mitte auf 32 % der Höhe (unteres Drittel, auf dem unteren Balken), ragt je 55 mm über |
 | **Stege** | 2 (i-Punkt 4,7 mm, E→l 9,7 mm), 2,5 mm breit — der Schriftzug ist **ein** Stück |
-| **Klebefläche** | 20 % des Schriftzugs liegen auf dem Buchstaben |
+| **Klebefläche** | 22 % des Schriftzugs liegen auf dem Buchstaben |
+
+Die Höhe des Schriftzugs steuert `NAME_MITTE` in `generate.py`: 0,32
+heißt Mitte auf 32 % der Buchstabenhöhe. Tiefer als 0,27 läuft er unten
+über den Buchstaben hinaus.
 
 ## Zwei Wege zum selben Schild
 

@@ -199,6 +199,21 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Loechern in einer Flaeche.
   Gegenprobe: Zufallspunkte ueber der Grafik werfen und zaehlen, wieviele
   Koerper jeden decken -- es muss ueberall genau einer sein.
+- **Zwei Farben uebereinander statt nebeneinander: Unterlage in der
+  unteren Farbe, sonst schwebt die obere.** Aus zwei Klebeteilen wird
+  ein AMS-Druck, indem sie in z gestapelt werden (Teil 1 von 0 bis d1,
+  Teil 2 von d1 bis d1+d2) -- sie beruehren sich in einer Ebene und
+  verschmelzen. Der Fehler dabei: das obere Teil ragt fast immer ueber
+  das untere hinaus (beim Tuerschild der Schriftzug 55 mm je Seite) und
+  haette dort nichts unter sich. Also bekommt die untere Farbe den
+  eigenen Umriss **plus den Umriss des oberen Teils** als Unterlage --
+  dieselben Loecher, damit die Punzen durchgehen. Drei Pruefungen:
+  z-Bereiche der beiden Meshes disjunkt und buendig, jeder Rasterpunkt
+  des oberen Koerpers liegt im Material des unteren (0 % Schweben), und
+  die untere Farbe haengt als ein Stueck zusammen. Kosten: ein
+  Farbwechsel (kaum Purge) und das Material der Unterlage --
+  beim Tuerschild 165 statt 128 cm3. Dafuer kein Kleber und nichts,
+  was verrutschen kann.
 - **Unsichere Fremdmasze durch eine Feder ersetzen, nicht durch eine
   Schaetzung.** Wie weit das Drehrad des Controllers laengs uebersteht,
   war aus Fotos nicht zu messen -- eine Blattfeder am Kopfende drueckt
@@ -386,5 +401,5 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
-| `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig zum Kleben | zwei Fonts, Inseln per Steg angebunden, Zusammenhangsprüfung, Klebeflächen-Rasterprobe |
+| `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | zwei Fonts, Inseln per Steg angebunden, Zusammenhangsprüfung, Klebeflächen-Rasterprobe, Farbstapel mit Unterlage + Schwebeprüfung |
 | `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

@@ -10,7 +10,9 @@ hinausragt. Zwei Teile, zwei Farben, flach gedruckt, dann verklebt.
     python3 generate.py --name Emilia        # anderer Name, gleicher Stil
     python3 generate.py --name Elsie --hoehe 200
 
-Teile:
+Es entstehen zwei Varianten desselben Schilds:
+
+A) Kleben -- zwei einfarbige Teile, nacheinander gedruckt:
   1. BUCHSTABE  -- der Anfangsbuchstabe, BUCHSTABE_DICKE dick.
   2. NAME       -- der Schriftzug, NAME_DICKE dick. Liegt im Druck flach
                    auf dem Bett; verklebt wird er auf der Vorderseite des
@@ -18,6 +20,13 @@ Teile:
                    Schriftzug steht in der Datei bereits an seinem Platz
                    -- im Slicer beide laden, dann sieht man die Lage; zum
                    Drucken trotzdem einzeln, sie haben verschiedene Farben.
+
+B) AMS -- ein Druck, zwei Filamente, die Farben uebereinander gestapelt:
+   Farbe 1 von z 0 bis BUCHSTABE_DICKE (Buchstabe PLUS Unterlage unter
+   dem ganzen Schriftzug, damit dessen ueberstehende Enden nicht
+   schweben), Farbe 2 von da bis NAME_DICKE hoeher (der Schriftzug).
+   Sie beruehren sich in einer Ebene und verschmelzen beim Drucken --
+   kein Kleber, kein Verrutschen, ein einziger Farbwechsel.
 
 Schreibschrift besteht aus Inseln: der Punkt auf dem i, oft auch der
 Anfangsbuchstabe, haengen nicht am Rest. Ein Schriftzug aus drei Teilen
@@ -328,6 +337,42 @@ def teil_buchstabe(zeichen):
     return schalen, glyphen, br, ho
 
 
+def teil_ams(b_glyphen, n_glyphen, stege):
+    """Dieselben zwei Farben, aber als EIN Druck fuer die AMS.
+
+    Statt zu kleben werden die Farben uebereinander gestapelt:
+
+        z 0 .. BUCHSTABE_DICKE                Farbe 1 (rosa)
+        z BUCHSTABE_DICKE .. + NAME_DICKE     Farbe 2 (creme)
+
+    Farbe 1 ist nicht nur der Buchstabe, sondern der Buchstabe UND der
+    Umriss des Schriftzugs: der Schriftzug ragt links und rechts weit
+    ueber den Buchstaben hinaus und haette dort sonst nichts unter sich.
+    Mit der Unterlage steht jeder Punkt des Schriftzugs auf rosa Material
+    -- nichts schwebt, keine Stuetzen, und die Lagen verschmelzen im Druck
+    zu einem Stueck.
+
+    Beide Koerper teilen den Ursprung und beruehren sich genau in der
+    Ebene z = BUCHSTABE_DICKE; sie ueberlappen sich nirgends. Im Slicer
+    als mehrteiliges Objekt laden, je Teil ein Filament.
+    """
+    z_naht = BUCHSTABE_DICKE
+    rosa = []
+    for aussen, loecher in b_glyphen:
+        rosa.append(prisma_mit_loechern(aussen, loecher, 0.0, z_naht))
+    for aussen, loecher in n_glyphen:
+        rosa.append(prisma_mit_loechern(aussen, loecher, 0.0, z_naht))
+    for s in stege:
+        rosa.append(prisma(s, 0.0, z_naht))
+    creme = []
+    for aussen, loecher in n_glyphen:
+        creme.append(prisma_mit_loechern(aussen, loecher, z_naht,
+                                         z_naht + NAME_DICKE))
+    for s in stege:
+        creme.append(prisma(s, z_naht, z_naht + NAME_DICKE))
+    return rosa, creme
+
+
 def teil_name(name, buchstabe_breite, buchstabe_hoehe):
     breite = min(NAME_BREITE_FAKTOR * buchstabe_breite,
                  BETT_X - 2 * BETT_RAND)
@@ -387,6 +432,56 @@ def bett_pruefen(breite, hoehe, name):
         return None
     return ("%s (%.0f x %.0f) passt nicht mit %.0f mm Rand aufs Bett %.0f x %.0f"
             % (name, breite, hoehe, BETT_RAND, BETT_X, BETT_Y))
+
+
+def im_material(p, glyphen=(), polygone=()):
+    """Liegt der Punkt in einer der Glyphen (ausserhalb ihrer Loecher)
+    oder in einem der einfachen Polygone (Stege)?"""
+    for a, ls in glyphen:
+        if punkt_in_polygon(p, a) and not any(punkt_in_polygon(p, l) for l in ls):
+            return True
+    return any(punkt_in_polygon(p, s) for s in polygone)
+
+
+def z_bereich(schalen):
+    zs = [v[2] for s in schalen for t in s for v in t]
+    return min(zs), max(zs)
+
+
+def ams_pruefen(b_gl, n_gl, stege, rosa, creme):
+    """Der AMS-Stapel: Farben sauber getrennt, nichts schwebt, ein Stueck."""
+    fehler = []
+    z_naht = BUCHSTABE_DICKE
+    r0, r1 = z_bereich(rosa)
+    c0, c1 = z_bereich(creme)
+    if abs(r0) > 1e-6 or abs(r1 - z_naht) > 1e-6:
+        fehler.append("Farbe 1 liegt bei z %.2f..%.2f statt 0..%.2f"
+                      % (r0, r1, z_naht))
+    if abs(c0 - z_naht) > 1e-6 or abs(c1 - (z_naht + NAME_DICKE)) > 1e-6:
+        fehler.append("Farbe 2 liegt bei z %.2f..%.2f statt %.2f..%.2f"
+                      % (c0, c1, z_naht, z_naht + NAME_DICKE))
+    if c0 + 1e-6 < r1:
+        fehler.append("Farben ueberlappen sich in z")
+    # Steht jeder Punkt der oberen Farbe auf Material der unteren?
+    xs = [p[0] for a, _ in n_gl for p in a] + [p[0] for s in stege for p in s]
+    ys = [p[1] for a, _ in n_gl for p in a] + [p[1] for s in stege for p in s]
+    n, gesamt, getragen = 90, 0, 0
+    for i in range(n):
+        for j in range(n):
+            p = (min(xs) + (max(xs) - min(xs)) * (i + 0.5) / n,
+                 min(ys) + (max(ys) - min(ys)) * (j + 0.5) / n)
+            if not im_material(p, n_gl, stege):
+                continue
+            gesamt += 1
+            if im_material(p, list(b_gl) + list(n_gl), stege):
+                getragen += 1
+    if getragen != gesamt:
+        fehler.append("%d von %d Rasterpunkten der oberen Farbe schweben"
+                      % (gesamt - getragen, gesamt))
+    komp = komponenten([a for a, _ in b_gl] + [a for a, _ in n_gl] + list(stege))
+    if len(komp) != 1:
+        fehler.append("untere Farbe zerfaellt in %d Teile" % len(komp))
+    return fehler, gesamt
 
 
 def klebeflaeche(name_glyphen, buchstabe_glyphen):
@@ -464,17 +559,44 @@ def main():
     print("Bauraum: beide Teile passen (auch zusammen: Buchstabe + Schriftzug "
           "hochkant nebeneinander %.0f x %.0f)" % (b_br + n_ho + 10, max(b_ho, n_br)))
 
+    # --- Variante AMS: ein Druck, zwei Farben uebereinander ---------------
+    rosa, creme = teil_ams(b_gl, n_gl, stege)
+    ams_fehler, punkte = ams_pruefen(b_gl, n_gl, stege, rosa, creme)
+    if ams_fehler:
+        raise SystemExit("FEHLER AMS: " + "; ".join(ams_fehler))
+    xs = [p[0] for a, _ in list(b_gl) + list(n_gl) for p in a]
+    ys = [p[1] for a, _ in list(b_gl) + list(n_gl) for p in a]
+    ams_br, ams_ho = max(xs) - min(xs), max(ys) - min(ys)
+    print("\nAMS-Variante: Farbe 1 (Buchstabe + Unterlage des Schriftzugs) "
+          "z 0..%.0f, Farbe 2 (Schriftzug) z %.0f..%.0f -- %.0f mm hoch, "
+          "Grundflaeche %.0f x %.0f mm"
+          % (BUCHSTABE_DICKE, BUCHSTABE_DICKE, BUCHSTABE_DICKE + NAME_DICKE,
+             BUCHSTABE_DICKE + NAME_DICKE, ams_br, ams_ho))
+    print("Farbtrennung geprueft: Ebene bei z %.0f, kein Ueberlapp, alle %d "
+          "Rasterpunkte der oberen Farbe stehen auf der unteren, untere Farbe "
+          "ein Stueck" % (BUCHSTABE_DICKE, punkte))
+    f_ = bett_pruefen(ams_br, ams_ho, "AMS-Schild")
+    if f_:
+        raise SystemExit("FEHLER Bauraum: " + f_)
+
     fehler = 0
     sicher = "".join(c if c.isalnum() else "_" for c in name)
     fehler += bauen(ziel, "tuerschild_%s_1_buchstabe_%s_1x_drucken.stl"
                     % (sicher, zeichen), b_schalen)
     fehler += bauen(ziel, "tuerschild_%s_2_name_1x_drucken.stl" % sicher,
                     n_schalen)
+    fehler += bauen(ziel, "tuerschild_%s_ams_filament1_rosa_1x_drucken.stl"
+                    % sicher, rosa)
+    fehler += bauen(ziel, "tuerschild_%s_ams_filament2_creme_1x_drucken.stl"
+                    % sicher, creme)
     if fehler:
         raise SystemExit("FEHLER: %d offene Kanten" % fehler)
-    print("\nAlle Schalen wasserdicht. Beide Teile flach drucken, Vorderseite "
-          "oben; Schriftzug auf den Buchstaben kleben (Lage: beide STLs "
-          "zusammen im Slicer laden, sie teilen den Ursprung).")
+    print("\nAlle Schalen wasserdicht. Zwei Wege zum selben Schild:")
+    print("  kleben -- Teile 1 und 2 einzeln flach drucken, Vorderseite oben, "
+          "Schriftzug auf den Buchstaben kleben.")
+    print("  AMS    -- nur die beiden ams-Dateien: zusammen laden ("
+          "\"mehrteiliges Objekt?\" -> Ja), je Datei ein Filament, ein Druck. "
+          "Ein Farbwechsel bei %.0f mm." % BUCHSTABE_DICKE)
 
 
 if __name__ == "__main__":

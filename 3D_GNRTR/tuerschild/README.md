@@ -12,22 +12,49 @@ Serifen-Anfangsbuchstabe (rosa), quer darüber der Name in Schreibschrift
 | **Stege** | 2 (i-Punkt 4,7 mm, E→l 9,7 mm), 2,5 mm breit — der Schriftzug ist **ein** Stück |
 | **Klebefläche** | 20 % des Schriftzugs liegen auf dem Buchstaben |
 
-## Teile
+## Zwei Wege zum selben Schild
+
+Der Generator schreibt beide Varianten. Von vorn sehen sie gleich aus.
+
+### A — AMS: ein Druck, zwei Filamente (empfohlen)
+
+| Datei | Filament | z |
+|---|---|---|
+| `tuerschild_Elsie_ams_filament1_rosa_1x_drucken.stl` | rosa | 0 – 6 mm |
+| `tuerschild_Elsie_ams_filament2_creme_1x_drucken.stl` | creme | 6 – 10 mm |
+
+Die Farben liegen **übereinander** und berühren sich in einer Ebene bei
+6 mm — im Druck verschmelzen sie zu einem Stück. Kein Kleber, nichts
+kann verrutschen, genau **ein** Farbwechsel über die ganze Höhe.
+
+Farbe 1 ist nicht nur der Buchstabe, sondern der Buchstabe **plus der
+Umriss des Schriftzugs**: der Schriftzug ragt je 55 mm über den
+Buchstaben hinaus und hätte dort sonst nichts unter sich. So steht jeder
+Punkt der oberen Farbe auf Material — nichts schwebt, keine Stützen.
+
+Laden: beide Dateien zusammen auswählen, beim Dialog *„mehrteiliges
+Objekt?"* → **Ja**, dann je Teil das Filament zuweisen. Grundfläche
+269 × 240 mm, 10 mm hoch, ~165 cm³.
+
+### B — Kleben: zwei einfarbige Drucke
 
 | Datei | Farbe | Drucken |
 |---|---|---|
 | `tuerschild_Elsie_1_buchstabe_E_1x_drucken.stl` | rosa | flach, Vorderseite oben |
 | `tuerschild_Elsie_2_name_1x_drucken.stl` | creme | flach, Vorderseite oben |
 
-Beide STLs teilen den Ursprung: zusammen in den Slicer geladen sieht man
-die Lage; gedruckt werden sie einzeln (zwei Farben) oder als zwei Objekte
-mit AMS auf einer Platte (Buchstabe + Schriftzug hochkant nebeneinander:
-297 × 269 mm, passt auf die H2S).
+Auch hier teilen beide STLs den Ursprung; zusammen geladen sieht man die
+Lage. Ohne AMS nacheinander drucken, mit AMS als zwei Objekte
+nebeneinander auf einer Platte (hochkant 297 × 269 mm, passt auf die
+H2S). Braucht weniger Material (~128 cm³), weil der Schriftzug keine
+Unterlage hat.
 
 **Zusammenbau:** Schriftzug auf die Vorderseite des Buchstabens kleben
 (Sekundenkleber oder Klebepads). Die überhängenden Enden tragen sich bei
-4 mm PLA selbst. An die Tür mit Klebepads auf der Rückseite des
-Buchstabens — die Rückseite ist plan, ohne Löcher.
+4 mm PLA selbst.
+
+An die Tür kommt bei beiden Varianten Klebepad auf die Rückseite — die
+ist plan, ohne Löcher.
 
 ## Andere Namen
 
@@ -36,7 +63,13 @@ Buchstabens — die Rückseite ist plan, ohne Löcher.
 
 Der große Buchstabe ist der Anfangsbuchstabe (`--buchstabe` überschreibt).
 Der Generator prüft: Dichtheit, Zusammenhang des Schriftzugs (alle Inseln
-über Stege angebunden), Klebefläche ≥ 15 %, Bauraum.
+über Stege angebunden), Klebefläche ≥ 15 %, Bauraum — und für die
+AMS-Variante zusätzlich, dass die beiden Farbkörper sich in z nicht
+überlappen, dass jeder Rasterpunkt der oberen Farbe auf der unteren steht
+und dass die untere Farbe ein einziges zusammenhängendes Stück ist.
+
+`python3 vorschau.py` schreibt `stl/ansicht_vorne.svg` (so hängt es an
+der Tür) und `stl/ansicht_ams_schnitt.svg` (Schnitt durch den Farbstapel).
 
 ## Drei Fallen bei Schreibschrift, alle im Generator abgefangen
 

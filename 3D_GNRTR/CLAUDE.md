@@ -199,6 +199,22 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Loechern in einer Flaeche.
   Gegenprobe: Zufallspunkte ueber der Grafik werfen und zaehlen, wieviele
   Koerper jeden decken -- es muss ueberall genau einer sein.
+- **Schriftwahl ist Geschmack -- aber Druckbarkeit ist messbar.** Wenn
+  jemand die Schrift nicht mag, hilft keine Diskussion, sondern ein
+  Blatt mit allen Kandidatinnen in Originalgroesse an ihrem echten Platz
+  (`tuerschild/schriftvergleich.py`). Dazu je Schrift die **duennste
+  Stelle**: Material in ein 0,3-mm-Raster fuellen (Scanline, Even-Odd je
+  Glyphe), Chamfer-Distanztransformation, dann die Zellen nehmen, deren
+  Abstand lokal maximal ist -- das ist die Mittelachse, und 2*Abstand
+  dort ist die Strichbreite. Das 2-%-Perzentil statt des Minimums, sonst
+  entscheiden Rasterartefakte an Strichenden. Unter ~1,2 mm bleiben bei
+  0,4 mm Duese nur zwei Wandlinien ohne Kern. Zwei Fallen: die
+  Verbindungsstege sind per Definition schmal und muessen aus der
+  Messung raus, sonst misst man ueberall STEG_BREITE; und ein
+  Modulwert als **Vorgabewert einer Funktion** (`h=RASTER`) wird beim
+  Definieren gebunden -- ein spaeteres `RASTER = 0.15` blieb wirkungslos
+  und taeuschte eine feinere Messung nur vor (auffaellig, weil drei
+  Schriften auf 0,01 mm dasselbe Ergebnis lieferten).
 - **Zwei Farben uebereinander statt nebeneinander: Unterlage in der
   unteren Farbe, sonst schwebt die obere.** Aus zwei Klebeteilen wird
   ein AMS-Druck, indem sie in z gestapelt werden (Teil 1 von 0 bis d1,
@@ -401,5 +417,5 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
-| `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | zwei Fonts, Inseln per Steg angebunden, Zusammenhangsprüfung, Klebeflächen-Rasterprobe, Farbstapel mit Unterlage + Schwebeprüfung |
+| `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | sieben Schreibschriften zur Wahl (`--schrift`, Vergleichsblatt), Inseln per Steg angebunden, Zusammenhangsprüfung, Strichbreitenmessung, Farbstapel mit Unterlage + Schwebeprüfung |
 | `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

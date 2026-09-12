@@ -60,10 +60,40 @@ Unterlage hat.
 An die Tür kommt bei beiden Varianten Klebepad auf die Rückseite — die
 ist plan, ohne Löcher.
 
+## Schriftart wählen
+
+    python3 schriftvergleich.py
+
+schreibt `stl/schriftvergleich.svg` und `.png`: alle Kandidatinnen
+untereinander, jede in Originalgröße über dem großen Buchstaben. Dazu
+eine Tabelle mit der **dünnsten Stelle** im Schriftzug (über Raster und
+Distanztransformation auf der Mittelachse gemessen, nicht geschätzt) und
+der Zahl nötiger Stege.
+
+| Schrift | Charakter | dünnste Stelle | Stege |
+|---|---|---|---|
+| Great Vibes | festlich, starker Strichkontrast (Standard) | 2,4 mm | 2 |
+| Parisienne | zierlich und ruhig, gut lesbar | 3,2 mm | 1 |
+| Alex Brush | flott, schräg, gleichmäßig dünn | 2,4 mm | 2 |
+| Sacramento | monolinear, modern, fast ohne Kontrast | 4,9 mm | 2 |
+| Dancing Script | verspielt, freundlich, kindgerecht | 2,4 mm | 2 |
+| Kaushan Script | kräftiger Pinsel, sehr präsent | 4,1 mm | 5 |
+| Pacifico | dick und rund, Retro, am robustesten | 10,5 mm | 1 |
+
+Gewählte Schrift drucken:
+
+    python3 generate.py --schrift pacifico
+
+Alle sieben sind bei dieser Größe druckbar — kritisch wird es erst unter
+etwa 1,2 mm, dort bleiben bei 0,4 mm Düse nur zwei Wandlinien ohne Kern.
+Die Dateinamen tragen die Schrift, so lassen sich mehrere nebeneinander
+aufheben. Fonts und ihre Lizenzen liegen in `schriften/` (alle SIL OFL).
+
 ## Andere Namen
 
     python3 generate.py --name Emilia
     python3 generate.py --name Noah --hoehe 200
+    python3 generate.py --name Mia --schrift parisienne --mitte 0.40
 
 Der große Buchstabe ist der Anfangsbuchstabe (`--buchstabe` überschreibt).
 Der Generator prüft: Dichtheit, Zusammenhang des Schriftzugs (alle Inseln

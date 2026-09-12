@@ -86,7 +86,33 @@ STEG_BREITE = 2.5          # Verbindungssteg zwischen Inseln der Schreibschrift
 STEG_UEBER = 1.5           # so weit laeuft der Steg in beide Inseln hinein
 
 FONT_BUCHSTABE = os.path.join(HIER, "LiberationSerif-Bold.ttf")
-FONT_NAME = os.path.join(HIER, "GreatVibes-Regular.ttf")
+
+
+def _schrift(datei):
+    return os.path.join(HIER, "schriften", datei)
+
+
+# Kandidatinnen fuer den Schriftzug, alle SIL OFL (Lizenzen in schriften/).
+# --schrift waehlt aus; schriftvergleich.py misst sie und zeichnet ein
+# Blatt mit allen Vorschlaegen.
+SCHRIFTEN = {
+    "greatvibes":   ("Great Vibes", os.path.join(HIER, "GreatVibes-Regular.ttf"),
+                     "festlich, starker Strichkontrast, grosse Schwuenge"),
+    "parisienne":   ("Parisienne", _schrift("Parisienne-Regular.ttf"),
+                     "zierlich und ruhig, weniger Schnoerkel, gut lesbar"),
+    "alexbrush":    ("Alex Brush", _schrift("AlexBrush-Regular.ttf"),
+                     "flott geschrieben, schraeg, gleichmaessig duenn"),
+    "sacramento":   ("Sacramento", _schrift("Sacramento-Regular.ttf"),
+                     "monolinear und schlicht, modern, fast ohne Kontrast"),
+    "dancingscript": ("Dancing Script", _schrift("DancingScript.ttf"),
+                      "verspielt und huepfend, freundlich, kindgerecht"),
+    "kaushanscript": ("Kaushan Script", _schrift("KaushanScript-Regular.ttf"),
+                      "kraeftiger Pinsel, laessig, sehr praesent"),
+    "pacifico":     ("Pacifico", _schrift("Pacifico-Regular.ttf"),
+                     "dick und rund, Retro-Surf, robusteste Variante"),
+}
+SCHRIFT = "greatvibes"
+FONT_NAME = SCHRIFTEN[SCHRIFT][1]
 BEZIER_SCHRITTE = 10
 
 # Bett Bambu H2S, vorsichtig 350 x 320, 20 mm Rand
@@ -509,7 +535,7 @@ def klebeflaeche(name_glyphen, buchstabe_glyphen):
 
 
 def main():
-    global BUCHSTABE_HOEHE
+    global BUCHSTABE_HOEHE, FONT_NAME, SCHRIFT, NAME_MITTE
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--name", default=NAME)
@@ -517,8 +543,17 @@ def main():
                     help="grosser Buchstabe (Standard: Anfangsbuchstabe des Namens)")
     ap.add_argument("--hoehe", type=float, default=BUCHSTABE_HOEHE,
                     help="Hoehe des grossen Buchstabens in mm")
+    ap.add_argument("--schrift", default=SCHRIFT, choices=sorted(SCHRIFTEN),
+                    help="Schreibschrift des Namens (Standard: %(default)s); "
+                         "Vergleich: python3 schriftvergleich.py")
+    ap.add_argument("--mitte", type=float, default=NAME_MITTE,
+                    help="Schriftzugmitte auf dieser Hoehe des Buchstabens "
+                         "(0..1, Standard: %(default)s)")
     args = ap.parse_args()
     BUCHSTABE_HOEHE = args.hoehe
+    NAME_MITTE = args.mitte
+    SCHRIFT = args.schrift
+    FONT_NAME = SCHRIFTEN[SCHRIFT][1]
     name = args.name
     zeichen = args.buchstabe or name[0].upper()
 
@@ -532,8 +567,9 @@ def main():
     n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy) = teil_name(name, b_br, b_ho)
 
     print("Tuerschild '%s': Buchstabe %s %.0f mm hoch (%.0f breit, %.0f dick), "
-          "Schriftzug %.0f x %.0f mm (%.0f dick)"
-          % (name, zeichen, b_ho, b_br, BUCHSTABE_DICKE, n_br, n_ho, NAME_DICKE))
+          "Schriftzug %.0f x %.0f mm (%.0f dick) in %s"
+          % (name, zeichen, b_ho, b_br, BUCHSTABE_DICKE, n_br, n_ho, NAME_DICKE,
+             SCHRIFTEN[SCHRIFT][0]))
     print("Schriftzug liegt %.0f mm links und rechts ueber den Buchstaben hinaus, "
           "Mitte auf %.0f %% der Buchstabenhoehe"
           % (-dx, 100 * NAME_MITTE))
@@ -553,8 +589,16 @@ def main():
     # Ein E besteht ueberwiegend aus Leerraum; der Schriftzug liegt also
     # vor allem ueber den Innenraeumen und trifft Stamm und Balken nur
     # stellenweise. 15 % reichen bei 4 mm steifem Schriftzug voellig.
-    if anteil < 0.15:
+    # Wichtig: das ist eine Aussage ueber die KLEBEVARIANTE. Beim
+    # AMS-Druck steht der Schriftzug ohnehin auf seiner eigenen Unterlage
+    # und ist mit ihr verschmolzen -- dort ist die Zahl bedeutungslos.
+    # Eine duenne, tief sitzende Schrift darf deshalb nicht den ganzen
+    # Lauf abbrechen; erst unter 8 % wird auch Kleben sinnlos.
+    if anteil < 0.08:
         raise SystemExit("FEHLER: zu wenig Klebeflaeche")
+    if anteil < 0.15:
+        print("  WARNUNG: fuer die Klebevariante wenig -- lieber die "
+              "AMS-Variante drucken, die ist davon unabhaengig")
     for f_ in (bett_pruefen(b_br, b_ho, "Buchstabe"),
                bett_pruefen(n_br, n_ho, "Schriftzug")):
         if f_:
@@ -583,7 +627,7 @@ def main():
         raise SystemExit("FEHLER Bauraum: " + f_)
 
     fehler = 0
-    sicher = "".join(c if c.isalnum() else "_" for c in name)
+    sicher = "".join(c if c.isalnum() else "_" for c in name) + "_" + SCHRIFT
     fehler += bauen(ziel, "tuerschild_%s_1_buchstabe_%s_1x_drucken.stl"
                     % (sicher, zeichen), b_schalen)
     fehler += bauen(ziel, "tuerschild_%s_2_name_1x_drucken.stl" % sicher,

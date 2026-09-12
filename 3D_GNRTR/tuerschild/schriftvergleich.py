@@ -159,7 +159,7 @@ def strichbreiten(glyphen, stege):
 # Kandidatinnen durchrechnen
 # ---------------------------------------------------------------------------
 
-def messen(schluessel, name, b_br, b_ho):
+def messen(schluessel, name, b_br, b_ho, traeger=()):
     """Einen Schriftzug in einer Schrift setzen und bewerten."""
     titel, pfad, art, gewicht = G.SCHRIFTEN[schluessel]
     if gewicht is not None:
@@ -174,7 +174,8 @@ def messen(schluessel, name, b_br, b_ho):
     alt, alt_g = G.FONT_NAME, G.GEWICHT
     G.FONT_NAME, G.GEWICHT = pfad, gewicht
     try:
-        _, n_gl, stege, abst, n_br, n_ho, (dx, dy) = G.teil_name(name, b_br, b_ho)
+        (_, n_gl, stege, abst, n_br, n_ho, (dx, dy),
+         ruhend) = G.teil_name(name, b_br, b_ho, traeger)
     finally:
         G.FONT_NAME, G.GEWICHT = alt, alt_g
     inseln = len(G.komponenten([a for a, _ in n_gl]))
@@ -184,7 +185,7 @@ def messen(schluessel, name, b_br, b_ho):
     duenn, minimal, mittel = strichbreiten(n_gl, ())
     return {"titel": titel, "art": art, "glyphen": n_gl, "stege": stege, "abst": abst,
             "breite": n_br, "hoehe": n_ho, "dx": dx, "dy": dy,
-            "inseln": inseln, "duenn": duenn, "min": minimal, "mittel": mittel,
+            "inseln": inseln, "ruhend": ruhend, "duenn": duenn, "min": minimal, "mittel": mittel,
             "fehler": None}
 
 
@@ -270,7 +271,7 @@ def main():
           % ("Schrift", "duennste", "mittel", "Hoehe", "Inseln", "Stege", "Urteil"))
     ergebnisse = []
     for schluessel in G.SCHRIFTEN:
-        e = messen(schluessel, name, b_br, b_ho)
+        e = messen(schluessel, name, b_br, b_ho, b_gl)
         if e["fehler"]:
             print("%-16s %s" % (e["titel"], e["fehler"]))
             continue

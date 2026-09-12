@@ -82,8 +82,13 @@ NAME_BREITE_FAKTOR = 1.7   # Schriftzug so viel breiter als der Buchstabe (Vorla
 # auf halber Hoehe; hier sitzt er tiefer, im unteren Drittel des E, und
 # liegt damit auf dem unteren Balken auf statt ueber dem Mittelbalken.
 NAME_MITTE = 0.32
+NAME_VERSATZ = -33.0       # Schriftzug aus der Mitte nach links (mm)
 STEG_BREITE = 2.5          # Verbindungssteg zwischen Inseln der Schreibschrift
 STEG_UEBER = 1.5           # so weit laeuft der Steg in beide Inseln hinein
+# Eine Insel, die zu diesem Anteil auf dem grossen Buchstaben liegt,
+# braucht keinen Steg: sie ruht auf ihm. Beim AMS-Druck verschmilzt sie
+# ohnehin mit der Unterlage, beim Kleben wird sie einzeln aufgeklebt.
+STUETZ_MIN = 0.70
 
 FONT_BUCHSTABE = os.path.join(HIER, "LiberationSerif-Bold.ttf")
 
@@ -338,24 +343,64 @@ def steg_zwischen(A, B, breite, ueber):
             (q2[0] - nx, q2[1] - ny), (p2[0] - nx, p2[1] - ny)], d
 
 
-def inseln_anbinden(glyphen):
-    """Alle Inseln des Schriftzugs ueber Stege verbinden.
+def flaechenanteil(teile, traeger, n=48):
+    """Welcher Anteil der Flaeche von `teile` liegt auf `traeger`?
 
-    Solange mehr als eine Komponente da ist: die kleinste Komponente an
-    ihren naechsten Nachbarn in einer anderen Komponente anbinden.
-    Rueckgabe: Liste der Stege (Polygone) und die ueberbrueckten Abstaende.
+    Beides Listen von (aussen, loecher). Rasterprobe ueber die
+    Huellflaeche von `teile`.
+    """
+    pts = [p for a, _ in teile for p in a]
+    if not pts or not traeger:
+        return 0.0
+    x0, x1 = min(p[0] for p in pts), max(p[0] for p in pts)
+    y0, y1 = min(p[1] for p in pts), max(p[1] for p in pts)
+    drin = ges = 0
+    for i in range(n):
+        for j in range(n):
+            p = (x0 + (x1 - x0) * (i + 0.5) / n, y0 + (y1 - y0) * (j + 0.5) / n)
+            if not im_material(p, teile):
+                continue
+            ges += 1
+            if im_material(p, traeger):
+                drin += 1
+    return drin / float(max(1, ges))
+
+
+def _komponente_teile(indizes, alle, glyphen):
+    """Die (aussen, loecher) einer Komponente -- Stege haben keine Loecher."""
+    return [glyphen[i] if i < len(glyphen) else (alle[i], []) for i in indizes]
+
+
+def inseln_anbinden(glyphen, traeger=()):
+    """Inseln des Schriftzugs verbinden -- aber nur, wo noetig.
+
+    Eine Insel, die zu mindestens STUETZ_MIN auf dem grossen Buchstaben
+    liegt, bekommt keinen Steg: sie ruht auf ihm (beim AMS-Druck
+    verschmolzen, beim Kleben einzeln aufgeklebt). Das ist der Grund,
+    warum der Schriftzug seitlich versetzt sitzt -- so landet der i-Punkt
+    auf dem Mittelbalken des E statt an einem sichtbaren Stiel.
+
+    Alle uebrigen Inseln werden wie bisher zusammengezogen: die kleinste
+    freie Komponente an ihren naechsten Nachbarn in einer anderen freien
+    Komponente. Ohne `traeger` verhaelt sich alles wie vorher.
+    Rueckgabe: Stege, ueberbrueckte Abstaende, getragene Inseln
+    [(indizes, anteil)].
     """
     aussen = [a for (a, _) in glyphen]
     stege, abstaende = [], []
+
+    def getragen(indizes, alle):
+        return flaechenanteil(_komponente_teile(indizes, alle, glyphen), traeger)
+
     for _ in range(len(aussen)):
-        komp = komponenten(aussen + stege)
-        if len(komp) <= 1:
-            break
-        komp.sort(key=lambda k: sum(abs(flaeche_signiert(
-            (aussen + stege)[i])) for i in k))
-        klein = komp[0]
-        andere = [i for k in komp[1:] for i in k]
         alle = aussen + stege
+        komp = komponenten(alle)
+        frei = [k for k in komp if getragen(k, alle) < STUETZ_MIN]
+        if len(frei) <= 1:
+            break
+        frei.sort(key=lambda k: sum(abs(flaeche_signiert(alle[i])) for i in k))
+        klein = frei[0]
+        andere = [i for k in frei[1:] for i in k]
         best = None
         for i in klein:
             for j in andere:
@@ -366,7 +411,10 @@ def inseln_anbinden(glyphen):
             break
         stege.append(best[1])
         abstaende.append(best[0])
-    return stege, abstaende
+    alle = aussen + stege
+    ruhend = [(k, getragen(k, alle)) for k in komponenten(alle)
+              if getragen(k, alle) >= STUETZ_MIN]
+    return stege, abstaende, ruhend
 
 
 # ---------------------------------------------------------------------------
@@ -422,24 +470,26 @@ def teil_ams(b_glyphen, n_glyphen, stege):
     return rosa, creme
 
 
-def teil_name(name, buchstabe_breite, buchstabe_hoehe):
+def teil_name(name, buchstabe_breite, buchstabe_hoehe, traeger=()):
     breite = min(NAME_BREITE_FAKTOR * buchstabe_breite,
                  BETT_X - 2 * BETT_RAND)
     glyphen, br, ho, _ = glyphen_setzen(FONT_NAME, name, breite_mm=breite,
                                         spur=NAME_SPUR)
-    # an seinen Platz: mittig ueber dem Buchstaben, Mitte auf NAME_MITTE
-    dx = (buchstabe_breite - br) / 2.0
+    # an seinen Platz: ueber dem Buchstaben, Mitte auf NAME_MITTE, um
+    # NAME_VERSATZ aus der Mitte geschoben (damit der i-Punkt auf dem
+    # Mittelbalken aufliegt und ohne Steg auskommt)
+    dx = (buchstabe_breite - br) / 2.0 + NAME_VERSATZ
     dy = NAME_MITTE * buchstabe_hoehe - ho / 2.0
     glyphen = [([(x + dx, y + dy) for (x, y) in a],
                 [[(x + dx, y + dy) for (x, y) in l] for l in ls])
                for (a, ls) in glyphen]
-    stege, abstaende = inseln_anbinden(glyphen)
+    stege, abstaende, ruhend = inseln_anbinden(glyphen, traeger)
     schalen = []
     for aussen, loecher in glyphen:
         schalen.append(prisma_mit_loechern(aussen, loecher, 0.0, NAME_DICKE))
     for s in stege:
         schalen.append(prisma(s, 0.0, NAME_DICKE))
-    return schalen, glyphen, stege, abstaende, br, ho, (dx, dy)
+    return schalen, glyphen, stege, abstaende, br, ho, (dx, dy), ruhend
 
 
 # ---------------------------------------------------------------------------
@@ -588,26 +638,40 @@ def main():
             os.remove(os.path.join(ziel, alt))
 
     b_schalen, b_gl, b_br, b_ho = teil_buchstabe(zeichen)
-    n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy) = teil_name(name, b_br, b_ho)
+    (n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy),
+     ruhend) = teil_name(name, b_br, b_ho, b_gl)
 
     print("Tuerschild '%s': Buchstabe %s %.0f mm hoch (%.0f breit, %.0f dick), "
           "Schriftzug %.0f x %.0f mm (%.0f dick) in %s%s"
           % (name, zeichen, b_ho, b_br, BUCHSTABE_DICKE, n_br, n_ho, NAME_DICKE,
              SCHRIFTEN[SCHRIFT][0],
              "" if GEWICHT is None else " (Gewicht %.0f)" % GEWICHT))
-    print("Schriftzug liegt %.0f mm links und rechts ueber den Buchstaben hinaus, "
-          "Mitte auf %.0f %% der Buchstabenhoehe"
-          % (-dx, 100 * NAME_MITTE))
+    print("Schriftzug ragt %.0f mm links und %.0f mm rechts ueber den "
+          "Buchstaben hinaus, Mitte auf %.0f %% der Buchstabenhoehe, "
+          "%.0f mm aus der Mitte nach links"
+          % (max(0.0, -dx), max(0.0, dx + n_br - b_br), 100 * NAME_MITTE,
+             -NAME_VERSATZ))
     if stege:
         print("Inseln angebunden: %d Steg(e) a %.1f mm breit, ueberbrueckt %s mm"
               % (len(stege), STEG_BREITE,
                  ", ".join("%.1f" % a for a in abst)))
     else:
         print("Schriftzug haengt von selbst zusammen, keine Stege noetig")
-    komp = komponenten([a for a, _ in n_gl] + stege)
-    if len(komp) != 1:
-        raise SystemExit("FEHLER: Schriftzug zerfaellt in %d Teile" % len(komp))
-    print("Zusammenhang geprueft: ein Stueck")
+    for k, anteil_ in ruhend:
+        print("Insel ohne Steg: liegt zu %.0f %% auf dem Buchstaben auf"
+              % (100 * anteil_))
+    alle = [a for a, _ in n_gl] + stege
+    komp = komponenten(alle)
+    lose = [k for k in komp
+            if flaechenanteil(_komponente_teile(k, alle, n_gl), b_gl) < STUETZ_MIN]
+    if len(lose) != 1:
+        raise SystemExit("FEHLER: Schriftzug zerfaellt in %d freie Teile"
+                         % len(lose))
+    if len(komp) == 1:
+        print("Zusammenhang geprueft: ein Stueck")
+    else:
+        print("Zusammenhang geprueft: ein zusammenhaengendes Hauptstueck, dazu "
+              "%d Insel(n), die auf dem Buchstaben ruhen" % (len(komp) - 1))
     anteil = klebeflaeche(n_gl, b_gl)
     print("Klebeflaeche: %.0f %% des Schriftzugs liegen auf dem Buchstaben"
           % (100 * anteil))
@@ -667,6 +731,10 @@ def main():
     print("\nAlle Schalen wasserdicht. Zwei Wege zum selben Schild:")
     print("  kleben -- Teile 1 und 2 einzeln flach drucken, Vorderseite oben, "
           "Schriftzug auf den Buchstaben kleben.")
+    if ruhend:
+        print("            Dabei %d Insel(n) einzeln aufkleben -- sie haengen "
+              "nicht am Schriftzug, sondern liegen direkt auf dem Buchstaben "
+              "(im AMS-Druck verschmelzen sie von selbst)." % len(ruhend))
     print("  AMS    -- nur die beiden ams-Dateien: zusammen laden ("
           "\"mehrteiliges Objekt?\" -> Ja), je Datei ein Filament, ein Druck. "
           "Ein Farbwechsel bei %.0f mm." % BUCHSTABE_DICKE)

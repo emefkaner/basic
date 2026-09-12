@@ -31,7 +31,8 @@ def main():
     G.NAME_MITTE = a.mitte
     zeichen = name[0].upper()
     _, b_gl, b_br, b_ho = G.teil_buchstabe(zeichen)
-    _, n_gl, stege, _, n_br, n_ho, (dx, dy) = G.teil_name(name, b_br, b_ho)
+    (_, n_gl, stege, _, n_br, n_ho, (dx, dy),
+     ruhend) = G.teil_name(name, b_br, b_ho, b_gl)
     xs = [p[0] for a, _ in n_gl for p in a] + [p[0] for a, _ in b_gl for p in a]
     ys = [p[1] for a, _ in n_gl for p in a] + [p[1] for a, _ in b_gl for p in a]
     x0, x1, y0, y1 = min(xs) - 15, max(xs) + 15, min(ys) - 15, max(ys) + 25

@@ -8,14 +8,24 @@ Serifen-Anfangsbuchstabe (rosa), quer darüber der Name in Schreibschrift
 |---|---|
 | **Buchstabe E** | 158 × 240 mm, 6 mm dick, Liberation Serif Bold, auf 72 % gestaucht |
 | **Schriftzug Elsie** | 269 × 123 mm, 4 mm dick, Dancing Script im fetten Schnitt (Gewicht 700) |
-| **Lage** | Schriftzug mittig über dem Buchstaben, Mitte auf 32 % der Höhe (unteres Drittel, auf dem unteren Balken), ragt je 55 mm über |
-| **Stege** | 2 (13,6 und 1,0 mm), 2,5 mm breit — der Schriftzug ist **ein** Stück |
-| **Klebefläche** | 24 % des Schriftzugs liegen auf dem Buchstaben |
+| **Lage** | Mitte auf 32 % der Buchstabenhöhe (unteres Drittel), 33 mm aus der Mitte nach links; ragt 88 mm links und 22 mm rechts über |
+| **Stege** | 1 (1,0 mm), 2,5 mm breit — der i-Punkt braucht keinen, er ruht auf dem Mittelbalken des E |
+| **Klebefläche** | 25 % des Schriftzugs liegen auf dem Buchstaben |
 | **Strichbreite** | im Mittel 10,3 mm, dünnste Stelle 4,1 mm |
 
-Die Höhe des Schriftzugs steuert `NAME_MITTE` in `generate.py`: 0,32
-heißt Mitte auf 32 % der Buchstabenhöhe. Tiefer als 0,27 läuft er unten
-über den Buchstaben hinaus.
+Die Höhe des Schriftzugs steuert `NAME_MITTE` (`--mitte`): 0,32 heißt
+Mitte auf 32 % der Buchstabenhöhe. Tiefer als 0,27 läuft er unten über
+den Buchstaben hinaus. Die seitliche Lage steuert `NAME_VERSATZ`
+(`--versatz`), negativ ist nach links.
+
+**Warum der Versatz:** In Schreibschrift hängt der i-Punkt an nichts. Er
+bekam deshalb einen Steg — einen sichtbaren Stiel hinunter zum i. Mit
+33 mm Versatz nach links landet er stattdessen auf dem Mittelbalken des
+E und liegt dort zu 82 % auf. Damit braucht er keinen Steg mehr: im
+AMS-Druck verschmilzt er mit der Unterlage, beim Kleben wird er einzeln
+aufgeklebt. Der Generator entscheidet das selbst — eine Insel, die zu
+mindestens `STUETZ_MIN` (70 %) auf dem Buchstaben liegt, wird nicht mehr
+angebunden.
 
 ## Zwei Wege zum selben Schild
 
@@ -33,9 +43,10 @@ Die Farben liegen **übereinander** und berühren sich in einer Ebene bei
 kann verrutschen, genau **ein** Farbwechsel über die ganze Höhe.
 
 Farbe 1 ist nicht nur der Buchstabe, sondern der Buchstabe **plus der
-Umriss des Schriftzugs**: der Schriftzug ragt je 55 mm über den
-Buchstaben hinaus und hätte dort sonst nichts unter sich. So steht jeder
-Punkt der oberen Farbe auf Material — nichts schwebt, keine Stützen.
+Umriss des Schriftzugs**: der Schriftzug ragt 88 mm links und 22 mm
+rechts über den Buchstaben hinaus und hätte dort sonst nichts unter
+sich. So steht jeder Punkt der oberen Farbe auf Material — nichts
+schwebt, keine Stützen.
 
 Laden: beide Dateien zusammen auswählen, beim Dialog *„mehrteiliges
 Objekt?"* → **Ja**, dann je Teil das Filament zuweisen. Grundfläche
@@ -56,7 +67,9 @@ Unterlage hat.
 
 **Zusammenbau:** Schriftzug auf die Vorderseite des Buchstabens kleben
 (Sekundenkleber oder Klebepads). Die überhängenden Enden tragen sich bei
-4 mm PLA selbst.
+4 mm PLA selbst. Der i-Punkt ist ein eigenes kleines Teil und wird
+direkt auf den Mittelbalken geklebt — bei der AMS-Variante entfällt das,
+dort ist er angewachsen.
 
 An die Tür kommt bei beiden Varianten Klebepad auf die Rückseite — die
 ist plan, ohne Löcher.
@@ -77,7 +90,7 @@ der Zahl nötiger Stege.
 | Parisienne | zierlich und ruhig, gut lesbar | 3,2 mm | 1 |
 | Alex Brush | flott, schräg, gleichmäßig dünn | 2,4 mm | 2 |
 | Sacramento | monolinear, modern, fast ohne Kontrast | 4,9 mm | 2 |
-| **Dancing Script 700** | **verspielt, freundlich, kindgerecht (Standard)** | **4,1 mm** | **2** |
+| **Dancing Script 700** | **verspielt, freundlich, kindgerecht (Standard)** | **4,1 mm** | **1** |
 | Kaushan Script | kräftiger Pinsel, sehr präsent | 4,1 mm | 5 |
 | Pacifico | dick und rund, Retro, am robustesten | 10,5 mm | 1 |
 
@@ -110,8 +123,8 @@ dünnste Stelle 2,4 → 4,1 mm, Cremefilament 25 → 35 cm³.
     python3 generate.py --name Mia --schrift parisienne --mitte 0.40
 
 Der große Buchstabe ist der Anfangsbuchstabe (`--buchstabe` überschreibt).
-Der Generator prüft: Dichtheit, Zusammenhang des Schriftzugs (alle Inseln
-über Stege angebunden), Bauraum, Klebefläche (unter 15 % eine Warnung
+Der Generator prüft: Dichtheit, Zusammenhang des Schriftzugs (jede Insel
+entweder über einen Steg angebunden oder auf dem Buchstaben ruhend), Bauraum, Klebefläche (unter 15 % eine Warnung
 für die Klebevariante, unter 8 % Abbruch) — und für die
 AMS-Variante zusätzlich, dass die beiden Farbkörper sich in z nicht
 überlappen, dass jeder Rasterpunkt der oberen Farbe auf der unteren steht
@@ -131,9 +144,12 @@ der Tür) und `stl/ansicht_ams_schnitt.svg` (Schnitt durch den Farbstapel).
    überlappt Nachbarbuchstaben; eine globale Zählung „liegt in einer
    ungeraden Zahl anderer Konturen" hält dann Außenkonturen für Löcher.
 3. **Inseln.** i-Punkt und oft der Anfangsbuchstabe hängen nicht am
-   Rest. Ein Schriftzug aus drei Teilen lässt sich nicht gerade
-   aufkleben. Jede Insel wird über einen schmalen Steg an den nächsten
-   Nachbarn angebunden, und der Zusammenhang wird danach geprüft.
+   Rest. Ein Schriftzug aus drei losen Teilen lässt sich nicht gerade
+   aufkleben. Jede Insel wird deshalb über einen schmalen Steg an den
+   nächsten Nachbarn angebunden — außer sie liegt ohnehin auf dem großen
+   Buchstaben auf (≥ 70 % ihrer Fläche), dann ruht sie dort und der Steg
+   entfällt. Danach wird geprüft, dass genau ein freies Stück übrig
+   bleibt.
 
 Laufweite bleibt bei 100 %: die Schreibschriften sind so gezeichnet,
 dass die Verbindungsstriche genau dort treffen. Enger gesetzt

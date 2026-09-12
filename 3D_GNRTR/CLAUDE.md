@@ -223,6 +223,20 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Aufdicken per Polygon-Offset waere das Gegenteil: es blaeht auch die
   Rundungen auf, schmiert enge Punzen zu und erzeugt an engen Kurven
   Selbstueberschneidungen.
+- **Eine Insel, die auf dem Traeger aufliegt, braucht keinen Steg -- man
+  muss sie nur dorthin schieben.** Der i-Punkt der Schreibschrift hing
+  an einem 14 mm langen Stiel, weil die Anbinde-Logik stur jede Insel
+  ans Schriftbild klebte. Der bessere Weg: den ganzen Schriftzug
+  seitlich versetzen (hier 33 mm nach links), bis der Punkt auf dem
+  Mittelbalken des grossen Buchstabens landet, und die Logik fragen
+  lassen, welcher Flaechenanteil der Insel auf dem Traeger liegt
+  (Rasterprobe, Schwelle 70 %). Liegt sie auf, faellt der Steg weg --
+  beim AMS-Druck verschmilzt sie mit der Unterlage, beim Kleben wird sie
+  einzeln aufgesetzt. Den Versatz nicht raten: den Anteil ueber einen
+  Bereich von Versaetzen ausrechnen und das Maximum nehmen (hier 82 %
+  bei -33 mm; der Punkt ist breiter als der Balkenauslauf, 100 % gibt es
+  nicht). Und die Schlusspruefung muss mitziehen: nicht mehr "alles ein
+  Stueck", sondern "genau ein freies Stueck, alles andere ruht auf".
 - **Zwei Farben uebereinander statt nebeneinander: Unterlage in der
   unteren Farbe, sonst schwebt die obere.** Aus zwei Klebeteilen wird
   ein AMS-Druck, indem sie in z gestapelt werden (Teil 1 von 0 bis d1,

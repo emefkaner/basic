@@ -7,6 +7,7 @@
                             Hoehe der Schriftzugmitte: unten Farbe 1, oben
                             Farbe 2, ohne Fuge dazwischen.
 """
+import argparse
 import os
 import sys
 
@@ -16,7 +17,18 @@ import generate as G
 
 
 def main():
-    name = sys.argv[1] if len(sys.argv) > 1 else G.NAME
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("name", nargs="?", default=G.NAME)
+    ap.add_argument("--schrift", default=G.SCHRIFT, choices=sorted(G.SCHRIFTEN))
+    ap.add_argument("--staerke", type=float, default=None)
+    ap.add_argument("--mitte", type=float, default=G.NAME_MITTE)
+    a = ap.parse_args()
+    name = a.name
+    G.SCHRIFT = a.schrift
+    G.FONT_NAME = G.SCHRIFTEN[a.schrift][1]
+    G.GEWICHT = a.staerke if a.staerke is not None else G.SCHRIFTEN[a.schrift][3]
+    G.NAME_MITTE = a.mitte
     zeichen = name[0].upper()
     _, b_gl, b_br, b_ho = G.teil_buchstabe(zeichen)
     _, n_gl, stege, _, n_br, n_ho, (dx, dy) = G.teil_name(name, b_br, b_ho)

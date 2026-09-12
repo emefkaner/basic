@@ -95,24 +95,29 @@ def _schrift(datei):
 # Kandidatinnen fuer den Schriftzug, alle SIL OFL (Lizenzen in schriften/).
 # --schrift waehlt aus; schriftvergleich.py misst sie und zeichnet ein
 # Blatt mit allen Vorschlaegen.
+# Eintrag: Anzeigename, Datei, Charakter, Standardgewicht. Das Gewicht
+# gilt nur fuer Variable Fonts (hier Dancing Script, Achse wght 400..700)
+# -- die Buchstabenformen werden dabei wirklich fetter gezeichnet, nicht
+# nachtraeglich aufgedickt. Bei statischen Schriften bleibt es None.
 SCHRIFTEN = {
     "greatvibes":   ("Great Vibes", os.path.join(HIER, "GreatVibes-Regular.ttf"),
-                     "festlich, starker Strichkontrast, grosse Schwuenge"),
+                     "festlich, starker Strichkontrast, grosse Schwuenge", None),
     "parisienne":   ("Parisienne", _schrift("Parisienne-Regular.ttf"),
-                     "zierlich und ruhig, weniger Schnoerkel, gut lesbar"),
+                     "zierlich und ruhig, weniger Schnoerkel, gut lesbar", None),
     "alexbrush":    ("Alex Brush", _schrift("AlexBrush-Regular.ttf"),
-                     "flott geschrieben, schraeg, gleichmaessig duenn"),
+                     "flott geschrieben, schraeg, gleichmaessig duenn", None),
     "sacramento":   ("Sacramento", _schrift("Sacramento-Regular.ttf"),
-                     "monolinear und schlicht, modern, fast ohne Kontrast"),
+                     "monolinear und schlicht, modern, fast ohne Kontrast", None),
     "dancingscript": ("Dancing Script", _schrift("DancingScript.ttf"),
-                      "verspielt und huepfend, freundlich, kindgerecht"),
+                      "verspielt und huepfend, freundlich, kindgerecht", 700.0),
     "kaushanscript": ("Kaushan Script", _schrift("KaushanScript-Regular.ttf"),
-                      "kraeftiger Pinsel, laessig, sehr praesent"),
+                      "kraeftiger Pinsel, laessig, sehr praesent", None),
     "pacifico":     ("Pacifico", _schrift("Pacifico-Regular.ttf"),
-                     "dick und rund, Retro-Surf, robusteste Variante"),
+                     "dick und rund, Retro-Surf, robusteste Variante", None),
 }
-SCHRIFT = "greatvibes"
+SCHRIFT = "dancingscript"        # gewaehlt: verspielt, und im fetten Schnitt
 FONT_NAME = SCHRIFTEN[SCHRIFT][1]
+GEWICHT = SCHRIFTEN[SCHRIFT][3]
 BEZIER_SCHRITTE = 10
 
 # Bett Bambu H2S, vorsichtig 350 x 320, 20 mm Rand
@@ -125,9 +130,24 @@ _fonts = {}
 
 
 def font(pfad):
-    if pfad not in _fonts:
-        _fonts[pfad] = TTFont(pfad)
-    return _fonts[pfad]
+    """Font laden; bei Variable Fonts auf GEWICHT festlegen.
+
+    instantiateVariableFont backt die Gewichtsachse in die Umrisse ein --
+    danach verhaelt sich die Datei wie eine statische Schrift, und die
+    Konturen sind die echten fetten Formen des Entwerfers. Ein
+    nachtraegliches Aufdicken per Offset waere etwas anderes: es blaeht
+    auch die Rundungen auf und schliesst enge Punzen zu.
+    """
+    schluessel = (pfad, GEWICHT)
+    if schluessel not in _fonts:
+        f = TTFont(pfad)
+        if GEWICHT is not None and "fvar" in f:
+            from fontTools.varLib import instancer
+            achse = {a.axisTag: a for a in f["fvar"].axes}["wght"]
+            wert = min(max(GEWICHT, achse.minValue), achse.maxValue)
+            f = instancer.instantiateVariableFont(f, {"wght": wert})
+        _fonts[schluessel] = f
+    return _fonts[schluessel]
 
 
 def _quad(p0, p1, p2, schritte=BEZIER_SCHRITTE):
@@ -535,7 +555,7 @@ def klebeflaeche(name_glyphen, buchstabe_glyphen):
 
 
 def main():
-    global BUCHSTABE_HOEHE, FONT_NAME, SCHRIFT, NAME_MITTE
+    global BUCHSTABE_HOEHE, FONT_NAME, SCHRIFT, NAME_MITTE, GEWICHT
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--name", default=NAME)
@@ -549,11 +569,15 @@ def main():
     ap.add_argument("--mitte", type=float, default=NAME_MITTE,
                     help="Schriftzugmitte auf dieser Hoehe des Buchstabens "
                          "(0..1, Standard: %(default)s)")
+    ap.add_argument("--staerke", type=float, default=None,
+                    help="Schriftgewicht bei Variable Fonts (Dancing Script: "
+                         "400 normal bis 700 fett; Standard je Schrift)")
     args = ap.parse_args()
     BUCHSTABE_HOEHE = args.hoehe
     NAME_MITTE = args.mitte
     SCHRIFT = args.schrift
     FONT_NAME = SCHRIFTEN[SCHRIFT][1]
+    GEWICHT = args.staerke if args.staerke is not None else SCHRIFTEN[SCHRIFT][3]
     name = args.name
     zeichen = args.buchstabe or name[0].upper()
 
@@ -567,9 +591,10 @@ def main():
     n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy) = teil_name(name, b_br, b_ho)
 
     print("Tuerschild '%s': Buchstabe %s %.0f mm hoch (%.0f breit, %.0f dick), "
-          "Schriftzug %.0f x %.0f mm (%.0f dick) in %s"
+          "Schriftzug %.0f x %.0f mm (%.0f dick) in %s%s"
           % (name, zeichen, b_ho, b_br, BUCHSTABE_DICKE, n_br, n_ho, NAME_DICKE,
-             SCHRIFTEN[SCHRIFT][0]))
+             SCHRIFTEN[SCHRIFT][0],
+             "" if GEWICHT is None else " (Gewicht %.0f)" % GEWICHT))
     print("Schriftzug liegt %.0f mm links und rechts ueber den Buchstaben hinaus, "
           "Mitte auf %.0f %% der Buchstabenhoehe"
           % (-dx, 100 * NAME_MITTE))
@@ -627,7 +652,8 @@ def main():
         raise SystemExit("FEHLER Bauraum: " + f_)
 
     fehler = 0
-    sicher = "".join(c if c.isalnum() else "_" for c in name) + "_" + SCHRIFT
+    sicher = ("".join(c if c.isalnum() else "_" for c in name) + "_" + SCHRIFT
+              + ("" if GEWICHT is None else "%.0f" % GEWICHT))
     fehler += bauen(ziel, "tuerschild_%s_1_buchstabe_%s_1x_drucken.stl"
                     % (sicher, zeichen), b_schalen)
     fehler += bauen(ziel, "tuerschild_%s_2_name_1x_drucken.stl" % sicher,

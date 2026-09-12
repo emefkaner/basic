@@ -161,18 +161,22 @@ def strichbreiten(glyphen, stege):
 
 def messen(schluessel, name, b_br, b_ho):
     """Einen Schriftzug in einer Schrift setzen und bewerten."""
-    titel, pfad, art = G.SCHRIFTEN[schluessel]
+    titel, pfad, art, gewicht = G.SCHRIFTEN[schluessel]
+    if gewicht is not None:
+        titel += " (Gewicht %.0f)" % gewicht
+    alt_g, G.GEWICHT = G.GEWICHT, gewicht
     f = G.font(pfad)
+    G.GEWICHT = alt_g
     fehlt = [z for z in name if ord(z) not in f.getBestCmap()]
     if fehlt:
         return {"titel": titel, "art": art,
                 "fehler": "Zeichen fehlen: " + "".join(fehlt)}
-    alt = G.FONT_NAME
-    G.FONT_NAME = pfad
+    alt, alt_g = G.FONT_NAME, G.GEWICHT
+    G.FONT_NAME, G.GEWICHT = pfad, gewicht
     try:
         _, n_gl, stege, abst, n_br, n_ho, (dx, dy) = G.teil_name(name, b_br, b_ho)
     finally:
-        G.FONT_NAME = alt
+        G.FONT_NAME, G.GEWICHT = alt, alt_g
     inseln = len(G.komponenten([a for a, _ in n_gl]))
     # ohne die Stege messen -- die sind per Definition STEG_BREITE
     # schmal und wuerden sonst bei jeder Schrift als "duennste

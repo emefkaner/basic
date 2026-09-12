@@ -215,6 +215,14 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Definieren gebunden -- ein spaeteres `RASTER = 0.15` blieb wirkungslos
   und taeuschte eine feinere Messung nur vor (auffaellig, weil drei
   Schriften auf 0,01 mm dasselbe Ergebnis lieferten).
+  **"Dicker" heisst Variable Font, nicht Offset.** Soll eine Schrift
+  fetter werden, zuerst `fvar` pruefen: Dancing Script hat eine
+  wght-Achse 400..700, `instancer.instantiateVariableFont` backt das
+  gewuenschte Gewicht in die Umrisse ein und liefert die echte fette
+  Zeichnung (mittlere Strichbreite 7,6 -> 10,3 mm). Ein nachtraegliches
+  Aufdicken per Polygon-Offset waere das Gegenteil: es blaeht auch die
+  Rundungen auf, schmiert enge Punzen zu und erzeugt an engen Kurven
+  Selbstueberschneidungen.
 - **Zwei Farben uebereinander statt nebeneinander: Unterlage in der
   unteren Farbe, sonst schwebt die obere.** Aus zwei Klebeteilen wird
   ein AMS-Druck, indem sie in z gestapelt werden (Teil 1 von 0 bis d1,

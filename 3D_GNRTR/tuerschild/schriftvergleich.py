@@ -23,7 +23,6 @@ sie am Ende an der Tuer haengen.
 """
 
 import argparse
-import math
 import os
 import sys
 
@@ -31,7 +30,6 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HIER)
 import generate as G                                                 # noqa: E402
 
-RASTER = 0.3          # mm, Rasterweite der Messung
 DUENN_WARN = 1.2      # mm, darunter wird es bei 0,4 mm Duese heikel
 
 
@@ -39,120 +37,12 @@ DUENN_WARN = 1.2      # mm, darunter wird es bei 0,4 mm Duese heikel
 # Messung: Raster, Distanztransformation, duennste Stelle
 # ---------------------------------------------------------------------------
 
-def rastern(glyphen, stege, h=None, rand=2.0):
-    """Material der Schrift in ein Boolean-Raster fuellen (Scanline).
-
-    Je Glyphe gilt die Even-Odd-Regel ueber ihre eigenen Konturen --
-    Loecher liegen in ihrer Aussenkontur, das stimmt. Die Vereinigung
-    ueber die Glyphen entsteht durch Veroderung der Zeilen.
-
-    h absichtlich nicht mit RASTER als Vorgabewert: Vorgaben werden beim
-    Definieren gebunden, ein spaeteres Setzen von RASTER waere wirkungslos
-    -- genau das taeuschte erst eine feinere Messung vor, die nie lief
-    (drei Schriften lieferten auf 0,01 mm denselben Wert).
-    """
-    h = RASTER if h is None else h
-    teile = [[a] + list(ls) for a, ls in glyphen] + [[s] for s in stege]
-    pts = [p for t in teile for k in t for p in k]
-    x0 = min(p[0] for p in pts) - rand
-    x1 = max(p[0] for p in pts) + rand
-    y0 = min(p[1] for p in pts) - rand
-    y1 = max(p[1] for p in pts) + rand
-    nx = int((x1 - x0) / h) + 1
-    ny = int((y1 - y0) / h) + 1
-    kanten = []
-    for t in teile:
-        for k in t:
-            n = len(k)
-            kanten.append([(k[i], k[(i + 1) % n]) for i in range(n)])
-    grid = bytearray(nx * ny)
-    for j in range(ny):
-        y = y0 + (j + 0.5) * h
-        zeile = j * nx
-        for kk in kanten:
-            xs = []
-            for (pa, pb) in kk:
-                ya, yb = pa[1], pb[1]
-                if (ya <= y) == (yb <= y):
-                    continue
-                xs.append(pa[0] + (y - ya) * (pb[0] - pa[0]) / (yb - ya))
-            if not xs:
-                continue
-            xs.sort()
-            for m in range(0, len(xs) - 1, 2):
-                i0 = max(0, int(math.ceil((xs[m] - x0) / h - 0.5)))
-                i1 = min(nx - 1, int((xs[m + 1] - x0) / h - 0.5))
-                for i in range(i0, i1 + 1):
-                    grid[zeile + i] = 1
-    return grid, nx, ny, h
-
-
-def distanzen(grid, nx, ny, h):
-    """Chamfer-Distanztransformation: Abstand jeder Materialzelle zum
-    naechsten Freiraum, in mm."""
-    INF = 1e9
-    a, b = 1.0, 1.3507       # Borgefors-Gewichte
-    d = [0.0 if not grid[k] else INF for k in range(nx * ny)]
-    for j in range(ny):
-        z = j * nx
-        for i in range(nx):
-            k = z + i
-            if d[k] == 0.0:
-                continue
-            v = d[k]
-            if i > 0:
-                v = min(v, d[k - 1] + a)
-            if j > 0:
-                v = min(v, d[k - nx] + a)
-                if i > 0:
-                    v = min(v, d[k - nx - 1] + b)
-                if i < nx - 1:
-                    v = min(v, d[k - nx + 1] + b)
-            d[k] = v
-    for j in range(ny - 1, -1, -1):
-        z = j * nx
-        for i in range(nx - 1, -1, -1):
-            k = z + i
-            if d[k] == 0.0:
-                continue
-            v = d[k]
-            if i < nx - 1:
-                v = min(v, d[k + 1] + a)
-            if j < ny - 1:
-                v = min(v, d[k + nx] + a)
-                if i > 0:
-                    v = min(v, d[k + nx - 1] + b)
-                if i < nx - 1:
-                    v = min(v, d[k + nx + 1] + b)
-            d[k] = v
-    return [x * h for x in d]
-
-
-def strichbreiten(glyphen, stege):
-    """Breiten entlang der Mittelachse: (duennste robust, absolut duennste,
-    mittlere). Mittelachse = Zellen, deren Abstand lokal maximal ist --
-    dort passt der groesste Kreis in den Strich, 2*Abstand ist die
-    Strichbreite an dieser Stelle."""
-    grid, nx, ny, h = rastern(glyphen, stege)
-    d = distanzen(grid, nx, ny, h)
-    ruecken = []
-    for j in range(1, ny - 1):
-        z = j * nx
-        for i in range(1, nx - 1):
-            k = z + i
-            v = d[k]
-            if v <= 0.0:
-                continue
-            if (v >= d[k - 1] and v >= d[k + 1] and v >= d[k - nx]
-                    and v >= d[k + nx] and v >= d[k - nx - 1]
-                    and v >= d[k - nx + 1] and v >= d[k + nx - 1]
-                    and v >= d[k + nx + 1]):
-                ruecken.append(2.0 * v)
-    if not ruecken:
-        return 0.0, 0.0, 0.0
-    ruecken.sort()
-    p2 = ruecken[max(0, int(0.02 * len(ruecken)))]
-    return p2, ruecken[0], ruecken[len(ruecken) // 2]
+# rastern/distanzen/strichbreiten stehen jetzt in generate.py -- die
+# Strichbreitenmessung wird auch dort gebraucht (Urteil ueber die Dicke
+# der Verbindungen), und zweimal dasselbe Raster waere Unsinn.
+rastern = G.rastern
+distanzen = G.distanzen
+strichbreiten = G.strichbreiten
 
 
 # ---------------------------------------------------------------------------

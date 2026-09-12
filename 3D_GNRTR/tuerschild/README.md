@@ -7,11 +7,12 @@ Serifen-Anfangsbuchstabe (rosa), quer darüber der Name in Schreibschrift
 | | |
 |---|---|
 | **Buchstabe E** | 158 × 240 mm, 6 mm dick, Liberation Serif Bold, auf 72 % gestaucht |
-| **Schriftzug Elsie** | 269 × 123 mm, 4 mm dick, Dancing Script im fetten Schnitt (Gewicht 700) |
-| **Lage** | Mitte auf 32 % der Buchstabenhöhe (unteres Drittel), 33 mm aus der Mitte nach links; ragt 88 mm links und 22 mm rechts über |
-| **Stege** | 1 (1,0 mm), 2,5 mm breit — der i-Punkt braucht keinen, er ruht auf dem Mittelbalken des E |
-| **Klebefläche** | 25 % des Schriftzugs liegen auf dem Buchstaben |
-| **Strichbreite** | im Mittel 10,3 mm, dünnste Stelle 4,1 mm |
+| **Schriftzug Elsie** | 221 × 105 mm, 4 mm dick, Dancing Script im fetten Schnitt (Gewicht 700), Laufweite 96 % |
+| **Lage** | Mitte auf 32 % der Buchstabenhöhe (unteres Drittel), 21 mm aus der Mitte nach links; ragt 53 mm links und 11 mm rechts über |
+| **Stege** | keine — die Buchstaben überlappen sich, der i-Punkt ruht auf dem Mittelbalken des E |
+| **Klebefläche** | 30 % des Schriftzugs liegen auf dem Buchstaben |
+| **Dünnste Verbindung** | 4,4 mm — so dick wie die dünnsten Striche der Schrift selbst |
+| **Strichbreite** | im Mittel 8,4 mm, dünnste Stelle 3,6 mm |
 
 Die Höhe des Schriftzugs steuert `NAME_MITTE` (`--mitte`): 0,32 heißt
 Mitte auf 32 % der Buchstabenhöhe. Tiefer als 0,27 läuft er unten über
@@ -20,8 +21,8 @@ den Buchstaben hinaus. Die seitliche Lage steuert `NAME_VERSATZ`
 
 **Warum der Versatz:** In Schreibschrift hängt der i-Punkt an nichts. Er
 bekam deshalb einen Steg — einen sichtbaren Stiel hinunter zum i. Mit
-33 mm Versatz nach links landet er stattdessen auf dem Mittelbalken des
-E und liegt dort zu 82 % auf. Damit braucht er keinen Steg mehr: im
+21 mm Versatz nach links landet er stattdessen auf dem Mittelbalken des
+E und liegt dort zu 87 % auf. Damit braucht er keinen Steg mehr: im
 AMS-Druck verschmilzt er mit der Unterlage, beim Kleben wird er einzeln
 aufgeklebt. Der Generator entscheidet das selbst — eine Insel, die zu
 mindestens `STUETZ_MIN` (70 %) auf dem Buchstaben liegt, wird nicht mehr
@@ -43,14 +44,14 @@ Die Farben liegen **übereinander** und berühren sich in einer Ebene bei
 kann verrutschen, genau **ein** Farbwechsel über die ganze Höhe.
 
 Farbe 1 ist nicht nur der Buchstabe, sondern der Buchstabe **plus der
-Umriss des Schriftzugs**: der Schriftzug ragt 88 mm links und 22 mm
+Umriss des Schriftzugs**: der Schriftzug ragt 53 mm links und 11 mm
 rechts über den Buchstaben hinaus und hätte dort sonst nichts unter
 sich. So steht jeder Punkt der oberen Farbe auf Material — nichts
 schwebt, keine Stützen.
 
 Laden: beide Dateien zusammen auswählen, beim Dialog *„mehrteiliges
 Objekt?"* → **Ja**, dann je Teil das Filament zuweisen. Grundfläche
-269 × 240 mm, 10 mm hoch, ~190 cm³.
+221 × 240 mm, 10 mm hoch, ~175 cm³.
 
 ### B — Kleben: zwei einfarbige Drucke
 
@@ -61,8 +62,8 @@ Objekt?"* → **Ja**, dann je Teil das Filament zuweisen. Grundfläche
 
 Auch hier teilen beide STLs den Ursprung; zusammen geladen sieht man die
 Lage. Ohne AMS nacheinander drucken, mit AMS als zwei Objekte
-nebeneinander auf einer Platte (hochkant 297 × 269 mm, passt auf die
-H2S). Braucht weniger Material (~138 cm³), weil der Schriftzug keine
+nebeneinander auf einer Platte (hochkant 273 × 240 mm, passt auf die
+H2S). Braucht weniger Material (~133 cm³), weil der Schriftzug keine
 Unterlage hat.
 
 **Zusammenbau:** Schriftzug auf die Vorderseite des Buchstabens kleben
@@ -90,7 +91,7 @@ der Zahl nötiger Stege.
 | Parisienne | zierlich und ruhig, gut lesbar | 3,2 mm | 1 |
 | Alex Brush | flott, schräg, gleichmäßig dünn | 2,4 mm | 2 |
 | Sacramento | monolinear, modern, fast ohne Kontrast | 4,9 mm | 2 |
-| **Dancing Script 700** | **verspielt, freundlich, kindgerecht (Standard)** | **4,1 mm** | **1** |
+| **Dancing Script 700** | **verspielt, freundlich, kindgerecht (Standard)** | **3,6 mm** | **0** |
 | Kaushan Script | kräftiger Pinsel, sehr präsent | 4,1 mm | 5 |
 | Pacifico | dick und rund, Retro, am robustesten | 10,5 mm | 1 |
 
@@ -114,17 +115,18 @@ Das ist kein nachträgliches Aufdicken, sondern die echte fette Zeichnung
 des Entwerfers — `instantiateVariableFont` backt die Achse in die
 Umrisse ein. Ein Offset würde auch die Rundungen aufblähen und enge
 Punzen zuschmieren. Wirkung: mittlere Strichbreite 7,6 → 10,3 mm,
-dünnste Stelle 2,4 → 4,1 mm, Cremefilament 25 → 35 cm³.
+dünnste Stelle 2,2 → 3,6 mm, mehr Cremefilament.
 
 ## Andere Namen
 
     python3 generate.py --name Emilia
     python3 generate.py --name Noah --hoehe 200
-    python3 generate.py --name Mia --schrift parisienne --mitte 0.40
+    python3 generate.py --name Mia --schrift pacifico --breite 1.6
 
 Der große Buchstabe ist der Anfangsbuchstabe (`--buchstabe` überschreibt).
 Der Generator prüft: Dichtheit, Zusammenhang des Schriftzugs (jede Insel
-entweder über einen Steg angebunden oder auf dem Buchstaben ruhend), Bauraum, Klebefläche (unter 15 % eine Warnung
+entweder über einen Steg angebunden oder auf dem Buchstaben ruhend), die
+Dicke jeder Verbindung, Bauraum, Klebefläche (unter 15 % eine Warnung
 für die Klebevariante, unter 8 % Abbruch) — und für die
 AMS-Variante zusätzlich, dass die beiden Farbkörper sich in z nicht
 überlappen, dass jeder Rasterpunkt der oberen Farbe auf der unteren steht
@@ -133,7 +135,7 @@ und dass die untere Farbe ein einziges zusammenhängendes Stück ist.
 `python3 vorschau.py` schreibt `stl/ansicht_vorne.svg` (so hängt es an
 der Tür) und `stl/ansicht_ams_schnitt.svg` (Schnitt durch den Farbstapel).
 
-## Drei Fallen bei Schreibschrift, alle im Generator abgefangen
+## Vier Fallen bei Schreibschrift, alle im Generator abgefangen
 
 1. **Zusammengesetzte Glyphen.** Das „i" in Great Vibes besteht aus
    Strich und Punkt als *Komponenten*. Der normale `RecordingPen` liefert
@@ -151,9 +153,20 @@ der Tür) und `stl/ansicht_ams_schnitt.svg` (Schnitt durch den Farbstapel).
    entfällt. Danach wird geprüft, dass genau ein freies Stück übrig
    bleibt.
 
-Laufweite bleibt bei 100 %: die Schreibschriften sind so gezeichnet,
-dass die Verbindungsstriche genau dort treffen. Enger gesetzt
-kollidieren l, s und i.
+4. **Ein Stück heißt nicht stabil.** Zwei Buchstaben können sich auch
+   nur streifen — dann hängen sie an einem Faden von einem Millimeter,
+   dünner als jeder Strich der Schrift. Bei 100 % Laufweite blieben
+   zwischen E und l genau 1,0 mm Luft, ein Steg musste her, und der war
+   die Sollbruchstelle des ganzen Schilds. Bei 96 % überlappen sich die
+   Buchstaben wirklich und wachsen 4,4 mm breit zusammen. Gemessen wird
+   das an jeder Überlappung: Schwerpunkt bestimmen, größten Kreis
+   suchen, der noch ganz im Material liegt — sein Durchmesser ist die
+   Dicke der Verbindung. Gemessen wird gegen die Schrift selbst: eine
+   Verbindung darf nicht dünner sein als die dünnsten Striche ringsum
+   (hier 4,4 gegen 3,6 mm). Ist sie es doch, verengt der Generator die
+   Laufweite selbsttätig weiter und bricht ab, wenn auch das nicht
+   reicht — dann hilft nur eine kräftigere Schrift oder ein größerer
+   Schriftzug (`--breite`).
 
 Fonts: Great Vibes (SIL OFL, `OFL.txt`), Liberation Serif (SIL OFL,
 `LICENSE-LiberationSerif.txt`), die sechs Schreibschriften in

@@ -75,20 +75,32 @@ BUCHSTABE_DICKE = 6.0
 # fast quadratisch -- deshalb in x gestaucht. Der Stamm wird dabei
 # duenner, die Balken bleiben: das rueckt ihn in Richtung Vorlage.
 BUCHSTABE_SCHMAL = 0.72
-NAME_SPUR = 1.0            # Laufweite; Great Vibes verbindet nur bei 100 %
+# Laufweite. Bei 100 % stehen die Buchstaben genau auf Abstand -- in
+# Schreibschrift heisst das: sie beruehren sich fast, aber eben nur fast
+# (beim fetten Dancing Script blieb 1 mm Luft zwischen E und l). Dann
+# braucht es einen Steg, und der ist duenner als jeder Strich der
+# Schrift, also die Sollbruchstelle des ganzen Schilds. Enger gesetzt
+# ueberlappen sich die Buchstaben wirklich und wachsen breit zusammen:
+# bei 96 % ist der schmalste Uebergang 4,4 mm und damit so dick wie die
+# duennsten Striche der Schrift selbst. uebergaenge_pruefen rechnet das
+# jedes Mal nach.
+NAME_SPUR = 0.96
 NAME_DICKE = 4.0
-NAME_BREITE_FAKTOR = 1.7   # Schriftzug so viel breiter als der Buchstabe (Vorlage)
+NAME_BREITE_FAKTOR = 1.40  # Schriftzug so viel breiter als der Buchstabe
 # Schriftzugmitte auf dieser Hoehe des Buchstabens. Die Vorlage hat ihn
 # auf halber Hoehe; hier sitzt er tiefer, im unteren Drittel des E, und
 # liegt damit auf dem unteren Balken auf statt ueber dem Mittelbalken.
 NAME_MITTE = 0.32
-NAME_VERSATZ = -33.0       # Schriftzug aus der Mitte nach links (mm)
+NAME_VERSATZ = -21.0       # Schriftzug aus der Mitte nach links (mm)
+UEBERGANG_MIN = 3.0        # so dick muss jede Verbindung mindestens sein
+UEBERGANG_STOPP = 2.0      # darunter Abbruch
 STEG_BREITE = 2.5          # Verbindungssteg zwischen Inseln der Schreibschrift
 STEG_UEBER = 1.5           # so weit laeuft der Steg in beide Inseln hinein
 # Eine Insel, die zu diesem Anteil auf dem grossen Buchstaben liegt,
 # braucht keinen Steg: sie ruht auf ihm. Beim AMS-Druck verschmilzt sie
 # ohnehin mit der Unterlage, beim Kleben wird sie einzeln aufgeklebt.
 STUETZ_MIN = 0.70
+RASTER = 0.3               # mm, Rasterweite der Strichbreitenmessung
 
 FONT_BUCHSTABE = os.path.join(HIER, "LiberationSerif-Bold.ttf")
 
@@ -323,6 +335,52 @@ def komponenten(konturen):
     return list(gruppen.values())
 
 
+def _balken(von, bis, breite):
+    """Rechteck der Breite `breite` zwischen zwei Punkten."""
+    d = math.dist(von, bis)
+    if d < 1e-9:
+        return None
+    ux, uy = (bis[0] - von[0]) / d, (bis[1] - von[1]) / d
+    nx, ny = -uy * breite / 2.0, ux * breite / 2.0
+    return [(von[0] + nx, von[1] + ny), (bis[0] + nx, bis[1] + ny),
+            (bis[0] - nx, bis[1] - ny), (von[0] - nx, von[1] - ny)]
+
+
+def steg_breite(pA, pB, richtung, teileA, teileB, d):
+    """Wie breit darf der Steg sein?
+
+    Ein 2,5-mm-Haelschen zwischen zwei fetten Buchstaben ist eine
+    Sollbruchstelle und sieht auch so aus. Wo zwei Striche fast
+    aneinanderstossen, soll der Steg deshalb so breit werden wie die
+    Striche selbst -- dann wirkt die Stelle wie eine Beruehrung.
+
+    Gemessen wird das nicht an einer geschaetzten Strichstaerke, sondern
+    am Ergebnis: fuer eine Kandidatenbreite werden die beiden Enden des
+    Stegs (die Stuecke, die in die Buchstaben hineinlaufen) probeweise
+    gerastert. Liegen beide zu mindestens 80 % im Material ihres
+    Buchstabens, passt die Breite -- der Steg verschwindet dann im
+    Strich, statt daneben in die Luft zu ragen. Von breit nach schmal
+    probiert, die erste passende gewinnt.
+
+    Und nur bei kurzen Luecken: je laenger die Bruecke, desto schlanker
+    muss sie bleiben, sonst wird aus einem Steg ein Klotz. Ab 6 mm
+    Luecke bleibt es bei STEG_BREITE.
+    """
+    obergrenze = STEG_BREITE + 2.0 * max(0.0, 6.0 - d)
+    endeA = (pA[0] - richtung[0] * STEG_UEBER, pA[1] - richtung[1] * STEG_UEBER)
+    endeB = (pB[0] + richtung[0] * STEG_UEBER, pB[1] + richtung[1] * STEG_UEBER)
+    breite = obergrenze
+    while breite > STEG_BREITE + 1e-9:
+        a = _balken(endeA, pA, breite)
+        b = _balken(endeB, pB, breite)
+        if (a and b
+                and flaechenanteil([(a, [])], teileA, n=24) >= 0.8
+                and flaechenanteil([(b, [])], teileB, n=24) >= 0.8):
+            return breite
+        breite -= 0.5
+    return STEG_BREITE
+
+
 def steg_zwischen(A, B, breite, ueber):
     """Rechteckiger Steg zwischen den naechsten Punkten zweier Konturen,
     beidseitig um `ueber` in die Konturen hinein verlaengert."""
@@ -334,13 +392,13 @@ def steg_zwischen(A, B, breite, ueber):
                 best = (d, p, q)
     d, p, q = best
     if d < 1e-6:
-        return None, 0.0
+        return None, 0.0, None, None, None
     ux, uy = (q[0] - p[0]) / d, (q[1] - p[1]) / d
     nx, ny = -uy * breite / 2.0, ux * breite / 2.0
     p2 = (p[0] - ux * ueber, p[1] - uy * ueber)
     q2 = (q[0] + ux * ueber, q[1] + uy * ueber)
     return [(p2[0] + nx, p2[1] + ny), (q2[0] + nx, q2[1] + ny),
-            (q2[0] - nx, q2[1] - ny), (p2[0] - nx, p2[1] - ny)], d
+            (q2[0] - nx, q2[1] - ny), (p2[0] - nx, p2[1] - ny)], d, p, q, (ux, uy)
 
 
 def flaechenanteil(teile, traeger, n=48):
@@ -404,13 +462,22 @@ def inseln_anbinden(glyphen, traeger=()):
         best = None
         for i in klein:
             for j in andere:
-                s, d = steg_zwischen(alle[i], alle[j], STEG_BREITE, STEG_UEBER)
+                s, d, p, q, u = steg_zwischen(alle[i], alle[j], STEG_BREITE,
+                                              STEG_UEBER)
                 if s is not None and (best is None or d < best[0]):
-                    best = (d, s)
+                    best = (d, i, j, p, q, u)
         if best is None:
             break
-        stege.append(best[1])
-        abstaende.append(best[0])
+        d, i, j, p, q, u = best
+        # jetzt erst die Breite: so breit wie die Striche, die hier
+        # zusammenkommen (bei kurzen Luecken), damit keine Sollbruch-
+        # stelle entsteht
+        breite = steg_breite(p, q, u,
+                             _komponente_teile([i], alle, glyphen),
+                             _komponente_teile([j], alle, glyphen), d)
+        s = steg_zwischen(alle[i], alle[j], breite, STEG_UEBER)[0]
+        stege.append(s)
+        abstaende.append((d, breite))
     alle = aussen + stege
     ruhend = [(k, getragen(k, alle)) for k in komponenten(alle)
               if getragen(k, alle) >= STUETZ_MIN]
@@ -583,6 +650,178 @@ def ams_pruefen(b_gl, n_gl, stege, rosa, creme):
     return fehler, gesamt
 
 
+def rastern(glyphen, stege, h=None, rand=2.0):
+    """Material der Schrift in ein Boolean-Raster fuellen (Scanline).
+
+    Je Glyphe gilt die Even-Odd-Regel ueber ihre eigenen Konturen --
+    Loecher liegen in ihrer Aussenkontur, das stimmt. Die Vereinigung
+    ueber die Glyphen entsteht durch Veroderung der Zeilen.
+
+    h absichtlich nicht mit RASTER als Vorgabewert: Vorgaben werden beim
+    Definieren gebunden, ein spaeteres Setzen von RASTER waere wirkungslos
+    -- genau das taeuschte erst eine feinere Messung vor, die nie lief
+    (drei Schriften lieferten auf 0,01 mm denselben Wert).
+    """
+    h = RASTER if h is None else h
+    teile = [[a] + list(ls) for a, ls in glyphen] + [[s] for s in stege]
+    pts = [p for t in teile for k in t for p in k]
+    x0 = min(p[0] for p in pts) - rand
+    x1 = max(p[0] for p in pts) + rand
+    y0 = min(p[1] for p in pts) - rand
+    y1 = max(p[1] for p in pts) + rand
+    nx = int((x1 - x0) / h) + 1
+    ny = int((y1 - y0) / h) + 1
+    kanten = []
+    for t in teile:
+        for k in t:
+            n = len(k)
+            kanten.append([(k[i], k[(i + 1) % n]) for i in range(n)])
+    grid = bytearray(nx * ny)
+    for j in range(ny):
+        y = y0 + (j + 0.5) * h
+        zeile = j * nx
+        for kk in kanten:
+            xs = []
+            for (pa, pb) in kk:
+                ya, yb = pa[1], pb[1]
+                if (ya <= y) == (yb <= y):
+                    continue
+                xs.append(pa[0] + (y - ya) * (pb[0] - pa[0]) / (yb - ya))
+            if not xs:
+                continue
+            xs.sort()
+            for m in range(0, len(xs) - 1, 2):
+                i0 = max(0, int(math.ceil((xs[m] - x0) / h - 0.5)))
+                i1 = min(nx - 1, int((xs[m + 1] - x0) / h - 0.5))
+                for i in range(i0, i1 + 1):
+                    grid[zeile + i] = 1
+    return grid, nx, ny, h
+
+
+def distanzen(grid, nx, ny, h):
+    """Chamfer-Distanztransformation: Abstand jeder Materialzelle zum
+    naechsten Freiraum, in mm."""
+    INF = 1e9
+    a, b = 1.0, 1.3507       # Borgefors-Gewichte
+    d = [0.0 if not grid[k] else INF for k in range(nx * ny)]
+    for j in range(ny):
+        z = j * nx
+        for i in range(nx):
+            k = z + i
+            if d[k] == 0.0:
+                continue
+            v = d[k]
+            if i > 0:
+                v = min(v, d[k - 1] + a)
+            if j > 0:
+                v = min(v, d[k - nx] + a)
+                if i > 0:
+                    v = min(v, d[k - nx - 1] + b)
+                if i < nx - 1:
+                    v = min(v, d[k - nx + 1] + b)
+            d[k] = v
+    for j in range(ny - 1, -1, -1):
+        z = j * nx
+        for i in range(nx - 1, -1, -1):
+            k = z + i
+            if d[k] == 0.0:
+                continue
+            v = d[k]
+            if i < nx - 1:
+                v = min(v, d[k + 1] + a)
+            if j < ny - 1:
+                v = min(v, d[k + nx] + a)
+                if i > 0:
+                    v = min(v, d[k + nx - 1] + b)
+                if i < nx - 1:
+                    v = min(v, d[k + nx + 1] + b)
+            d[k] = v
+    return [x * h for x in d]
+
+
+def strichbreiten(glyphen, stege):
+    """Breiten entlang der Mittelachse: (duennste robust, absolut duennste,
+    mittlere). Mittelachse = Zellen, deren Abstand lokal maximal ist --
+    dort passt der groesste Kreis in den Strich, 2*Abstand ist die
+    Strichbreite an dieser Stelle."""
+    grid, nx, ny, h = rastern(glyphen, stege)
+    d = distanzen(grid, nx, ny, h)
+    ruecken = []
+    for j in range(1, ny - 1):
+        z = j * nx
+        for i in range(1, nx - 1):
+            k = z + i
+            v = d[k]
+            if v <= 0.0:
+                continue
+            if (v >= d[k - 1] and v >= d[k + 1] and v >= d[k - nx]
+                    and v >= d[k + nx] and v >= d[k - nx - 1]
+                    and v >= d[k - nx + 1] and v >= d[k + nx - 1]
+                    and v >= d[k + nx + 1]):
+                ruecken.append(2.0 * v)
+    if not ruecken:
+        return 0.0, 0.0, 0.0
+    ruecken.sort()
+    p2 = ruecken[max(0, int(0.02 * len(ruecken)))]
+    return p2, ruecken[0], ruecken[len(ruecken) // 2]
+
+
+def inkreis(m, teile, max_r=12.0, schritt=0.1, n=32):
+    """Radius des groessten Kreises um m, der ganz im Material liegt."""
+    if not im_material(m, teile):
+        return 0.0
+    r = 0.0
+    while r + schritt <= max_r:
+        rr = r + schritt
+        if not all(im_material((m[0] + rr * math.cos(2 * math.pi * k / n),
+                                m[1] + rr * math.sin(2 * math.pi * k / n)), teile)
+                   for k in range(n)):
+            break
+        r = rr
+    return r
+
+
+def uebergaenge_pruefen(glyphen, stege):
+    """Wie dick ist die duennste Verbindung im Schriftzug?
+
+    Ein Schriftzug aus einem Stueck sagt noch nichts: zwei Buchstaben
+    koennen sich auch nur streifen, dann haengen sie an einem Faden von
+    einem Millimeter -- duenner als jeder Strich der Schrift und die
+    Stelle, an der das Schild bricht. Also wird jede Stelle gemessen, an
+    der zwei Teile ueberlappen: Schwerpunkt der Ueberlappung bestimmen
+    und dort den groessten Kreis suchen, der noch ganz im Material der
+    beiden liegt. Sein Durchmesser ist die Dicke der Verbindung.
+
+    Rueckgabe: Liste (beschreibung, dicke), duennste zuerst.
+    """
+    teile = list(glyphen) + [(s, []) for s in stege]
+    namen = (["Buchstabe %d" % (i + 1) for i in range(len(glyphen))]
+             + ["Steg %d" % (i + 1) for i in range(len(stege))])
+    ergebnis = []
+    for i in range(len(teile)):
+        for j in range(i + 1, len(teile)):
+            A, B = teile[i], teile[j]
+            drin = ([p for p in A[0] if im_material(p, [B])]
+                    + [p for p in B[0] if im_material(p, [A])])
+            if not drin:
+                continue
+            c = (sum(p[0] for p in drin) / len(drin),
+                 sum(p[1] for p in drin) / len(drin))
+            # Bewusst der Schwerpunkt der Ueberlappung und nicht das
+            # Maximum ueber alle Ueberlappungspunkte: ein einzelner Punkt
+            # kann tief in einem dicken Strich liegen und eine duenne
+            # Verbindung schoenrechnen. Nur wenn der Schwerpunkt gar
+            # nicht im Material liegt (zwei getrennte Beruehrzonen),
+            # zaehlt die dickste der einzelnen Stellen.
+            dick = 2 * inkreis(c, [A, B])
+            if dick <= 0.0:
+                dick = max(2 * inkreis(p, [A, B])
+                           for p in drin[::max(1, len(drin) // 8)])
+            ergebnis.append(("%s/%s" % (namen[i], namen[j]), dick))
+    ergebnis.sort(key=lambda t: t[1])
+    return ergebnis
+
+
 def klebeflaeche(name_glyphen, buchstabe_glyphen):
     """Wieviel des Schriftzugs liegt auf dem Buchstaben (Rasterprobe)?"""
     xs = [p[0] for a, _ in name_glyphen for p in a]
@@ -605,7 +844,8 @@ def klebeflaeche(name_glyphen, buchstabe_glyphen):
 
 
 def main():
-    global BUCHSTABE_HOEHE, FONT_NAME, SCHRIFT, NAME_MITTE, GEWICHT
+    global BUCHSTABE_HOEHE, FONT_NAME, SCHRIFT, NAME_MITTE, GEWICHT, NAME_SPUR
+    global NAME_BREITE_FAKTOR, NAME_VERSATZ
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--name", default=NAME)
@@ -619,12 +859,20 @@ def main():
     ap.add_argument("--mitte", type=float, default=NAME_MITTE,
                     help="Schriftzugmitte auf dieser Hoehe des Buchstabens "
                          "(0..1, Standard: %(default)s)")
+    ap.add_argument("--breite", type=float, default=NAME_BREITE_FAKTOR,
+                    help="Schriftzugbreite als Vielfaches der Buchstabenbreite "
+                         "(Standard: %(default)s)")
+    ap.add_argument("--versatz", type=float, default=NAME_VERSATZ,
+                    help="Schriftzug aus der Mitte nach links, mm negativ "
+                         "(Standard: %(default)s)")
     ap.add_argument("--staerke", type=float, default=None,
                     help="Schriftgewicht bei Variable Fonts (Dancing Script: "
                          "400 normal bis 700 fett; Standard je Schrift)")
     args = ap.parse_args()
     BUCHSTABE_HOEHE = args.hoehe
     NAME_MITTE = args.mitte
+    NAME_BREITE_FAKTOR = args.breite
+    NAME_VERSATZ = args.versatz
     SCHRIFT = args.schrift
     FONT_NAME = SCHRIFTEN[SCHRIFT][1]
     GEWICHT = args.staerke if args.staerke is not None else SCHRIFTEN[SCHRIFT][3]
@@ -638,8 +886,21 @@ def main():
             os.remove(os.path.join(ziel, alt))
 
     b_schalen, b_gl, b_br, b_ho = teil_buchstabe(zeichen)
-    (n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy),
-     ruhend) = teil_name(name, b_br, b_ho, b_gl)
+    # Laufweite: notfalls enger, bis jede Verbindung dick genug ist.
+    # Ein Schriftzug "aus einem Stueck" kann an einem 1-mm-Faden
+    # haengen; dann helfen nur ueberlappende Buchstaben.
+    start_spur = NAME_SPUR
+    for versuch in range(13):
+        NAME_SPUR = start_spur - 0.005 * versuch
+        (n_schalen, n_gl, stege, abst, n_br, n_ho, (dx, dy),
+         ruhend) = teil_name(name, b_br, b_ho, b_gl)
+        uebergaenge = uebergaenge_pruefen(n_gl, stege)
+        duennste = uebergaenge[0][1] if uebergaenge else float("inf")
+        if duennste >= UEBERGANG_MIN:
+            break
+    if NAME_SPUR != start_spur:
+        print("Laufweite von %.1f %% auf %.1f %% verengt, damit die Buchstaben "
+              "breit genug zusammenwachsen" % (100 * start_spur, 100 * NAME_SPUR))
 
     print("Tuerschild '%s': Buchstabe %s %.0f mm hoch (%.0f breit, %.0f dick), "
           "Schriftzug %.0f x %.0f mm (%.0f dick) in %s%s"
@@ -652,9 +913,10 @@ def main():
           % (max(0.0, -dx), max(0.0, dx + n_br - b_br), 100 * NAME_MITTE,
              -NAME_VERSATZ))
     if stege:
-        print("Inseln angebunden: %d Steg(e) a %.1f mm breit, ueberbrueckt %s mm"
-              % (len(stege), STEG_BREITE,
-                 ", ".join("%.1f" % a for a in abst)))
+        print("Inseln angebunden: %d Steg(e) -- %s"
+              % (len(stege),
+                 ", ".join("%.1f mm Luecke mit %.1f mm breitem Steg" % (d_, b_)
+                           for (d_, b_) in abst)))
     else:
         print("Schriftzug haengt von selbst zusammen, keine Stege noetig")
     for k, anteil_ in ruhend:
@@ -672,6 +934,28 @@ def main():
     else:
         print("Zusammenhang geprueft: ein zusammenhaengendes Hauptstueck, dazu "
               "%d Insel(n), die auf dem Buchstaben ruhen" % (len(komp) - 1))
+    if uebergaenge:
+        schwach, dick = uebergaenge[0]
+        # Gemessen wird nicht gegen eine feste Zahl allein, sondern gegen
+        # die Schrift selbst: eine Verbindung darf nicht duenner sein als
+        # die duennsten Striche ringsum, sonst ist genau sie die
+        # Sollbruchstelle. Bei einer zierlichen Schrift waere eine feste
+        # Schwelle sonst unfair, bei einer fetten zu lasch.
+        strich, _, _ = strichbreiten(n_gl, ())
+        grenze = min(UEBERGANG_MIN, strich)
+        print("Duennste Verbindung im Schriftzug: %.1f mm (%s) bei %.1f mm "
+              "duennstem Strich, %d Uebergaenge insgesamt"
+              % (dick, schwach, strich, len(uebergaenge)))
+        if dick < min(UEBERGANG_STOPP, 0.8 * strich):
+            raise SystemExit(
+                "FEHLER: Verbindung %s nur %.1f mm dick und damit duenner als "
+                "die Schrift selbst (%.1f mm) -- das bricht, und engere "
+                "Laufweite half nicht. Groesserer Schriftzug (--breite) oder "
+                "kraeftigere Schrift (--schrift pacifico) noetig."
+                % (schwach, dick, strich))
+        if dick < grenze:
+            print("  WARNUNG: unter %.1f mm, auch bei %.1f %% Laufweite"
+                  % (grenze, 100 * NAME_SPUR))
     anteil = klebeflaeche(n_gl, b_gl)
     print("Klebeflaeche: %.0f %% des Schriftzugs liegen auf dem Buchstaben"
           % (100 * anteil))

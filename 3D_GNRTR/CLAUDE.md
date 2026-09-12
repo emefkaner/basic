@@ -223,6 +223,23 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Aufdicken per Polygon-Offset waere das Gegenteil: es blaeht auch die
   Rundungen auf, schmiert enge Punzen zu und erzeugt an engen Kurven
   Selbstueberschneidungen.
+- **"Haengt zusammen" ist keine Aussage ueber Stabilitaet.** Der
+  Zusammenhangstest sagte "ein Stueck" -- und trotzdem hing das halbe
+  Schild an einem 2,5-mm-Steg zwischen zwei fetten Buchstaben, den der
+  Nutzer sofort als Sollbruchstelle erkannte. Zwei Konturen koennen sich
+  auch nur streifen: dann ist die Verbindung 1 mm dick und der
+  Komponententest trotzdem zufrieden. Also die **Dicke jeder
+  Verbindung** messen: Ueberlappungspunkte der beiden Konturen sammeln,
+  ihren Schwerpunkt nehmen und dort den groessten Kreis suchen, der noch
+  ganz im Material beider liegt -- sein Durchmesser ist die Dicke.
+  Bewusst der Schwerpunkt und nicht das Maximum ueber alle
+  Ueberlappungspunkte: ein einzelner Punkt liegt schnell tief in einem
+  dicken Strich und rechnet eine duenne Stelle schoen (6,8 statt
+  4,4 mm). Der eigentliche Fix ist dann nicht ein dickerer Steg, sondern
+  gar kein Steg: **Laufweite verengen, bis die Buchstaben sich wirklich
+  ueberlappen** (hier 96 % -- bei 98 % beruehren sie sich zwar schon,
+  der Hals ist aber nur 2,6 mm). Der Generator verengt notfalls selbst
+  weiter, bis jede Verbindung ueber 3 mm liegt.
 - **Eine Insel, die auf dem Traeger aufliegt, braucht keinen Steg -- man
   muss sie nur dorthin schieben.** Der i-Punkt der Schreibschrift hing
   an einem 14 mm langen Stiel, weil die Anbinde-Logik stur jede Insel

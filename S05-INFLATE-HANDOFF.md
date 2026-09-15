@@ -130,6 +130,28 @@ Offen, nach Wichtigkeit:
 Punkt 2 und 3 sind beide Kamera- und Endzustandsfragen und gehören in eine eigene Runde,
 nicht mit Punkt 1 zusammen.
 
+## Generierung 3 der Totale — `higgsfield.ai/s/ebiw-lplcuk`
+
+**Die wandernde Füllfront funktioniert.** Bei 4,5 s ist die vordere Hälfte rund, glatt und
+straff mit der Messingnase im Gegenlicht, die hintere Hälfte hängt noch als schweres
+faltiges Tuch über dem Waggon, die Grenze wandert sauber nach hinten. Liest eindeutig als
+Stoff mit Gewicht. Bahnen, Goldbänder und Messingbeschläge sind ab dem ersten Moment da.
+Das Aufklappen ist ebenfalls sauber: bei 1,0 s zwei erkennbare Klappen, darunter sichtbar
+dunkles Material.
+
+Offen:
+
+1. **Abstand und Kamerafahrt sind dieselbe Ursache** — das war in Runde 2 falsch als zwei
+   Punkte notiert. Das Bild muss vertikal Zug + Abstand + Hülle fassen; der große Abstand
+   zwingt die Kamera zurück, und damit wird der Zug klein und der rasende Vordergrund
+   verschwindet. Fix: Abstand an der Waggonhöhe verankern (etwa halbe Waggonkörperhöhe),
+   und im Referenzblock ausdrücklich „wie eng die Hülle über dem Zug reitet" mit zu dem
+   zählen, was von `@IRON-CLOUD-Inflated` übernommen wird. Die Kamera bekommt dann keine
+   Bildanteils-Ziele mehr, sondern prüfbare Eigenschaften: Tender-Schriftzug bis zum
+   letzten Frame lesbar, Vordergrund läuft bis zum letzten Frame durch.
+2. **Die offenen Dachklappen stehen als schräge Bretter** über dem Waggon und lesen wie
+   loses Zeug. Fix: flach an die Dachlinie legen, damit die Oberkante sauber bleibt.
+
 ## Was die Referenzen wirklich zeigen (angesehen, nicht geraten)
 
 - **`@IRON-CLOUD-Inflated`** — Studio-Produktfoto auf grauem Seamless, erhöhte

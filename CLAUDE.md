@@ -334,6 +334,24 @@ darker broken rippling surface". And demand the material's own signature from th
 frame it appears in: seams, gores, tape lines. A soft dark shape with no seams reads as
 rock or tar, whatever the text calls it.
 
+## Framing symptoms often have an object-geometry cause
+
+Two complaints on the INFLATE shot looked like camera problems — the train ends up small,
+and the rushing foreground that sold the speed is gone by the last second. Rewriting the
+camera block would have fixed neither. The frame has to hold train + gap + envelope
+stacked vertically, so the oversized gap between envelope and train was what forced the
+camera back, and everything shrank with it. Close the gap and the retreat is not needed.
+
+Before rewriting a camera move, ask what in the frame is *forcing* it. A "pull back
+less" instruction fights the framing lock that made the model pull back in the first
+place.
+
+And give the camera **checkable properties instead of proportions.** "The whole train
+sits in the lower third" is a target the model trades away against everything else;
+"the gold IRON CLOUD lettering on the tender is readable in every second including the
+last" and "the near scrub is still sweeping through the bottom of frame in the last
+second" are either true or false in a single still.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

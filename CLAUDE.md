@@ -223,6 +223,17 @@ $FF -ss 0.5 -i shot.mp4 -vf "fps=1,scale=740:-1,tile=2x5" -frames:v 1 gridB.png
 Two sheets offset by half a second read as a 2 fps flipbook and catch the one-second
 artefacts. The `og:image` meta tag on the page is the first frame on its own.
 
+**Judge the ending on the actual last frame, not on the sheet.** Contact sheets are for
+artefacts and for following a sequence; they are bad evidence about final composition,
+and a frame grabbed a second or two early is worse. A verdict of "the train ends up too
+small and the foreground is gone" was drawn that way and did not survive the real final
+frame, where the tender lettering was plainly readable and scrub was still streaking
+through the bottom. Pull it properly before saying anything about how a shot ends:
+
+```
+$FF -sseof -0.15 -i shot.mp4 -frames:v 1 -vf "scale=1500:-1" last.png
+```
+
 ## Check what the end reference actually shows before locking a state
 
 An end-state element is a picture of a *finished object*, and it quietly fixes states

@@ -152,29 +152,39 @@ Offen:
 2. **Die offenen Dachklappen stehen als schräge Bretter** über dem Waggon und lesen wie
    loses Zeug. Fix: flach an die Dachlinie legen, damit die Oberkante sauber bleibt.
 
-## Generierung 4 der Totale — **abgenommen**
+### Abgenommen — und eine Korrektur an der obigen Mängelliste
 
-Beide Abnahmekriterien vom User bestätigt: der Tender-Schriftzug „IRON CLOUD" ist im
-letzten Frame lesbar, und der Vordergrund rauscht bis zum Schluss durch. Damit gilt der
-INFLATE-Shot aus der Totale als fertig.
+**Generierung 3 ist die finale Fassung.** Es wurde danach nichts mehr generiert; der
+Prompt mit der Abstands- und Kamerakorrektur wurde nie gefahren und wird nicht gebraucht.
 
-*Nicht selbst gegengeprüft* — kein Share-Link zu dieser Fassung. Zwei Stellen wären bei
-einer späteren Kontrolle interessant, weil eine Änderung am Abstand sie beschädigen kann,
-ohne im Endframe aufzufallen: sitzt die Füllfront bei 4,5 s noch, und liegen die
-Dachklappen jetzt flach?
+Punkt 1 der Mängelliste oben war **überzogen**. Er entstand aus dem 1-fps-Kontaktbogen und
+dem Frame bei 8,4 s. Am tatsächlich letzten Frame hält er nicht: „IRON CLOUD" auf dem
+Tender ist klar lesbar, der Zug ist nicht zu klein, und Gestrüpp ist bis zum Schluss im
+unteren Drittel, die unterste Bahn mit Bewegungsunschärfe. Die Kamera landet höher und
+weiter als in der Shot-Mitte, aber das liest als weite Vista, nicht als Verlust.
 
-Der Weg dorthin, in vier Runden: Storyboard-Referenzen und Rückwärts-Beat raus →
-wandernde Füllfront statt „wächst bis voll" → Abstand an der Waggonhöhe verankert, was
-die Kamerafahrt gleich mit löste. Alle drei Erkenntnisse stehen verallgemeinert in
-`CLAUDE.md`.
+**Lehre daraus:** ein Kontaktbogen bei 1 fps und ein herausgegriffenes Frame kurz vor
+Schluss sind gut für Artefakte und Abläufe, aber schlecht für ein Urteil über die
+Schlusskomposition. Vor jeder Aussage über das Ende den *tatsächlich letzten* Frame
+ziehen (`ffmpeg -sseof -0.15`), nicht den nächstbesten.
+
+Was am Schlussframe wirklich noch zu sehen ist, beides ohne Handlungsbedarf: der
+Vordergrund ist am Ende überwiegend scharf statt der rasenden unscharfen Bahn vom Anfang,
+der Tempo-Eindruck ist im Schlussdrittel also schwächer; und auf dem Waggon steht hinten
+ein dunkles schräges Teil hoch, vermutlich eine Dachklappe.
 
 ## Stand S05 insgesamt
 
 | Shot | Stand |
 |---|---|
-| INFLATE, Totale | **fertig** (Generierung 4 abgenommen) |
+| INFLATE, Totale | **fertig** — `higgsfield.ai/s/ebiw-lplcuk` ist die abgenommene Fassung |
 | DACH, Nahaufnahme | Mechanik, Umgebung und Schachttiefe sitzen; das gepackte Paket liest als Wülste statt als Lagen. **Geparkt** — der User schneidet die Stelle vorerst weg. |
 | `ZEPP-PACK-BAY` | Element noch nicht gebaut. Nur nötig, wenn der Dach-Shot wieder aufgenommen wird; Bild-Prompt liegt vor. |
+
+Der Weg zur fertigen Totale in drei Runden: Storyboard-Referenzen und Rückwärts-Beat raus
+→ Dach vom Ballon aufdrücken lassen statt eigener Beat, Farbe ab 1,0 s an die Referenz
+gebunden → wandernde Füllfront statt „wächst bis voll". Alle drei Erkenntnisse stehen
+verallgemeinert in `CLAUDE.md`.
 
 ## Was die Referenzen wirklich zeigen (angesehen, nicht geraten)
 

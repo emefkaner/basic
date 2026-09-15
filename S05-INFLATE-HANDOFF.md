@@ -180,6 +180,36 @@ ein dunkles schräges Teil hoch, vermutlich eine Dachklappe.
 | INFLATE, Totale | **fertig** — `higgsfield.ai/s/ebiw-lplcuk` ist die abgenommene Fassung |
 | DACH, Nahaufnahme | Mechanik, Umgebung und Schachttiefe sitzen; das gepackte Paket liest als Wülste statt als Lagen. **Geparkt** — der User schneidet die Stelle vorerst weg. |
 | `ZEPP-PACK-BAY` | Element noch nicht gebaut. Nur nötig, wenn der Dach-Shot wieder aufgenommen wird; Bild-Prompt liegt vor. |
+| ANKER-Inserts (Tender + Lok) | Prompts geschrieben, noch nicht generiert. Je ein Standbild (`ANCHOR-TENDER`, `ANCHOR-LOCO`) aus `v_end.png`, dann je ein 10-s-Clip. |
+
+## ANKER-Inserts — Magnetverankerung der Seile
+
+Nahaufnahmen zum Zwischenschneiden: die Seile klinken sich magnetisch an Tender und Lok.
+
+**Verseilung laut abgenommener Totale** (angesehen, nicht geraten): Messing-Aufhängungs-
+scheiben mit Nieten an der Hüllenflanke, dazwischen Messing-Girlanden, von jeder Scheibe
+senkrechte Messingseile hinunter auf einen durchgehenden **Messing-Kielspant**, der längs
+unter der Hülle über den ganzen Zug läuft. Von dort fallen die Seile auf den Zug — in der
+Totale auf das **Lokheck hinter dem Führerhaus** und vorn auf den **Waggon**; der Tender
+wird nur überspannt. Der Insert zeigt einen Tender-Anker, das ist mit der Totale
+vereinbar (im Weitwinkel hinter dem Spant verdeckt), aber die Stelle, an der ein
+Anschluss-Schnitt auffallen könnte.
+
+**Die Verankerung:** polierte Messing-Ankerplatte in schwarzem Eisensockel, Kupfer-
+wicklungen um den Kragen, vier Bolzen; am Seil ein massiver Messing-Kegelstecker mit
+Flansch an geflochtenem Stahlseil. Ablauf: Wicklungen glimmen bernsteinfarben → Eisenstaub
+und eine lose Schraube richten sich auf und stellen sich senkrecht → **die letzten zwanzig
+Zentimeter beschleunigt der Stecker, statt langsamer zu werden** → blauer Lichtbogen →
+harter Schlag ohne Nachfedern → Eisenring dreht eine Vierteldrehung, drei Messingklauen
+legen sich über den Flansch → Seil geht von der Kurve in die gerade Zuglinie und summt.
+
+**Das Abnahmekriterium ist die Beschleunigung.** Alles andere ist Dekoration: ein
+fallendes Objekt wird langsamer, ein angezogenes schneller. Ohne dieses Signal zeigt der
+Shot nur, wie etwas heruntergelassen wird.
+
+Zwei getrennte Generierungen statt Schnitte im Prompt — Begründung in `CLAUDE.md` unter
+„Cut in the edit, not in the prompt". Die Winkel sind bewusst verschieden: Tender von oben
+herab mit 47° und Kamera fährt hinein, Lok von unten herauf mit 29° und Kamera steigt.
 
 Der Weg zur fertigen Totale in drei Runden: Storyboard-Referenzen und Rückwärts-Beat raus
 → Dach vom Ballon aufdrücken lassen statt eigener Beat, Farbe ab 1,0 s an die Referenz

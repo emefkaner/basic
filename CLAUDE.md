@@ -363,6 +363,28 @@ sits in the lower third" is a target the model trades away against everything el
 last" and "the near scrub is still sweeping through the bottom of frame in the last
 second" are either true or false in a single still.
 
+## Cut in the edit, not in the prompt
+
+When several angles of one event are wanted, generate one clip per angle rather than one
+generation carrying internal cuts. Each clip then gets its own `start_image`, so its
+framing and its hardware are nailed down; there is no continuity to be broken across a
+cut the model invented; and the pieces can be placed anywhere in the edit instead of only
+back to back. Make the angles genuinely different — different shot size, different FOV,
+camera rising in one and pushing in the other — or they read as two takes of the same
+setup rather than as a cut.
+
+## Invented physics needs one signature cue
+
+A new mechanism has to be readable as *that* mechanism, and one honest physical
+consequence carries it further than any amount of styling. For a magnetic anchor the cue
+is that the terminal's last stretch **accelerates instead of slowing** — a falling object
+decelerates into contact, an attracted one speeds up — plus loose grit standing on end
+and a dead stop with no bounce. Glow and arcs are decoration; without the acceleration
+the shot just shows something being lowered.
+
+Write the cue as the thing to check in the result, and treat everything else in the block
+as expendable if it starts competing.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

@@ -48,6 +48,18 @@ clip, not at one timestamp.
   No portrait, no prop — original plate uploads as-is. Prompt delivered: view
   through the pane → @WILDWEST from 20 m, left to right, dirt on the glass
   explicitly preserved (the model must not "clean" the pane).
+- S17_03 (13.4 s): the spit shot — prisoner spits at the guard (~0:06.3), guard
+  recoils, prisoner rises; ends close behind the cloak. No portrait, plate
+  uploads as-is. First run failed with the generic "Something went wrong"
+  (transient — identical retry passed). Result accepted for now, but **the
+  flight never reads** — came back driving despite situation-first block,
+  falsification clause, view-geometry checklist and an airborne heave/roll on
+  the window world. Root-cause hypothesis: `@WILDWEST` is photographed at
+  ground level, and the image beats the text — the element drags its eye-level
+  perspective into every window. Planned fix when revisited: build a
+  `@WILDWEST-AERIAL` still (same desert from ~20-40 m, ground seen from above,
+  buttes on the horizon, lots of sky) and tag that instead, in all S16/S17
+  flight windows.
 - S17_04 (10 s): passed with the defused packaging (three timed flashes).
 - S17_05 (4 s): one flash at 0:02 toward the lens; prompt delivered.
 

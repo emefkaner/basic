@@ -8,9 +8,15 @@ identisch zu `S03-ESTABLISHER-HANDOFF.md` — dort steht sie ausführlich; das W
   Video immer über das Skill `higgsfield-seedance-prompt`.
 - **Niemals selbst generieren** — der User generiert in der App. API kostet Credits.
 - **Eine Änderung pro Generation**, gezielt an der kaputten Stelle nachbessern.
-- Niemals Ergebnisse beschreiben, die du nicht sehen kannst. Higgsfield-Medien
-  (CDN *und* `higgsfield.ai/s/...`-Share-Links) sind durch die Netzwerk-Policy
-  gesperrt — Videos und Bilder sind für dich nicht einsehbar.
+- **Immer vollständige Prompts liefern, nie Austausch-Absätze.** Auch wenn sich nur ein
+  Satz ändert: der ganze Prompt kommt neu, in einem Codeblock, zum Kopieren. Der User
+  soll nichts zusammenstückeln müssen.
+- **Vor jedem Prompt steht, was zu laden ist.** Eine kleine Tabelle mit `start_image`,
+  Basisbild und jedem Referenz-Element — und ausdrücklich auch, was *nicht* getaggt wird.
+  Der User muss vor dem Abschicken wissen, ob ihm noch ein Asset fehlt.
+- Ergebnisse immer selbst ansehen: Share-Link und CDN sind erreichbar, das Vorgehen steht
+  in `CLAUDE.md` unter „Watch the results". Niemals ein Ergebnis beschreiben, das nicht
+  tatsächlich geöffnet wurde.
 
 ## Der Shot
 

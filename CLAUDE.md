@@ -2,6 +2,16 @@
 
 Hard-won rules from working on this film. Apply these before writing any new prompt.
 
+## How prompts are handed over
+
+- **Always the complete prompt, in one code block.** Never a patch, never "replace the
+  paragraph starting with…", however small the change. The prompt is copied straight into
+  the app; anything that has to be stitched together is a chance to paste a stale version.
+- **An asset list goes above every prompt**, as a small table: what belongs in
+  `start_image`, what is the base image for an image edit, and every reference element by
+  its exact name — plus what is deliberately *not* tagged and why. The user must be able
+  to see, before sending, whether an asset is still missing.
+
 ## Iterative camera moves beat absolute descriptions
 
 When a generated image has the right subject but the wrong distance, angle or framing,

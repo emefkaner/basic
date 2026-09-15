@@ -103,6 +103,33 @@ auf, ein Ereignis. Kein Farbwort im Text, stattdessen Farbbindung an die Referen
 **ab 1,0 s**. Referenzblock schränkt `@IRON-CLOUD-Inflated` auf Hülle und Beschläge ein.
 Kamera klettert und fällt durchgehend zurück.
 
+## Generierung 2 der Totale — `higgsfield.ai/s/xFPq--zljkY`
+
+Alle vier Fehler von Generierung 1 sind weg: das Dach klappt **genau einmal** auf (bei
+1,0 s offen, Klappen flach nach außen auf Dachhöhe, Waggonkörper unversehrt), **kein
+Farbsprung** (marineblau ab dem ersten sichtbaren Frame), die **Kamera arbeitet**
+(steigt und fällt zurück), Umgebung und Atmosphäre tragen, und der Endlook liegt sehr
+nah an `@IRON-CLOUD-Inflated`.
+
+Offen, nach Wichtigkeit:
+
+1. **Das Auffalten liest als dunkler Klumpen, nicht als Stoff.** Bei 3,5 s liegt eine
+   dunkle wulstige Masse auf dem Waggon — kein Textilsignal, keine Bahnen, keine Nähte,
+   keine Goldbänder, und vor allem **keine Richtung**. Fix in Runde 3: eine wandernde
+   Füllfront von der Nase zum Heck, davor prall und glatt, dahinter flach und flatternd,
+   die Grenze wandert und kehrt nie um. Prüfbar bei 4,5 s: vordere Hälfte rund, hintere
+   noch flach. Dazu Bahnen und Goldbänder ab dem ersten Moment gefordert, und ein
+   Lichtblock, der die Grenze allein optisch lesbar macht.
+2. **Die Hülle hängt gut anderthalb Waggonhöhen über dem Zug**, in der Referenz deutlich
+   knapper — liest als „Ballon schwebt über Zug" statt als eine Maschine.
+3. **Der Zug wird am Ende klein**, die Kamera fährt weiter zurück als nötig, und damit
+   verschwindet der rasende Vordergrund, der vorher das Tempo getragen hat.
+4. **Das Dach ist am Ende wieder zu** — die Referenz setzt sich durch, wie vorhergesagt.
+   Irrelevant, solange davor geschnitten wird.
+
+Punkt 2 und 3 sind beide Kamera- und Endzustandsfragen und gehören in eine eigene Runde,
+nicht mit Punkt 1 zusammen.
+
 ## Was die Referenzen wirklich zeigen (angesehen, nicht geraten)
 
 - **`@IRON-CLOUD-Inflated`** — Studio-Produktfoto auf grauem Seamless, erhöhte

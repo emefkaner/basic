@@ -315,6 +315,25 @@ And the meta-rule this shot proved: once depth and framing are solved and only
 *appearance* is left, stop writing text. Appearance belongs to images — solve it as a
 still, save it as an element, and shrink the prompt block to a tag.
 
+## Give a growth a direction, or it renders as a lump
+
+"The envelope swells until it is full" grows a dark shapeless mass — there is nothing in
+it to be right or wrong about, so the model produces a blob and stretches it late. Real
+filling has a **front**: a taut swell that starts at one end and travels to the other,
+smooth and round ahead of it, flat and rippling behind it, with a visible boundary
+between the two that never reverses.
+
+That single device does three jobs at once: it is one direction of change, it gives every
+intermediate frame a checkable state ("at 4.5s the forward half is round while the rear
+half still lies flat"), and the contrast between taut and slack is what reads as fabric
+rather than as mass.
+
+Support it in the light block so the boundary survives even in silhouette — "the filled
+part takes the sun as a broad hard highlight along its top, the slack part behind stays a
+darker broken rippling surface". And demand the material's own signature from the first
+frame it appears in: seams, gores, tape lines. A soft dark shape with no seams reads as
+rock or tar, whatever the text calls it.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

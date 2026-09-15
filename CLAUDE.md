@@ -280,6 +280,31 @@ opened and looked at. Where two shots must cut together on the same object, the 
 fix is a still of that object saved as its own element, so one image owns the colour for
 both.
 
+## Quantity reads as layer count, not as lobe size
+
+A size anchor on the wrong feature pulls the opposite way. To sell roughly 1000 m² of
+folded envelope, the prompt said each fold was "a thick slab of doubled canvas about as
+deep as a forearm" — and got about eight forearm-thick bolsters, reading as a mattress.
+A fold that thick is a cushion, not a fold. Bulk reads from **many thin layers**: "laid
+in thin flat layers stacked one directly on the next, dozens upon dozens of them, each
+no thicker than a finger", with sharp creases and "stacked edges like the pages of a
+closed book seen edge-on".
+
+Two supports for it:
+
+- **Soft rounded shapes read as bedding whatever the material is called.** "Matte
+  rubberised canvas" loses to round lobes and specular highlights. Force the surface:
+  flat tops, sharp folded edges that hold their crease, visible coarse weave, dust caught
+  in the creases, "broad flat planes with hard shadow lines between the layers, never
+  soft highlights".
+- **Layering reads from the side, not from above.** A camera that ends up directly
+  overhead shows only the top layer. Keep it off to one side so the stack's flank is in
+  view.
+
+And the meta-rule this shot proved: once depth and framing are solved and only
+*appearance* is left, stop writing text. Appearance belongs to images — solve it as a
+still, save it as an element, and shrink the prompt block to a tag.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

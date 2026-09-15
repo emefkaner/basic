@@ -168,6 +168,32 @@ Alles positiv formuliert, kein einziges Verbot.
 ein Standbild des gepackten Decks als eigenes Element speichern — dann besitzt ein Bild
 die Farbe für beide Shots.
 
+### Stand nach Runde 3 — `higgsfield.ai/s/zmtMKJoPViY`
+
+Funktioniert: Mechanik formstabil über den ganzen Bogen (Klappen behalten Form und
+Kanten, Scharnierseite bleibt), `@WILDWEST` liest erkennbar im unscharfen Hintergrund,
+Schacht wand-zu-wand gefüllt ohne sichtbaren Boden, Dampf an der Naht, Messing und
+genietete Schachtwände da.
+
+Offen: **die Menge liest immer noch nicht.** Im Schacht liegen rund acht dicke, runde,
+glänzende Wülste — Matratzen-Anmutung. Zwei Prompt-Fehler, beide dokumentiert in
+`CLAUDE.md` unter „Quantity reads as layer count, not as lobe size":
+
+1. Der Größenanker „each fold about as deep as a forearm" hat unterarmdicke Rollen
+   erzeugt. Menge liest sich über Lagenzahl, nicht über Faltendicke.
+2. Runde Kuppen mit Glanzlichtern lesen als Bettzeug, egal wie das Material genannt wird.
+   Es braucht flache Oberseiten, stehende Bruchkanten, grobe Webstruktur, Staub in den
+   Kniffen.
+
+Dazu: die Kamera endete fast senkrecht über dem Schacht, und Schichtung liest sich an der
+**Flanke** des Stapels, nicht auf seiner Oberseite.
+
+**Nächster Schritt (empfohlen):** nicht weiter am Text drehen. Nur noch Aussehen ist
+offen, und Aussehen gehört den Bildern. Das Frame bei 9,6 s als Basisbild nehmen, die
+Wülste per Bild-Edit durch dünne flache Lagen ersetzen, als Element `ZEPP-PACK-BAY`
+speichern und `WHAT IS UNDER THE ROOF` im Video-Prompt auf zwei Sätze mit dem Tag
+eindampfen. Das Element löst zugleich die Farbkonsistenz zum INFLATE-Shot.
+
 ## Tag-Registry — Stand 2026-08-31 (frisch aus dem Account)
 
 Gegenüber der Liste in `S03-ESTABLISHER-HANDOFF.md` sind **fünf Elemente neu**:

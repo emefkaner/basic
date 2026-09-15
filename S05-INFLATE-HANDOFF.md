@@ -152,6 +152,30 @@ Offen:
 2. **Die offenen Dachklappen stehen als schräge Bretter** über dem Waggon und lesen wie
    loses Zeug. Fix: flach an die Dachlinie legen, damit die Oberkante sauber bleibt.
 
+## Generierung 4 der Totale — **abgenommen**
+
+Beide Abnahmekriterien vom User bestätigt: der Tender-Schriftzug „IRON CLOUD" ist im
+letzten Frame lesbar, und der Vordergrund rauscht bis zum Schluss durch. Damit gilt der
+INFLATE-Shot aus der Totale als fertig.
+
+*Nicht selbst gegengeprüft* — kein Share-Link zu dieser Fassung. Zwei Stellen wären bei
+einer späteren Kontrolle interessant, weil eine Änderung am Abstand sie beschädigen kann,
+ohne im Endframe aufzufallen: sitzt die Füllfront bei 4,5 s noch, und liegen die
+Dachklappen jetzt flach?
+
+Der Weg dorthin, in vier Runden: Storyboard-Referenzen und Rückwärts-Beat raus →
+wandernde Füllfront statt „wächst bis voll" → Abstand an der Waggonhöhe verankert, was
+die Kamerafahrt gleich mit löste. Alle drei Erkenntnisse stehen verallgemeinert in
+`CLAUDE.md`.
+
+## Stand S05 insgesamt
+
+| Shot | Stand |
+|---|---|
+| INFLATE, Totale | **fertig** (Generierung 4 abgenommen) |
+| DACH, Nahaufnahme | Mechanik, Umgebung und Schachttiefe sitzen; das gepackte Paket liest als Wülste statt als Lagen. **Geparkt** — der User schneidet die Stelle vorerst weg. |
+| `ZEPP-PACK-BAY` | Element noch nicht gebaut. Nur nötig, wenn der Dach-Shot wieder aufgenommen wird; Bild-Prompt liegt vor. |
+
 ## Was die Referenzen wirklich zeigen (angesehen, nicht geraten)
 
 - **`@IRON-CLOUD-Inflated`** — Studio-Produktfoto auf grauem Seamless, erhöhte

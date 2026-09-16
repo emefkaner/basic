@@ -426,6 +426,45 @@ no bounce. Then lock the plainness: *"every light in this shot is sunlight"*, *"
 metal stays cool and unlit from within"*. A glow invented to signal a force competes with
 the physics that actually signals it.
 
+## Generating images from here — what this access can and cannot do
+
+There is **no "Cinema Studio" project**. Cinema Studio is a *model* name
+(`cinematic_studio_2_5`), not a container. `list_workspaces` shows one private
+workspace, and elements carry only name, category and description — no project or folder
+field. The only organisation available is a **name prefix** (`IC-…`) plus a description
+that opens with the film and scene.
+
+Generating over MCP costs credits and the app's unlimited mode does **not** apply here —
+`models_explore` reports `unlim: available: false`. Say so before spending anything.
+`nano_banana` is the 1-credit image model; confirm with `get_cost: true` rather than
+assuming, then pass `use_unlim: false` explicitly.
+
+The loop: `media_upload` → `curl -X PUT` the bytes → `media_confirm` → `generate_image`
+with `medias: [{role: "image_references", value: <media_id>}]` → `jobs_wait` →
+`curl` the `result_url` and Read it. A finished **job id can be passed straight back** as
+a `medias[].value`, so iterations need no re-upload. `show_reference_elements`
+`action: create` takes `{id, url, type: "image_job"}` and the url must be the exact one
+the job returned.
+
+**When "step in closer" does nothing, crop it yourself.** Two rounds of "step in to a
+third of the distance" returned near-identical framing. Cropping the wanted region with
+ffmpeg, upscaling it, and feeding *that* as the reference with "keep this exact framing,
+re-render at full sharpness" moved it in one go — the same trick as baking blur into an
+asset. Framing is copied from a picture and negotiated from text.
+
+## Two similar shapes close together merge into one
+
+A round brass plate and a round brass terminal a few centimetres apart were rendered as a
+single object twice over: once as a coiled cylinder lying on a deck with the cable gone,
+once as a toothed disc that migrated up onto the cable, leaving the mounting behind. No
+amount of "they are two separate objects" fixed it.
+
+**Differentiate the silhouettes instead.** A *cone* landing on a *disc* held; when the
+locomotive version kept collapsing, making its mounting a rectangular block with a square
+pad separated them immediately. Where two parts of one mechanism must stay distinct, give
+them different shapes, and add a lock naming the shapes: *"the rectangular latch block and
+the conical terminal stay two separate objects of two different shapes throughout"*.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

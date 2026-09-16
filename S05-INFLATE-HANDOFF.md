@@ -341,6 +341,36 @@ Wülste per Bild-Edit durch dünne flache Lagen ersetzen, als Element `ZEPP-PACK
 speichern und `WHAT IS UNDER THE ROOF` im Video-Prompt auf zwei Sätze mit dem Tag
 eindampfen. Das Element löst zugleich die Farbkonsistenz zum INFLATE-Shot.
 
+## Elemente selbst gebaut — 2026-09-16
+
+Auf ausdrückliche Freigabe des Users über die API generiert (`nano_banana`, 1 Credit pro
+Bild, 6 Credits verbraucht). **Es gibt kein Cinema-Studio-Projekt** — Einzelheiten in
+`CLAUDE.md` unter „Generating images from here". Sortiert wurde über den Namenspräfix
+`IC-` und eine Beschreibung, die mit „IRON CLOUD / S05" beginnt.
+
+| Element | Inhalt |
+|---|---|
+| `IC-TENDER-LATCH` | Tender, drei Bänder: Kielspant oben, Messing-Kegelstecker am Seil mittig, **runde** Messing-Latch-Plate in schwarzem Gusseisengehäuse auf der Kohleladung |
+| `IC-LOCO-LATCH` | Lok, tiefe Kamera am Kessel entlang, Kegelstecker am Seil, **eckiger** gusseiserner Block mit quadratischer Messingauflage auf dem Kesselrücken |
+
+Warum die Lok eckig ist: bei runder Platte **verschmolz das Modell Platte und Stecker zu
+einem Objekt**, zweimal reproduziert. Verschiedene Silhouetten lösen es — Regel steht in
+`CLAUDE.md` unter „Two similar shapes close together merge into one".
+
+Beide Video-Prompts sind geschrieben, noch nicht generiert. Abnahmekriterien in dieser
+Reihenfolge: bleiben Stecker und Platte zwei getrennte Objekte, ist das Seil in jedem
+Frame da, beschleunigt der Stecker zum Schluss.
+
+## ⚠ Umbenennungen im Account — 2026-09-16
+
+- `IRON-CLOUD-Inflated` heißt jetzt **`ic-inflated`**. Der Tag `@IRON-CLOUD-Inflated` aus
+  allen bisherigen INFLATE-Prompts **existiert nicht mehr**.
+- `IRON-CLOUD-FLY` heißt jetzt **`ic-fly`** und zeigt inzwischen dasselbe Bild wie
+  `IRON-CLOUD-Airborne` (gleiche media-id).
+
+Die Registry unten ist damit an zwei Stellen überholt. Sie war schon vorher nur eine
+Momentaufnahme — vor jedem Prompt `show_reference_elements` abfragen.
+
 ## Tag-Registry — Stand 2026-08-31 (frisch aus dem Account)
 
 Gegenüber der Liste in `S03-ESTABLISHER-HANDOFF.md` sind **fünf Elemente neu**:

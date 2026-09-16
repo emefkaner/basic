@@ -385,6 +385,47 @@ the shot just shows something being lowered.
 Write the cue as the thing to check in the result, and treat everything else in the block
 as expendable if it starts competing.
 
+## A close-up must contain what the action refers to
+
+An insert of a mechanism connecting to something needs that something *in the frame*.
+The first magnetic-latch insert framed a plate on the locomotive with empty sky above it:
+no cable, no envelope, no keel spar. With nothing in shot that the cable could come from,
+the result read as a glowing disc on a random part of a train — "it is being magnetised
+somewhere at the front". Compose the frame in bands so the origin is structural, not
+optional: *"bottom two thirds the tender, top third the out-of-focus envelope and keel
+spar, and between them the cable hanging down"*, and lock the top band so it cannot be
+dropped.
+
+**Pin the location by a feature that is visible and unique**, not by a direction of
+travel. "Move forward along the train until the boiler and the running board fill the
+frame" put the camera on the front buffer deck. "The car directly behind the locomotive,
+the one with the gold IRON CLOUD lettering on its side" cannot be misread.
+
+## Watch for words that name two different things
+
+"Naming a thing to exclude tends to summon it" has a sibling: a word with a strong
+competing visual meaning summons the wrong one. `anchor pad` / `anchor plate` produced a
+brass plaque with a **ship's anchor** embossed on it. The model picked the nautical noun
+over the engineering one and drew it.
+
+Rename rather than explain — `latch plate`, `clamp pad` — and, in the still that
+establishes the hardware, say outright that there is no emblem, badge, symbol or
+engraving on it. The same care applies to element names: `ANCHOR-TENDER` would have
+carried the pun into every prompt that tagged it.
+
+## Decoration that misleads is worse than no decoration
+
+Magnetism has no look of its own, so the prompt gave the coils a "dull amber glow" to
+carry it. It rendered as a red-hot disc with a corona of sparks — a forge, or a branding
+iron. Two objects also merged: the terminal and the coiled housing became one cylinder
+lying on the deck, and the cable vanished with them.
+
+Where an effect has no native appearance, let the *consequences* carry it and light the
+shot plainly — grit standing on end, a final approach that accelerates, a dead stop with
+no bounce. Then lock the plainness: *"every light in this shot is sunlight"*, *"all the
+metal stays cool and unlit from within"*. A glow invented to signal a force competes with
+the physics that actually signals it.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

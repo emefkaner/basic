@@ -211,6 +211,34 @@ Zwei getrennte Generierungen statt Schnitte im Prompt — Begründung in `CLAUDE
 „Cut in the edit, not in the prompt". Die Winkel sind bewusst verschieden: Tender von oben
 herab mit 47° und Kamera fährt hinein, Lok von unten herauf mit 29° und Kamera steigt.
 
+### Versuch 1 gescheitert — `higgsfield.ai/s/D_oY6_xALEY`
+
+Vier Fehler, drei davon in meinen Formulierungen:
+
+1. **Kamera landete auf dem Pufferdeck vorn an der Lok.** „Kamera auf Laufblechhöhe" plus
+   „nach vorn am Zug entlang" ergab den Bugbereich — dort kommt kein Seil herunter.
+2. **Weder Seil noch Hülle im Bild**, oben rechts nur Himmel. Ohne das Objekt, von dem das
+   Seil kommt, ist der Shot notwendig zusammenhanglos.
+3. **„anchor" hat einen Schiffsanker gerufen** — Messingplakette mit Ankersymbol auf dem
+   Pufferträger. Homonym, falsche Bedeutung gewählt.
+4. **Der Stecker morpht** ab Sekunde 4 in einen liegenden Zylinder mit Kupferwicklung, das
+   Seil verschwindet. Stecker und gewickeltes Gehäuse sind zu einem Objekt verschmolzen.
+
+Dazu eine Selbstkorrektur: **das Glühen musste raus.** Es rendert als rotglühende Scheibe
+mit Funkenkranz und liest als Schmiede, nicht als Magnet. Ich hatte selbst notiert, dass
+Glühen Dekoration ist — hier war es schädliche Dekoration.
+
+Alle drei Lehren stehen verallgemeinert in `CLAUDE.md`: „A close-up must contain what the
+action refers to", „Watch for words that name two different things", „Decoration that
+misleads is worse than no decoration".
+
+**Neuer Ansatz:** Element heißt `TENDER-LATCH`, nicht `ANCHOR-*`. Standbild komponiert in
+drei Bändern — unten zwei Drittel Tender mit lesbarem IRON-CLOUD-Schriftzug, oben ein
+Drittel unscharfe Hülle mit Kielspant, dazwischen das hängende Seil. Ort über ein
+eindeutiges Merkmal gepinnt („der Wagen direkt hinter der Lok, der mit dem goldenen
+Schriftzug"), nicht über eine Bewegungsrichtung. Nichts glüht; alles Licht ist Sonnenlicht.
+**Erst den Tender fertig machen, dann die Lok darauf aufbauen.**
+
 Der Weg zur fertigen Totale in drei Runden: Storyboard-Referenzen und Rückwärts-Beat raus
 → Dach vom Ballon aufdrücken lassen statt eigener Beat, Farbe ab 1,0 s an die Referenz
 gebunden → wandernde Füllfront statt „wächst bis voll". Alle drei Erkenntnisse stehen

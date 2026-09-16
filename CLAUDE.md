@@ -434,10 +434,30 @@ workspace, and elements carry only name, category and description — no project
 field. The only organisation available is a **name prefix** (`IC-…`) plus a description
 that opens with the film and scene.
 
-Generating over MCP costs credits and the app's unlimited mode does **not** apply here —
-`models_explore` reports `unlim: available: false`. Say so before spending anything.
+Generating over MCP costs credits and the app's unlimited mode does **not** apply here.
 `nano_banana` is the 1-credit image model; confirm with `get_cost: true` rather than
 assuming, then pass `use_unlim: false` explicitly.
+
+**The free/unlimited mode cannot be switched on from here.** The `use_unlim` parameter
+exists and the roster marks many models `supports_unlim: true`, but what the API calls
+unlim is a *free-trial* allowance, not the app's Plus unlimited mode, and this account
+holds none of it. Verified two ways, both free: `models_explore` reports
+`unlim: {available: false, remaining: null}` for image and video, and a `get_cost: true`
+preflight with `use_unlim: true` — which submits nothing — fails. Note the error is
+misleading:
+
+```
+Error estimating cost: Unlimited generations aren't supported for nano_banana
+```
+
+It reads as a model limitation, but the same model is listed as unlim-capable; what is
+missing is the allowance. There is no activation endpoint, only the billing widget, which
+is a purchase path and not to be opened unasked.
+
+So the free division of labour stands: the user generates in the app on unlimited, and
+this side pulls the results, reads them frame by frame and writes the prompts. Spend
+credits only where the API genuinely saves rounds — the crop-and-re-render trick below
+was worth six of them.
 
 The loop: `media_upload` → `curl -X PUT` the bytes → `media_confirm` → `generate_image`
 with `medias: [{role: "image_references", value: <media_id>}]` → `jobs_wait` →

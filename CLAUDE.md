@@ -485,6 +485,38 @@ pad separated them immediately. Where two parts of one mechanism must stay disti
 them different shapes, and add a lock naming the shapes: *"the rectangular latch block and
 the conical terminal stay two separate objects of two different shapes throughout"*.
 
+## Resolve the acceptance criterion at the frame rate it lives at
+
+"Does the terminal accelerate into contact?" is invisible on a 1 fps sheet: the drop
+occupied two tenths of a second. Pulled at 5 fps over a two-second window around the
+landing, it read clearly — five frames of near-motionless hover, then the whole distance
+covered between two frames with visible motion blur.
+
+```
+$FF -ss 2.6 -to 4.6 -i shot.mp4 -vf "fps=5,crop=iw*0.5:ih*0.85:iw*0.25:ih*0.1,scale=460:-1,tile=5x2" -frames:v 1 strip.png
+```
+
+Crop to the part that matters before tiling, or the detail is gone at thumbnail size.
+
+## Sometimes the model's reading is better than the brief
+
+Two instructions — "a toothed iron collar around the plate's rim" and "grit stands up on
+end and clings in bristling lines along the rim" — fused into something neither one asked
+for: a crown of upright brass spines that rises from the plate as the field builds and
+stays up, with the terminal finally seated inside it. It carries the magnetism without a
+glow, it belongs to the hardware instead of being loose dirt, and it makes the terminal
+read as *held*.
+
+Promote a result like that into the prompt as intended design rather than correcting back
+to the original wording. Judge what arrived on its merits, not on whether it matches what
+was written.
+
+**And when a beat is silently dropped, ask whether it earns its place.** The mechanical
+lock — collar rotating, three claws folding over the flange — never happened at all; it
+competed for the last seconds and lost. With the spine crown already holding the
+terminal, the lock was more mechanism than the shot could carry, and cutting it frees the
+time the snatch needs to read as acceleration instead of a jump.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

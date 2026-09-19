@@ -2,6 +2,11 @@ name: Kalender bauen und veröffentlichen
 
 on:
   # Zweimal täglich: früh und am späten Nachmittag (UTC; im Sommer +2 h).
+  # Damit sind Verlegungen und Absagen spätestens am nächsten Morgen drin —
+  # einmal wöchentlich wäre zu selten, wenn kurzfristig etwas abgesagt wird.
+  # Achtung: GitHub schaltet Zeitpläne in Repos ab, in denen 60 Tage lang
+  # nichts passiert, und schickt vorher eine Mail. Dann unter "Actions" auf
+  # "Enable workflow" klicken.
   schedule:
     - cron: '25 4,15 * * *'
   # Nach jeder Änderung am Generator.

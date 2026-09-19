@@ -17,18 +17,12 @@ const KENNZEICHEN = 'kalender.emefkaner.github.io';
 const AUSGABE = new URL('../site/', import.meta.url).pathname;
 
 const SPIELPLAN_DATEI = 'handball.ics';
-// Die Fassung mit der Team-Besetzung kann über die Umgebung einen schwer zu
-// erratenden Dateinamen bekommen (GitHub-Secret DIENSTPLAN_DATEI), damit sie
-// nicht öffentlich auffindbar ist.
-const DIENSTPLAN_DATEI = (process.env.DIENSTPLAN_DATEI || 'dienstplan.ics').replace(/[^\w.-]/g, '');
 
 const NAME_SPIELPLAN = 'Handball: TSB Hunters (Heim) & SU Neckarsulm';
-const NAME_DIENSTPLAN = 'Handball + Livestream-Dienst';
 const BESCHREIBUNG_SPIELPLAN =
   'Alle Heimspiele der TSB Hunters (3. Liga Süd) und alle Spiele der Sport-Union Neckarsulm ' +
-  '(Damen, 1. Bundesliga und DHB-Pokal). Wird zweimal täglich automatisch aktualisiert.';
-const BESCHREIBUNG_DIENSTPLAN =
-  BESCHREIBUNG_SPIELPLAN + ' Bei den Heimspielen steht zusätzlich die Besetzung des Livestream-Teams dabei.';
+  '(Damen, 1. Bundesliga und DHB-Pokal). Bei den Heimspielen steht die Einteilung des ' +
+  'Livestream-Teams im Termin. Wird zweimal täglich automatisch aktualisiert.';
 
 function aufbereiten(spiel) {
   return {
@@ -58,9 +52,9 @@ async function main() {
     ...nsuSpiele.map((s) => ({ ...aufbereiten(s), kategorie: 'SU Neckarsulm' })),
   ].sort((a, b) => a.beginn - b.beginn);
 
-  // Der Dienstplan ist eine Zutat, kein Fundament: fällt die Tabelle aus,
+  // Die Einteilung ist eine Zutat, kein Fundament: fällt die Tabelle aus,
   // entsteht trotzdem ein vollständiger Spielplan-Kalender.
-  // OHNE_DIENSTPLAN=1 lässt ihn bewusst weg — dann steht in keiner erzeugten
+  // OHNE_DIENSTPLAN=1 lässt sie bewusst weg — dann steht in keiner erzeugten
   // Datei der Name einer Person.
   let dienstplanSteht = false;
   try {
@@ -69,7 +63,7 @@ async function main() {
     verknuepfe(spiele, plan, protokoll);
     dienstplanSteht = true;
   } catch (fehler) {
-    protokoll.push(`Ohne Livestream-Besetzung: ${fehler.message}`);
+    protokoll.push(`Ohne Livestream-Einteilung: ${fehler.message}`);
   }
 
   await mkdir(AUSGABE, { recursive: true });
@@ -82,25 +76,10 @@ async function main() {
       spiele,
       gebautAm,
       kennzeichen: KENNZEICHEN,
-      mitBesetzung: false,
+      mitBesetzung: dienstplanSteht,
     }),
     'utf8',
   );
-
-  if (dienstplanSteht) {
-    await writeFile(
-      join(AUSGABE, DIENSTPLAN_DATEI),
-      baueKalender({
-        name: NAME_DIENSTPLAN,
-        beschreibung: BESCHREIBUNG_DIENSTPLAN,
-        spiele,
-        gebautAm,
-        kennzeichen: KENNZEICHEN,
-        mitBesetzung: true,
-      }),
-      'utf8',
-    );
-  }
 
   await writeFile(
     join(AUSGABE, 'index.html'),
@@ -109,7 +88,7 @@ async function main() {
       gebautAm,
       saison,
       dateiname: SPIELPLAN_DATEI,
-      zweiteDatei: dienstplanSteht ? DIENSTPLAN_DATEI : null,
+      mitBesetzung: dienstplanSteht,
       name: NAME_SPIELPLAN,
     }),
     'utf8',
@@ -119,7 +98,7 @@ async function main() {
 
   for (const zeile of protokoll) console.log(zeile);
   const mitBesetzung = spiele.filter((s) => s.besetzung).length;
-  console.log(`\nGeschrieben: site/${SPIELPLAN_DATEI}${dienstplanSteht ? ` und site/${DIENSTPLAN_DATEI}` : ''}`);
+  console.log(`\nGeschrieben: site/${SPIELPLAN_DATEI}`);
   console.log(`Termine gesamt: ${spiele.length} (TSB-Heimspiele: ${huntersHeimspiele.length}, Neckarsulm: ${nsuSpiele.length})`);
   console.log(`Davon mit Livestream-Besetzung: ${mitBesetzung}`);
   const naechstes = spiele.find((s) => s.beginn > gebautAm);

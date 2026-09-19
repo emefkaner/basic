@@ -47,20 +47,33 @@ weil in der Kalender-App sonst kommentarlos Termine verschwänden.
 
 ## Livestream-Einteilung
 
-Zusätzlich kann eine zweite Fassung entstehen, bei der in jedem **Heimspiel**
-steht, wer für Regie und Kamera eingeteilt ist. Die Einteilung kommt aus der
-per Link freigegebenen Google-Tabelle (`src/dienstplan.mjs`), zugeordnet über
-das Spieldatum, je Mannschaft aus einem eigenen Tabellenblatt.
+Bei jedem **Heimspiel** steht im Termin, wer für Regie und Kamera eingeteilt
+ist, dazu die Anwesenheitszeit. Die Einteilung kommt aus der per Link
+freigegebenen Google-Tabelle (`src/dienstplan.mjs`), zugeordnet über das
+Spieldatum, je Mannschaft aus einem eigenen Tabellenblatt.
 
-Diese Fassung enthält **Namen von Personen**. Wer sie baut, sollte das wissen:
-
-- `OHNE_DIENSTPLAN=1` lässt sie ganz weg — dann steht in keiner erzeugten
-  Datei ein Personenname.
-- `DIENSTPLAN_DATEI` (GitHub-Secret) gibt ihr einen schwer zu erratenden
-  Dateinamen, damit sie nicht über die Übersichtsseite auffindbar ist.
-
-Telefonnummern aus der Tabelle werden **nie** übernommen.
+Damit stehen **Namen von Personen** in einer öffentlich abrufbaren Datei —
+so gewollt und so entschieden. Wer das anders halten will:
+`OHNE_DIENSTPLAN=1` beim Bau setzen, dann bleibt der Kalender ein reiner
+Spielplan. Telefonnummern aus der Tabelle werden in keinem Fall übernommen.
 
 Passt eine Dienstplan-Zeile zu keinem Spiel im offiziellen Plan — etwa weil
 ein Spiel verlegt wurde —, steht das als Hinweis im Bau-Protokoll, statt
-stillschweigend unterzugehen.
+stillschweigend unterzugehen. Beim ersten Lauf waren das zwei Fälle: das
+TSB-Pokalspiel am 21.08.2026 (steht nicht im Ligaspielplan) und NSU–Dortmund,
+in der Tabelle am 23.01.2027, offiziell am 20.01.2027.
+
+## Auf welchen Geräten das läuft
+
+- **iPhone/iPad**: `webcal://`-Link antippen, abonnieren, fertig.
+- **Android**: einmalig im Browser über Google Kalender hinzufügen
+  (`calendar.google.com/calendar/u/0/r/settings/addbyurl`), danach erscheint
+  der Kalender in der App. Google holt abonnierte Kalender erfahrungsgemäß nur
+  alle paar Stunden bis einmal täglich ab — Änderungen kommen dort also später
+  an als auf dem iPhone.
+- **Outlook, Thunderbird und andere**: dieselbe Adresse als
+  Internetkalender/Abo eintragen.
+
+Die Datei nennt `REFRESH-INTERVAL` und `X-PUBLISHED-TTL` mit 12 Stunden. Das
+ist eine Bitte an die Kalender-App, keine Garantie: Jede App entscheidet
+selbst, wie oft sie nachsieht.

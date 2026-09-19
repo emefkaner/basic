@@ -26,13 +26,25 @@ function schuetze(text) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export function baueSeite({ spiele, gebautAm, saison, dateiname, zweiteDatei = null, name }) {
+// Zeigt die Einteilung unter der Paarung — kurz, damit die Zeile auf dem
+// Handy nicht ausufert.
+function einteilungsZeile(besetzung) {
+  if (!besetzung) return '';
+  const teile = [];
+  if (besetzung.regie) teile.push(`Regie ${besetzung.regie}`);
+  if (besetzung.kamera1) teile.push(`Kamera ${besetzung.kamera1}`);
+  if (besetzung.kamera2) teile.push(besetzung.kamera2);
+  if (teile.length === 0) return '';
+  return `<div class="team">${schuetze(teile.join(' · '))}</div>`;
+}
+
+export function baueSeite({ spiele, gebautAm, saison, dateiname, mitBesetzung = false, name }) {
   const kommende = spiele.filter((s) => s.beginn > gebautAm).slice(0, 12);
   const zeilen = kommende.map((s) => `
       <tr>
         <td class="wann">${schuetze(kurzDatum(s.beginn))}</td>
         <td class="wer"><span class="marke ${s.kategorie === 'TSB Hunters' ? 'tsb' : 'nsu'}">${schuetze(s.kategorie)}</span></td>
-        <td>${schuetze(s.heim)} – ${schuetze(s.gast)}</td>
+        <td>${schuetze(s.heim)} – ${schuetze(s.gast)}${einteilungsZeile(s.besetzung)}</td>
         <td class="ort">${schuetze(s.ort || '')}</td>
       </tr>`).join('');
 
@@ -83,6 +95,7 @@ export function baueSeite({ spiele, gebautAm, saison, dateiname, zweiteDatei = n
   }
   footer { margin-top: 3rem; color: var(--gedaempft); font-size: .85rem; }
   p.warnung { color: var(--gedaempft); font-size: .9rem; }
+  .team { color: var(--gedaempft); font-size: .82rem; margin-top: .2rem; }
 </style>
 </head>
 <body>
@@ -102,20 +115,23 @@ export function baueSeite({ spiele, gebautAm, saison, dateiname, zweiteDatei = n
     <li>Fertig — die Spiele stehen in der Kalender-App.</li>
   </ol>
 
-  <h2>So geht es in Google Kalender</h2>
+  <h2>So geht es auf Android (über Google Kalender)</h2>
+  <p>Die Android-App kann selbst keine Kalender abonnieren — das geht einmalig im Browser,
+  danach ist der Kalender auf dem Handy da.</p>
   <ol>
-    <li><a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl">calendar.google.com/calendar/u/0/r/settings/addbyurl</a> öffnen.</li>
-    <li>Die Adresse von oben einfügen.</li>
+    <li>Im Browser <a href="https://calendar.google.com/calendar/u/0/r/settings/addbyurl">calendar.google.com/calendar/u/0/r/settings/addbyurl</a> öffnen
+      (am Rechner oder am Handy über <strong>Desktopseite anfordern</strong>).</li>
+    <li>Die Adresse von oben in das Feld <strong>URL des Kalenders</strong> einfügen.</li>
     <li>Auf <strong>Kalender hinzufügen</strong> klicken.</li>
+    <li>Am Handy die App <strong>Google Kalender</strong> öffnen, dann ☰ → <strong>Einstellungen</strong>.
+      Unter dem neuen Kalendernamen den Haken bei <strong>Synchronisierung</strong> setzen.</li>
   </ol>
-
-  ${zweiteDatei ? `<h2>Fassung mit Team-Einteilung</h2>
-  <p>Dieselben Spiele, bei den Heimspielen zusätzlich mit der Einteilung fürs Livestream-Team:</p>
-  <input class="adresse" readonly value="" id="adresse-zwei">
-  <p><a class="knopf" id="knopf-zwei" href="#">Auf iPhone/iPad direkt abonnieren</a></p>
-  <p class="warnung">Entweder diese Fassung <em>oder</em> die obere abonnieren — nicht beide, sonst steht jedes Spiel doppelt im Kalender.</p>` : ''}
+  <p class="warnung">Google holt sich abonnierte Kalender erfahrungsgemäß nur alle paar Stunden bis
+  einmal am Tag — eine Änderung kann dort also später ankommen als auf dem iPhone. Das liegt an Google,
+  nicht am Kalender selbst.</p>
 
   <h2>Nächste Termine</h2>
+  ${mitBesetzung ? '<p class="warnung">Bei den Heimspielen steht im Termin, wer für Regie und Kamera eingeteilt ist.</p>' : ''}
   <table><tbody>${zeilen || '<tr><td>Zurzeit stehen keine kommenden Spiele im Plan.</td></tr>'}</tbody></table>
 
   <footer>
@@ -132,12 +148,6 @@ export function baueSeite({ spiele, gebautAm, saison, dateiname, zweiteDatei = n
   var adresse = basis + ${JSON.stringify(dateiname)};
   document.getElementById('adresse').value = adresse;
   document.getElementById('knopf').href = adresse.replace(/^https?:/, 'webcal:');
-  var zweite = ${zweiteDatei ? JSON.stringify(zweiteDatei) : 'null'};
-  if (zweite) {
-    var zweiteAdresse = basis + zweite;
-    document.getElementById('adresse-zwei').value = zweiteAdresse;
-    document.getElementById('knopf-zwei').href = zweiteAdresse.replace(/^https?:/, 'webcal:');
-  }
 </script>
 </body>
 </html>

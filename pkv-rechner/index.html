@@ -266,10 +266,10 @@ input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
 @media(min-width:640px){.tiles{grid-template-columns:repeat(4,1fr)}.tile.wide{grid-column:span 2}}
 .tile{border:1px solid hsl(var(--border));border-radius:12px;padding:16px;background:hsl(var(--card))}
 .tile .cap{font-size:12px;color:hsl(var(--muted-foreground));margin-bottom:4px}
-.tile .num{font-family:var(--font-heading);font-size:20px;font-weight:700;color:hsl(var(--primary))}
+.tile .num{font-family:var(--font-heading);font-size:clamp(16px,1.5vw,20px);font-weight:700;color:hsl(var(--primary));white-space:nowrap}
 .tile.accent{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:transparent}
 .tile.accent .cap{color:inherit;opacity:.8}
-.tile.accent .num{color:inherit;font-size:24px}
+.tile.accent .num{color:inherit;font-size:clamp(19px,1.9vw,24px)}
 
 .proj h4{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:hsl(var(--muted-foreground));margin-bottom:16px}
 .proj-row{margin-bottom:14px}

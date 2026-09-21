@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GKV vs. PKV Rechner</title>
+<meta name="description" content="Interaktiver Vergleich: gesetzliche gegen private Krankenversicherung. Beitrag, Arbeitgeberanteil und Hochrechnung auf 10, 20 und 30 Jahre." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --background:150 25% 98.5%;
+  --foreground:160 50% 10%;
+  --card:0 0% 100%;
+  --primary:158 64% 32%;
+  --primary-foreground:150 25% 98.5%;
+  --secondary:168 70% 38%;
+  --muted:150 20% 95%;
+  --muted-foreground:160 20% 40%;
+  --border:150 20% 90%;
+  --destructive:0 72% 45%;
+  --radius:1rem;
+  --font-heading:"Space Grotesk",system-ui,sans-serif;
+  --font-body:"DM Sans",system-ui,sans-serif;
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --background:165 30% 7%;
+    --foreground:150 25% 96%;
+    --card:165 28% 10%;
+    --primary:158 60% 48%;
+    --primary-foreground:165 40% 8%;
+    --secondary:168 60% 50%;
+    --muted:165 20% 15%;
+    --muted-foreground:150 12% 66%;
+    --border:165 18% 20%;
+    --destructive:0 70% 60%;
+  }
+}
+:root[data-theme="dark"]{
+  --background:165 30% 7%;
+  --foreground:150 25% 96%;
+  --card:165 28% 10%;
+  --primary:158 60% 48%;
+  --primary-foreground:165 40% 8%;
+  --secondary:168 60% 50%;
+  --muted:165 20% 15%;
+  --muted-foreground:150 12% 66%;
+  --border:165 18% 20%;
+  --destructive:0 70% 60%;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:hsl(var(--background));
+  color:hsl(var(--foreground));
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,.font-heading{font-family:var(--font-heading);letter-spacing:-.02em;line-height:1.15;margin:0}
+p{margin:0}
+button{font:inherit;color:inherit}
+a{color:inherit}
+
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 16px}
+.muted{color:hsl(var(--muted-foreground))}
+.primary{color:hsl(var(--primary))}
+
+/* ---------- Kopfzeile ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:24px 0;transition:padding .3s,background .3s,border-color .3s,backdrop-filter .3s;
+  border-bottom:1px solid transparent;
+}
+.nav.scrolled{
+  padding:14px 0;
+  background:hsl(var(--card)/.72);
+  backdrop-filter:blur(14px) saturate(160%);
+  -webkit-backdrop-filter:blur(14px) saturate(160%);
+  border-bottom-color:hsl(var(--border));
+}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--font-heading);font-weight:700;font-size:20px}
+.brand-mark{
+  width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:0 0 auto;
+  background:hsl(var(--primary));color:hsl(var(--primary-foreground));
+  box-shadow:0 6px 18px hsl(var(--primary)/.25);transition:transform .3s;
+}
+.brand:hover .brand-mark{transform:scale(1.05)}
+.nav-links{display:none;align-items:center;gap:30px}
+.nav-links a{
+  position:relative;text-decoration:none;font-size:14px;font-weight:500;
+  transition:color .2s;padding:2px 0;
+}
+.nav-links a::after{
+  content:"";position:absolute;left:0;bottom:-4px;height:2px;width:0;
+  background:hsl(var(--primary));transition:width .3s;
+}
+.nav-links a:hover{color:hsl(var(--primary))}
+.nav-links a:hover::after{width:100%}
+.nav-links a[aria-current="page"]{color:hsl(var(--primary))}
+.nav-links a[aria-current="page"]::after{width:100%}
+.nav-toggle{
+  display:grid;place-items:center;width:40px;height:40px;border:0;background:transparent;
+  border-radius:10px;cursor:pointer;
+}
+.nav-toggle:hover{background:hsl(var(--muted))}
+@media(min-width:900px){.nav-links{display:flex}.nav-toggle{display:none}}
+.nav-mobile{
+  display:none;overflow:hidden;
+  background:hsl(var(--card)/.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid hsl(var(--border));
+}
+.nav-mobile.open{display:block;animation:slideDown .25s ease-out}
+.nav-mobile .container{display:flex;flex-direction:column;gap:14px;padding-top:20px;padding-bottom:24px}
+.nav-mobile a{text-decoration:none;font-size:18px;font-weight:500}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+/* ---------- Hero ---------- */
+.page{padding-top:112px;padding-bottom:64px}
+.hero{max-width:760px;margin:0 auto 48px;text-align:center}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  border:1px solid hsl(var(--primary)/.2);background:hsl(var(--primary)/.1);color:hsl(var(--primary));
+  border-radius:999px;padding:5px 14px;font-size:14px;font-weight:500;margin-bottom:24px;
+}
+.hero h1{font-size:clamp(30px,6vw,40px);font-weight:700;margin-bottom:16px}
+.hero p{font-size:18px;color:hsl(var(--muted-foreground))}
+
+/* ---------- Raster ---------- */
+.grid{display:grid;grid-template-columns:1fr;gap:32px;max-width:1120px;margin:0 auto}
+@media(min-width:1024px){
+  .grid{grid-template-columns:repeat(12,1fr)}
+  .col-form{grid-column:span 5}
+  .col-results{grid-column:span 7}
+}
+
+/* ---------- Karten ---------- */
+.card{
+  background:hsl(var(--card));border:1px solid hsl(var(--border));
+  border-radius:var(--radius);padding:24px;
+}
+.card.elevated{box-shadow:0 10px 30px -12px hsl(var(--foreground)/.14);border-color:hsl(var(--primary)/.12)}
+.card-title{font-size:22px;font-weight:700}
+.card-desc{font-size:14px;color:hsl(var(--muted-foreground));margin-top:4px}
+.card-body{margin-top:24px;display:flex;flex-direction:column;gap:32px}
+
+/* ---------- Formularteile ---------- */
+.field{display:flex;flex-direction:column;gap:12px}
+.field-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.label{font-size:14px;font-weight:500}
+.value{font-family:var(--font-heading);font-weight:700;color:hsl(var(--primary));white-space:nowrap}
+
+.radio-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.radio-grid.one{grid-template-columns:1fr}
+.radio{
+  position:relative;display:flex;align-items:center;gap:10px;cursor:pointer;
+  border:1px solid hsl(var(--border));border-radius:12px;padding:12px;
+  transition:background .2s,border-color .2s;font-size:15px;
+}
+.radio:hover{background:hsl(var(--muted)/.6)}
+.radio.sm{padding:10px 12px;font-size:14px}
+.radio input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.radio .dot{
+  width:17px;height:17px;border-radius:50%;flex:0 0 auto;
+  border:1px solid hsl(var(--primary));display:grid;place-items:center;
+}
+.radio .dot::after{content:"";width:9px;height:9px;border-radius:50%;background:hsl(var(--primary));transform:scale(0);transition:transform .15s}
+.radio input:checked ~ .dot::after{transform:scale(1)}
+.radio:has(input:checked){border-color:hsl(var(--primary)/.5);background:hsl(var(--primary)/.06)}
+.radio:focus-within{outline:2px solid hsl(var(--primary));outline-offset:2px}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:hsl(var(--muted));border-radius:10px;padding:4px}
+.tab{
+  border:0;background:transparent;border-radius:7px;padding:7px 12px;
+  font-size:14px;font-weight:500;color:hsl(var(--muted-foreground));cursor:pointer;transition:all .2s;
+}
+.tab[aria-selected="true"]{background:hsl(var(--card));color:hsl(var(--foreground));box-shadow:0 1px 3px hsl(var(--foreground)/.12)}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:999px;margin:0;
+  background:linear-gradient(to right,hsl(var(--primary)) var(--pct,50%),hsl(var(--muted)) var(--pct,50%));
+  cursor:pointer;
+}
+input[type=range]:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:4px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+  background:hsl(var(--card));border:2px solid hsl(var(--primary));
+  box-shadow:0 1px 4px hsl(var(--foreground)/.2);
+}
+input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;border:2px solid hsl(var(--primary));
+  background:hsl(var(--card));box-shadow:0 1px 4px hsl(var(--foreground)/.2);
+}
+.range-scale{display:flex;justify-content:space-between;font-size:12px;color:hsl(var(--muted-foreground))}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:0;border-radius:999px;cursor:pointer;font-weight:500;
+  background:hsl(var(--primary));color:hsl(var(--primary-foreground));
+  padding:0 24px;height:44px;transition:filter .2s,transform .2s;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:3px}
+.btn.block{width:100%}
+.btn.lg{height:56px;font-size:18px;border-radius:14px}
+.btn.md{height:48px;font-size:17px;border-radius:12px}
+.btn.ghost{background:transparent;color:hsl(var(--muted-foreground));border:1px solid hsl(var(--border))}
+.btn.ghost:hover{color:hsl(var(--foreground));background:hsl(var(--muted))}
+.btn .arrow{transition:transform .2s}
+.btn:hover .arrow{transform:translateX(3px)}
+
+input[type=text],input[type=email],input[type=tel]{
+  width:100%;height:44px;padding:0 14px;border-radius:10px;
+  border:1px solid hsl(var(--border));background:hsl(var(--card));color:inherit;font:inherit;font-size:15px;
+}
+input::placeholder{color:hsl(var(--muted-foreground));opacity:.75}
+input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
+  outline:2px solid hsl(var(--primary));outline-offset:-1px;border-color:transparent;
+}
+
+/* ---------- Ergebnisse ---------- */
+.placeholder{
+  min-height:420px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:8px;padding:48px 24px;color:hsl(var(--muted-foreground));
+  border:2px dashed hsl(var(--border));border-radius:var(--radius);background:hsl(var(--muted)/.35);
+}
+.placeholder h3{font-size:20px;font-weight:600;color:hsl(var(--foreground))}
+.results{display:flex;flex-direction:column;gap:24px;animation:rise .45s ease-out}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+.compare{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.compare{grid-template-columns:1fr 1fr}}
+.card.gkv{background:hsl(var(--muted)/.4)}
+.card.pkv{border-color:hsl(var(--primary));background:hsl(var(--primary)/.05);position:relative;overflow:hidden}
+.ribbon{
+  position:absolute;top:0;right:0;background:hsl(var(--primary));color:hsl(var(--primary-foreground));
+  font-size:10px;font-weight:700;letter-spacing:.04em;padding:4px 9px;border-bottom-left-radius:10px;
+}
+.amount{font-family:var(--font-heading);font-size:30px;font-weight:700;line-height:1.1}
+.card.pkv .amount{color:hsl(var(--primary))}
+.amount-cap{font-size:12px;color:hsl(var(--muted-foreground));margin:4px 0 16px}
+.rows{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.row{display:flex;justify-content:space-between;gap:12px}
+.row.sub{color:hsl(var(--muted-foreground))}
+
+.locked{filter:blur(7px);user-select:none;-webkit-user-select:none;transition:filter .5s}
+.amount .locked{filter:blur(9px)}
+
+.savings{
+  border-color:hsl(var(--primary)/.2);
+  box-shadow:0 10px 30px -12px hsl(var(--foreground)/.14);
+  background:linear-gradient(140deg,hsl(var(--card)),hsl(var(--primary)/.07));
+}
+.savings-head{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.icon-circle{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:hsl(var(--primary)/.1);color:hsl(var(--primary));flex:0 0 auto}
+.savings-head h3{font-size:20px;font-weight:700}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+@media(min-width:640px){.tiles{grid-template-columns:repeat(4,1fr)}.tile.wide{grid-column:span 2}}
+.tile{border:1px solid hsl(var(--border));border-radius:12px;padding:16px;background:hsl(var(--card))}
+.tile .cap{font-size:12px;color:hsl(var(--muted-foreground));margin-bottom:4px}
+.tile .num{font-family:var(--font-heading);font-size:20px;font-weight:700;color:hsl(var(--primary))}
+.tile.accent{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:transparent}
+.tile.accent .cap{color:inherit;opacity:.8}
+.tile.accent .num{color:inherit;font-size:24px}
+
+.proj h4{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:hsl(var(--muted-foreground));margin-bottom:16px}
+.proj-row{margin-bottom:14px}
+.proj-row .line{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+.proj-row .line b{font-weight:700}
+.bar{height:8px;border-radius:999px;background:hsl(var(--muted));overflow:hidden}
+.bar > span{display:block;height:100%;background:hsl(var(--primary));border-radius:999px;width:0;transition:width 1s cubic-bezier(.2,.7,.3,1)}
+
+.note{
+  margin-top:32px;padding:16px;border-radius:12px;background:hsl(var(--muted)/.5);
+  border:1px dashed hsl(var(--border));display:flex;gap:12px;align-items:flex-start;
+  font-size:12px;line-height:1.65;color:hsl(var(--muted-foreground));
+}
+.note svg{flex:0 0 auto;margin-top:2px;color:hsl(var(--primary))}
+.note p + p{margin-top:8px}
+.note strong{color:hsl(var(--foreground))}
+
+.gate{
+  border-color:hsl(var(--primary)/.3);background:hsl(var(--primary)/.05);
+  box-shadow:0 18px 40px -20px hsl(var(--foreground)/.3);
+}
+.gate-head{text-align:center;margin-bottom:8px}
+.gate-head h3{font-size:20px;font-weight:700}
+.gate form{max-width:420px;margin:16px auto 0;display:flex;flex-direction:column;gap:16px}
+.gate .pair{display:flex;flex-direction:column;gap:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:999px;
+  background:hsl(var(--primary)/.1);color:hsl(var(--primary));border:1px solid hsl(var(--primary)/.2);
+}
+.hint{font-size:11px;color:hsl(var(--muted-foreground));display:flex;align-items:center;gap:6px}
+.hint svg{flex:0 0 auto;color:hsl(var(--primary))}
+.error{font-size:13px;color:hsl(var(--destructive));font-weight:500;min-height:0}
+.error:empty{display:none}
+.fineprint{font-size:10px;text-align:center;color:hsl(var(--muted-foreground));max-width:420px;margin:16px auto 0}
+
+.success{
+  margin-top:32px;display:flex;flex-direction:column;gap:16px;animation:rise .4s ease-out;
+}
+.success-box{
+  padding:24px;border-radius:18px;text-align:center;
+  background:linear-gradient(140deg,hsl(var(--primary)/.12),hsl(var(--primary)/.04));
+  border:1px solid hsl(var(--primary)/.2);
+}
+.success-box h4{font-size:20px;font-weight:700;margin:12px 0 8px}
+.success-box .icon-circle{margin:0 auto;width:56px;height:56px;background:hsl(var(--primary)/.15)}
+
+/* ---------- Vorteilsspalten + Fuß ---------- */
+.usps{display:grid;grid-template-columns:1fr;gap:32px;max-width:1120px;margin:96px auto 0}
+@media(min-width:768px){.usps{grid-template-columns:repeat(3,1fr)}}
+.usp{display:flex;gap:16px}
+.usp .ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:hsl(var(--primary)/.1);color:hsl(var(--primary));flex:0 0 auto}
+.usp h4{font-weight:700;margin-bottom:4px}
+.usp p{font-size:14px;color:hsl(var(--muted-foreground))}
+
+footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;background:hsl(var(--muted)/.35)}
+.foot{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+@media(min-width:768px){.foot{flex-direction:row;justify-content:space-between;text-align:left}}
+.foot small{font-size:12px;color:hsl(var(--muted-foreground))}
+
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+@media print{
+  .nav,.nav-mobile,.usps,footer,.gate,.btn{display:none !important}
+  .page{padding-top:0}
+  body{background:#fff}
+  .locked{filter:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </span>
+      <span>Kranken<span class="primary">vergleich</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#top" aria-current="page">Rechner</a>
+      <a href="#hinweis">Rechenweg</a>
+      <a href="#vorteile">PKV Vorteile</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navMobile" aria-label="Menü öffnen">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="nav-mobile" id="navMobile">
+  <div class="container">
+    <a href="#top">Rechner</a>
+    <a href="#hinweis">Rechenweg</a>
+    <a href="#vorteile">PKV Vorteile</a>
+  </div>
+</div>
+
+<main class="page" id="top">
+  <div class="container">
+
+    <header class="hero">
+      <span class="badge">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
+        Interaktiver Vergleich
+      </span>
+      <h1>GKV vs. PKV Rechner</h1>
+      <p>Finden Sie in wenigen Sekunden heraus, wie viel Sie durch einen Wechsel in die private Krankenversicherung sparen könnten.</p>
+    </header>
+
+    <div class="grid">
+
+      <!-- ---------------- Eingaben ---------------- -->
+      <section class="col-form">
+        <div class="card elevated">
+          <h2 class="card-title">Ihre Daten</h2>
+          <p class="card-desc">Geben Sie Ihre aktuellen Rahmendaten ein.</p>
+
+          <div class="card-body">
+
+            <fieldset class="field" style="border:0;padding:0;margin:0">
+              <legend class="label" style="padding:0;margin-bottom:12px">Tätigkeit</legend>
+              <div class="radio-grid">
+                <label class="radio"><input type="radio" name="status" value="employee" checked><span class="dot" aria-hidden="true"></span><span>Angestellt</span></label>
+                <label class="radio"><input type="radio" name="status" value="self-employed"><span class="dot" aria-hidden="true"></span><span>Selbstständig</span></label>
+              </div>
+            </fieldset>
+
+            <div class="field">
+              <div class="field-head">
+                <span class="label" id="lblGross">Bruttogehalt</span>
+                <span class="value" id="grossValue">100.000 € / Jahr</span>
+              </div>
+              <div class="tabs" role="tablist" aria-label="Zeitraum des Bruttogehalts">
+                <button class="tab" role="tab" data-mode="monthly" aria-selected="false">Monatlich</button>
+                <button class="tab" role="tab" data-mode="yearly" aria-selected="true">Jährlich</button>
+              </div>
+              <input type="range" id="gross" aria-labelledby="lblGross" aria-describedby="grossValue">
+              <div class="range-scale"><span id="grossMin"></span><span id="grossMax"></span></div>
+            </div>
+
+            <div class="field">
+              <div class="field-head">
+                <span class="label" id="lblAge">Alter</span>
+                <span class="value" id="ageValue">30 Jahre</span>
+              </div>
+              <input type="range" id="age" min="18" max="65" step="1" value="30" aria-labelledby="lblAge" aria-describedby="ageValue">
+            </div>
+
+            <fieldset class="field" style="border:0;padding:0;margin:0">
+              <legend class="label" style="padding:0;margin-bottom:12px">Familienstand</legend>
+              <div class="radio-grid">
+                <label class="radio"><input type="radio" name="family" value="single" checked><span class="dot" aria-hidden="true"></span><span>Single</span></label>
+                <label class="radio"><input type="radio" name="family" value="married"><span class="dot" aria-hidden="true"></span><span>Verheiratet</span></label>
+              </div>
+              <div id="spouseBlock" hidden style="margin-top:12px">
+                <p class="label muted" style="margin-bottom:10px">Versicherung des Ehepartners</p>
+                <div class="radio-grid one">
+                  <label class="radio sm"><input type="radio" name="spouse" value="privat"><span class="dot" aria-hidden="true"></span><span>Ehepartner ist privat versichert</span></label>
+                  <label class="radio sm"><input type="radio" name="spouse" value="gesetzlich" checked><span class="dot" aria-hidden="true"></span><span>Ehepartner ist selbst gesetzlich versichert</span></label>
+                  <label class="radio sm"><input type="radio" name="spouse" value="familienversichert"><span class="dot" aria-hidden="true"></span><span>Ehepartner ist familienversichert über mich</span></label>
+                </div>
+              </div>
+            </fieldset>
+
+            <div class="field">
+              <div class="field-head">
+                <span class="label" id="lblKids">Anzahl der Kinder</span>
+                <span class="value" id="kidsValue">0 Kinder</span>
+              </div>
+              <input type="range" id="kids" min="0" max="5" step="1" value="0" aria-labelledby="lblKids" aria-describedby="kidsValue">
+            </div>
+
+            <button class="btn block lg" id="calcBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
+              Jetzt berechnen
+              <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------- Ergebnis ---------------- -->
+      <section class="col-results" id="results-section">
+
+        <div class="placeholder" id="placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
+          <h3>Bereit für Ihr Ergebnis?</h3>
+          <p>Passen Sie Ihre Daten auf der linken Seite an und klicken Sie auf „Jetzt berechnen“.</p>
+        </div>
+
+        <div class="results" id="results" hidden>
+
+          <div class="compare">
+            <article class="card gkv">
+              <h3 class="card-title" style="font-size:18px">Gesetzlich (GKV)</h3>
+              <p class="amount" style="margin-top:16px"><span data-lock id="gkvEmployee">–</span></p>
+              <p class="amount-cap">Ihr monatlicher Beitrag</p>
+              <div class="rows">
+                <div class="row"><span>Gesamtbeitrag:</span><span data-lock id="gkvTotal">–</span></div>
+                <div class="row sub" id="gkvEmployerRow"><span>AG-Anteil:</span><span data-lock id="gkvEmployer">–</span></div>
+              </div>
+            </article>
+
+            <article class="card pkv">
+              <span class="ribbon">EMPFEHLUNG</span>
+              <h3 class="card-title primary" style="font-size:18px">Privat (PKV)</h3>
+              <p class="amount" style="margin-top:16px"><span data-lock id="pkvEmployee">–</span></p>
+              <p class="amount-cap">Ihr geschätzter Beitrag</p>
+              <div class="rows">
+                <div class="row"><span>Gesamtbeitrag:</span><span data-lock id="pkvTotal">–</span></div>
+                <div class="row sub" id="pkvEmployerRow"><span>AG-Zuschuss:</span><span data-lock id="pkvEmployer">–</span></div>
+              </div>
+            </article>
+          </div>
+
+          <article class="card savings">
+            <div class="savings-head">
+              <span class="icon-circle" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+              </span>
+              <div>
+                <h3 id="savingsTitle">Ihre potenzielle Ersparnis</h3>
+                <p class="card-desc" id="savingsSubtitle">Basierend auf Ihren Angaben</p>
+              </div>
+            </div>
+
+            <div class="tiles">
+              <div class="tile"><p class="cap">Pro Monat</p><p class="num"><span data-lock id="savMonth">–</span></p></div>
+              <div class="tile"><p class="cap">Pro Jahr</p><p class="num"><span data-lock id="savYear">–</span></p></div>
+              <div class="tile accent wide"><p class="cap" id="savLongCap">In 30 Jahren</p><p class="num"><span data-lock id="sav30">–</span></p></div>
+            </div>
+
+            <div class="proj">
+              <h4 id="projTitle">Langfristige Hochrechnung</h4>
+              <div class="proj-row"><div class="line"><span>Nach 10 Jahren</span><b data-lock id="p10">–</b></div><div class="bar"><span id="b10"></span></div></div>
+              <div class="proj-row"><div class="line"><span>Nach 20 Jahren</span><b data-lock id="p20">–</b></div><div class="bar"><span id="b20"></span></div></div>
+              <div class="proj-row"><div class="line"><span>Nach 30 Jahren</span><b data-lock id="p30">–</b></div><div class="bar"><span id="b30"></span></div></div>
+            </div>
+
+            <div class="note" id="hinweis">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8"/></svg>
+              <div>
+                <p><strong>Hinweis:</strong> Diese Berechnung dient als erste Orientierung. Die GKV-Berechnung rechnet mit 14,6 % allgemeinem Beitragssatz + 2,69 % Zusatzbeitrag + Pflegeversicherung (3,6 % mit Kindern, 4,2 % für Kinderlose). Die Beitragsbemessungsgrenze liegt bei 6.450 € monatlich (Höchstbeitrag rund 1.386 € brutto für Kinderlose). Die tatsächlichen PKV-Beiträge hängen von Ihrem Gesundheitszustand und dem gewählten Tarif ab.</p>
+                <p><strong>Der geschätzte PKV-Beitrag beinhaltet:</strong> private Kranken- und Pflegeversicherung, Krankentagegeld (100 € ab dem 43. Tag), Ein- bzw. Zweibettzimmer im Krankenhaus, keine Begrenzung der GOÄ (Gebührenordnung für Ärzte) bei stationären Behandlungen sowie 80 % Zahnersatz.</p>
+              </div>
+            </div>
+
+            <div class="success" id="success" hidden>
+              <div class="success-box">
+                <span class="icon-circle" aria-hidden="true">
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </span>
+                <h4>Wir haben 3 TOP-Treffer für Sie!</h4>
+                <p class="card-desc">Unsere Experten prüfen jetzt Ihre individuellen Tarifoptionen und melden sich innerhalb von 24 Stunden für ein kurzes, unverbindliches Gespräch.</p>
+              </div>
+              <button class="btn ghost block" id="printBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Ergebnis als PDF speichern / drucken
+              </button>
+            </div>
+          </article>
+
+          <article class="card gate" id="gate">
+            <div class="gate-head">
+              <h3>Ergebnis freischalten</h3>
+              <p class="card-desc">Ihre Berechnung ist fertig! Geben Sie kurz Ihre Kontaktdaten an, um alle Zahlen sofort aufzudecken.</p>
+            </div>
+            <form id="gateForm" novalidate>
+              <div class="pair">
+                <label class="label" for="name">Vollständiger Name</label>
+                <input type="text" id="name" name="name" placeholder="Max Mustermann" autocomplete="name" required>
+              </div>
+              <div class="pair">
+                <label class="label" for="email">E-Mail-Adresse</label>
+                <input type="email" id="email" name="email" placeholder="max@beispiel.de" autocomplete="email" required>
+              </div>
+              <div class="pair">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <label class="label" for="phone">Telefonnummer</label>
+                  <span class="chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Verifizierte Nummer
+                  </span>
+                </div>
+                <input type="tel" id="phone" name="phone" placeholder="z. B. 0170 1234567" autocomplete="tel" required>
+                <p class="hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  Bitte geben Sie Ihre echte Telefonnummer für eventuelle Rückfragen an.
+                </p>
+              </div>
+              <p class="error" id="gateError" role="alert"></p>
+              <button class="btn block md" type="submit">
+                Zahlen jetzt aufdecken
+                <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </form>
+            <p class="fineprint">Mit dem Absenden erklären Sie sich mit der Verarbeitung Ihrer Daten zur Kontaktaufnahme einverstanden.</p>
+          </article>
+
+        </div>
+      </section>
+    </div>
+
+    <section class="usps" id="vorteile">
+      <div class="usp">
+        <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+        <div><h4>Individuelle Tarife</h4><p>Passgenaue Leistungen, die genau auf Ihre Bedürfnisse zugeschnitten sind.</p></div>
+      </div>
+      <div class="usp">
+        <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+        <div><h4>Beitragsstabilität</h4><p>Tarife mit starken Altersrückstellungen sorgen für Planbarkeit im Alter.</p></div>
+      </div>
+      <div class="usp">
+        <span class="ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
+        <div><h4>Bessere medizinische Versorgung</h4><p>Bevorzugte Behandlung, kürzere Wartezeiten und Zugang zu Top-Spezialisten.</p></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container foot">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </span>
+      <span>Kranken<span class="primary">vergleich</span></span>
+    </a>
+    <small>Demonstrations-Nachbau eines GKV/PKV-Rechners. Keine Versicherungsberatung, keine Vermittlung.</small>
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+/* ----------------------------------------------------------------
+   Rechengrundlagen — 1:1 aus dem analysierten Original übernommen
+------------------------------------------------------------------ */
+const BBG_MONAT          = 6450;    // Beitragsbemessungsgrenze, monatlich
+const SATZ_KV            = 0.146;   // allgemeiner Beitragssatz
+const SATZ_ZUSATZ        = 0.0269;  // kassenindividueller Zusatzbeitrag
+const SATZ_PFLEGE        = 0.036;   // Pflegeversicherung mit Kindern
+const ZUSCHLAG_KINDERLOS = 0.006;   // Zuschlag für Kinderlose, allein vom AN getragen
+const MIN_ANGESTELLT     = 77400;   // Versicherungspflichtgrenze, jährlich
+const MIN_SELBSTSTAENDIG = 60000;
+
+const state = {
+  grossYearly: 100000,
+  salaryMode : 'yearly',
+  age        : 30,
+  status     : 'employee',
+  family     : 'single',
+  spouse     : 'gesetzlich',
+  kids       : 0,
+  calculated : false,
+  unlocked   : false,
+};
+
+function berechne(s){
+  const monat = s.grossYearly / 12;
+  const basis = Math.min(monat, BBG_MONAT);
+
+  const kinderlos = s.kids === 0 ? ZUSCHLAG_KINDERLOS : 0;
+  const satzGesamt = SATZ_KV + SATZ_ZUSATZ + SATZ_PFLEGE + kinderlos;
+  const gkvTotal = basis * satzGesamt;
+
+  let gkvEmployee, gkvEmployer;
+  if (s.status === 'employee') {
+    // hälftige Teilung, der Kinderlosen-Zuschlag bleibt beim Arbeitnehmer
+    gkvEmployee = basis * (SATZ_KV/2 + SATZ_ZUSATZ/2 + SATZ_PFLEGE/2 + kinderlos);
+    gkvEmployer = basis * (SATZ_KV/2 + SATZ_ZUSATZ/2 + SATZ_PFLEGE/2);
+  } else {
+    gkvEmployee = gkvTotal;
+    gkvEmployer = 0;
+  }
+
+  // PKV-Schätzung: Grundbeitrag nach Alter …
+  let pkv;
+  if      (s.age < 25) pkv = 320;
+  else if (s.age < 35) pkv = 380 + (s.age - 25) * 8;
+  else if (s.age < 45) pkv = 460 + (s.age - 35) * 12;
+  else if (s.age < 55) pkv = 580 + (s.age - 45) * 15;
+  else                 pkv = 730 + (s.age - 55) * 18;
+
+  // … Zuschlag für höheres Einkommen (besserer Tarif) …
+  if      (s.grossYearly > 100000) pkv += 100;
+  else if (s.grossYearly >  70000) pkv += 50;
+
+  // … mitversicherter Ehepartner …
+  if (s.family === 'married' && s.spouse === 'familienversichert') pkv *= 1.5;
+
+  // … und je Kind ein eigener Vertrag.
+  if (s.kids > 0) pkv += s.kids * 150;
+
+  const pkvTotal = pkv;
+  const pkvEmployerContribution = s.status === 'employee' ? Math.min(pkvTotal/2, gkvEmployer) : 0;
+  const pkvEmployee = pkvTotal - pkvEmployerContribution;
+
+  const monthlySavings = gkvEmployee - pkvEmployee;
+
+  return {
+    gkvTotal, gkvEmployee, gkvEmployer,
+    pkvTotal, pkvEmployee, pkvEmployerContribution,
+    monthlySavings,
+    yearlySavings: monthlySavings * 12,
+    savings10y   : monthlySavings * 12 * 10,
+    savings20y   : monthlySavings * 12 * 20,
+    savings30y   : monthlySavings * 12 * 30,
+  };
+}
+
+/* ---------------------------- Formatierung ---------------------------- */
+const nfEuro  = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfPlain = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+const euro    = n => nfEuro.format(n) + ' €';
+const euro0   = n => nfPlain.format(Math.round(n)) + ' €';
+const signed0 = n => (n >= 0 ? '+' : '−') + euro0(Math.abs(n));
+
+/* ---------------------------- Schieberegler ---------------------------- */
+function paint(el){
+  const min = Number(el.min), max = Number(el.max), val = Number(el.value);
+  const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--pct', pct + '%');
+}
+
+const elGross = document.getElementById('gross');
+const elAge   = document.getElementById('age');
+const elKids  = document.getElementById('kids');
+
+function grossBounds(){
+  if (state.salaryMode === 'yearly') {
+    return {
+      min : state.status === 'employee' ? MIN_ANGESTELLT : MIN_SELBSTSTAENDIG,
+      max : 180000,
+      step: 1000,
+    };
+  }
+  return {
+    min : state.status === 'employee' ? Math.round(MIN_ANGESTELLT/12) : Math.round(MIN_SELBSTSTAENDIG/12),
+    max : 15000,
+    step: 100,
+  };
+}
+
+function syncGross(){
+  // Mindesteinkommen je Tätigkeit durchsetzen
+  const untergrenze = state.status === 'employee' ? MIN_ANGESTELLT : MIN_SELBSTSTAENDIG;
+  if (state.grossYearly < untergrenze) state.grossYearly = untergrenze;
+
+  const b = grossBounds();
+  elGross.min = b.min; elGross.max = b.max; elGross.step = b.step;
+
+  const shown = state.salaryMode === 'yearly' ? state.grossYearly : Math.round(state.grossYearly/12);
+  elGross.value = Math.min(Math.max(shown, b.min), b.max);
+  paint(elGross);
+
+  document.getElementById('grossMin').textContent = nfPlain.format(b.min) + ' €';
+  document.getElementById('grossMax').textContent = nfPlain.format(b.max) + ' €+';
+
+  const out = document.getElementById('grossValue');
+  if (state.salaryMode === 'yearly') {
+    out.textContent = state.grossYearly >= 180000
+      ? '180.000 €+ / Jahr'
+      : nfPlain.format(state.grossYearly) + ' € / Jahr';
+  } else {
+    const m = state.grossYearly / 12;
+    out.textContent = m >= 15000
+      ? '15.000 €+ / Monat'
+      : nfPlain.format(Math.round(m)) + ' € / Monat';
+  }
+}
+
+/* ---------------------------- Ergebnisanzeige ---------------------------- */
+const set = (id, text) => { document.getElementById(id).textContent = text; };
+
+function render(){
+  const r = berechne(state);
+
+  set('gkvEmployee', euro(r.gkvEmployee));
+  set('gkvTotal',    euro(r.gkvTotal));
+  set('gkvEmployer', euro(r.gkvEmployer));
+  set('pkvEmployee', euro(r.pkvEmployee));
+  set('pkvTotal',    '~' + euro(r.pkvTotal));
+  set('pkvEmployer', euro(r.pkvEmployerContribution));
+
+  const angestellt = state.status === 'employee';
+  document.getElementById('gkvEmployerRow').hidden = !angestellt;
+  document.getElementById('pkvEmployerRow').hidden = !angestellt;
+
+  // Bei teurerer PKV wird aus der Ersparnis eine Mehrbelastung — das muss dastehen.
+  const spart = r.monthlySavings >= 0;
+  set('savingsTitle', spart ? 'Ihre potenzielle Ersparnis' : 'Ihre potenzielle Mehrbelastung');
+  set('savingsSubtitle', spart
+    ? 'Basierend auf Ihren Angaben'
+    : 'Mit diesen Angaben ist die PKV teurer als die GKV');
+  set('savLongCap', spart ? 'In 30 Jahren' : 'Mehrkosten in 30 Jahren');
+  set('projTitle',  spart ? 'Langfristige Hochrechnung' : 'Langfristige Hochrechnung (Mehrkosten)');
+
+  set('savMonth', euro(Math.abs(r.monthlySavings)));
+  set('savYear',  euro(Math.abs(r.yearlySavings)));
+  set('sav30',    euro0(Math.abs(r.savings30y)));
+
+  [['p10','b10',r.savings10y],['p20','b20',r.savings20y],['p30','b30',r.savings30y]].forEach(([pid,bid,v]) => {
+    set(pid, signed0(v));
+    const span = Math.abs(r.savings30y);
+    const pct  = span === 0 ? 0 : Math.min(100, Math.abs(v) / span * 100);
+    document.getElementById(bid).style.width = pct + '%';
+  });
+
+  document.querySelectorAll('[data-lock]').forEach(el => el.classList.toggle('locked', !state.unlocked));
+}
+
+/* ---------------------------- Verdrahtung ---------------------------- */
+document.querySelectorAll('input[name="status"]').forEach(el => el.addEventListener('change', () => {
+  state.status = el.value;
+  syncGross(); render();
+}));
+
+document.querySelectorAll('input[name="family"]').forEach(el => el.addEventListener('change', () => {
+  state.family = el.value;
+  document.getElementById('spouseBlock').hidden = state.family !== 'married';
+  render();
+}));
+
+document.querySelectorAll('input[name="spouse"]').forEach(el => el.addEventListener('change', () => {
+  state.spouse = el.value; render();
+}));
+
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+  state.salaryMode = tab.dataset.mode;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t === tab)));
+  syncGross();
+}));
+
+elGross.addEventListener('input', () => {
+  const v = Number(elGross.value);
+  state.grossYearly = state.salaryMode === 'yearly' ? v : v * 12;
+  paint(elGross); syncGross(); render();
+});
+
+elAge.addEventListener('input', () => {
+  state.age = Number(elAge.value);
+  set('ageValue', state.age + ' Jahre');
+  paint(elAge); render();
+});
+
+elKids.addEventListener('input', () => {
+  state.kids = Number(elKids.value);
+  set('kidsValue', state.kids + (state.kids === 1 ? ' Kind' : ' Kinder'));
+  paint(elKids); render();
+});
+
+document.getElementById('calcBtn').addEventListener('click', () => {
+  state.calculated = true;
+  document.getElementById('placeholder').hidden = true;
+  document.getElementById('results').hidden = false;
+  render();
+  setTimeout(() => document.getElementById('results-section')
+    .scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+});
+
+/* Telefonprüfung: deutsche Fest- oder Mobilnummer, ohne externe Bibliothek. */
+function telefonOk(raw){
+  const s = raw.trim().replace(/[\s/().-]/g, '');
+  if (!/^(\+49|0049|0)[1-9]\d{6,13}$/.test(s)) return false;
+  const ziffern = s.replace(/\D/g, '');
+  return ziffern.length >= 10;
+}
+
+document.getElementById('gateForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const fehler = document.getElementById('gateError');
+  const name  = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+
+  if (!name || !email || !phone) {
+    fehler.textContent = 'Bitte füllen Sie alle Felder aus.';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    fehler.textContent = 'Bitte geben Sie eine gültige E-Mail-Adresse an.';
+    return;
+  }
+  if (!telefonOk(phone)) {
+    fehler.textContent = 'Bitte geben Sie eine echte, vollständige Telefonnummer an.';
+    return;
+  }
+
+  fehler.textContent = '';
+  state.unlocked = true;
+  document.getElementById('gate').hidden = true;
+  document.getElementById('success').hidden = false;
+  render();
+  setTimeout(() => document.getElementById('results-section')
+    .scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+});
+
+document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+/* Kopfzeile + mobiles Menü */
+const nav = document.getElementById('nav');
+const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 50);
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+const toggle = document.getElementById('navToggle');
+const mobile = document.getElementById('navMobile');
+toggle.addEventListener('click', () => {
+  const open = mobile.classList.toggle('open');
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+});
+mobile.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  mobile.classList.remove('open');
+  toggle.setAttribute('aria-expanded', 'false');
+}));
+
+/* Startzustand */
+[elGross, elAge, elKids].forEach(paint);
+syncGross();
+render();
+</script>
+</body>
+</html>

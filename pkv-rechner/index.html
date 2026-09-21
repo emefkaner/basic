@@ -215,24 +215,12 @@ input[type=range]::-moz-range-thumb{
 .btn.ghost{background:transparent;color:hsl(var(--muted-foreground));border:1px solid hsl(var(--border))}
 .btn.ghost:hover{color:hsl(var(--foreground));background:hsl(var(--muted))}
 .btn .arrow{transition:transform .2s}
+.jump{text-decoration:none}
+@media(min-width:1024px){.jump{display:none}}
 .btn:hover .arrow{transform:translateX(3px)}
 
-input[type=text],input[type=email],input[type=tel]{
-  width:100%;height:44px;padding:0 14px;border-radius:10px;
-  border:1px solid hsl(var(--border));background:hsl(var(--card));color:inherit;font:inherit;font-size:15px;
-}
-input::placeholder{color:hsl(var(--muted-foreground));opacity:.75}
-input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
-  outline:2px solid hsl(var(--primary));outline-offset:-1px;border-color:transparent;
-}
 
 /* ---------- Ergebnisse ---------- */
-.placeholder{
-  min-height:420px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;gap:8px;padding:48px 24px;color:hsl(var(--muted-foreground));
-  border:2px dashed hsl(var(--border));border-radius:var(--radius);background:hsl(var(--muted)/.35);
-}
-.placeholder h3{font-size:20px;font-weight:600;color:hsl(var(--foreground))}
 .results{display:flex;flex-direction:column;gap:24px;animation:rise .45s ease-out}
 @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
 
@@ -251,8 +239,6 @@ input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
 .row{display:flex;justify-content:space-between;gap:12px}
 .row.sub{color:hsl(var(--muted-foreground))}
 
-.locked{filter:blur(7px);user-select:none;-webkit-user-select:none;transition:filter .5s}
-.amount .locked{filter:blur(9px)}
 
 .savings{
   border-color:hsl(var(--primary)/.2);
@@ -287,34 +273,7 @@ input[type=text]:focus,input[type=email]:focus,input[type=tel]:focus{
 .note p + p{margin-top:8px}
 .note strong{color:hsl(var(--foreground))}
 
-.gate{
-  border-color:hsl(var(--primary)/.3);background:hsl(var(--primary)/.05);
-  box-shadow:0 18px 40px -20px hsl(var(--foreground)/.3);
-}
-.gate-head{text-align:center;margin-bottom:8px}
-.gate-head h3{font-size:20px;font-weight:700}
-.gate form{max-width:420px;margin:16px auto 0;display:flex;flex-direction:column;gap:16px}
-.gate .pair{display:flex;flex-direction:column;gap:8px}
-.chip{
-  display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:999px;
-  background:hsl(var(--primary)/.1);color:hsl(var(--primary));border:1px solid hsl(var(--primary)/.2);
-}
-.hint{font-size:11px;color:hsl(var(--muted-foreground));display:flex;align-items:center;gap:6px}
-.hint svg{flex:0 0 auto;color:hsl(var(--primary))}
-.error{font-size:13px;color:hsl(var(--destructive));font-weight:500;min-height:0}
-.error:empty{display:none}
-.fineprint{font-size:10px;text-align:center;color:hsl(var(--muted-foreground));max-width:420px;margin:16px auto 0}
 
-.success{
-  margin-top:32px;display:flex;flex-direction:column;gap:16px;animation:rise .4s ease-out;
-}
-.success-box{
-  padding:24px;border-radius:18px;text-align:center;
-  background:linear-gradient(140deg,hsl(var(--primary)/.12),hsl(var(--primary)/.04));
-  border:1px solid hsl(var(--primary)/.2);
-}
-.success-box h4{font-size:20px;font-weight:700;margin:12px 0 8px}
-.success-box .icon-circle{margin:0 auto;width:56px;height:56px;background:hsl(var(--primary)/.15)}
 
 /* ---------- Vorteilsspalten + Fuß ---------- */
 .usps{display:grid;grid-template-columns:1fr;gap:32px;max-width:1120px;margin:96px auto 0}
@@ -337,18 +296,12 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
 .swb:hover{border-color:hsl(var(--primary)/.5)}
 .swb[aria-pressed="true"]{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:transparent;font-weight:500}
 .swb:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:2px}
-.linkbtn{
-  border:0;background:none;padding:0;font-size:inherit;color:hsl(var(--primary));
-  text-decoration:underline;text-underline-offset:2px;cursor:pointer;
-}
-.linkbtn:hover{filter:brightness(1.15)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 @media print{
-  .nav,.nav-mobile,.usps,footer,.gate,.btn{display:none !important}
+  .nav,.nav-mobile,.usps,footer,.btn,.jump,.switch{display:none !important}
   .page{padding-top:0}
   body{background:#fff}
-  .locked{filter:none}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
@@ -389,10 +342,10 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
     <header class="hero">
       <span class="badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
-        Interaktiver Vergleich
+        Rechnet live — ohne Datenabgabe
       </span>
       <h1>GKV vs. PKV Rechner</h1>
-      <p>Finden Sie in wenigen Sekunden heraus, wie viel Sie durch einen Wechsel in die private Krankenversicherung sparen könnten.</p>
+      <p>Sehen Sie sofort, wie sich gesetzliche und private Krankenversicherung bei Ihnen unterscheiden. Alles rechnet live im Browser — keine Anmeldung, keine Kontaktdaten, nichts wird verschickt.</p>
     </header>
 
     <div class="grid">
@@ -458,11 +411,10 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
               <input type="range" id="kids" min="0" max="5" step="1" value="0" aria-labelledby="lblKids" aria-describedby="kidsValue">
             </div>
 
-            <button class="btn block lg" id="calcBtn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
-              Jetzt berechnen
-              <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
+            <a class="btn block lg jump" href="#results-section">
+              Zum Ergebnis
+              <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </a>
 
           </div>
         </div>
@@ -471,33 +423,27 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
       <!-- ---------------- Ergebnis ---------------- -->
       <section class="col-results" id="results-section">
 
-        <div class="placeholder" id="placeholder">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="16" y1="18" x2="16" y2="18"/></svg>
-          <h3>Bereit für Ihr Ergebnis?</h3>
-          <p>Passen Sie Ihre Daten auf der linken Seite an und klicken Sie auf „Jetzt berechnen“.</p>
-        </div>
-
-        <div class="results" id="results" hidden>
+        <div class="results" id="results">
 
           <div class="compare">
             <article class="card gkv">
               <h3 class="card-title" style="font-size:18px">Gesetzlich (GKV)</h3>
-              <p class="amount" style="margin-top:16px"><span data-lock id="gkvEmployee">–</span></p>
+              <p class="amount" style="margin-top:16px"><span id="gkvEmployee">–</span></p>
               <p class="amount-cap">Ihr monatlicher Beitrag</p>
               <div class="rows">
-                <div class="row"><span>Gesamtbeitrag:</span><span data-lock id="gkvTotal">–</span></div>
-                <div class="row sub" id="gkvEmployerRow"><span>AG-Anteil:</span><span data-lock id="gkvEmployer">–</span></div>
+                <div class="row"><span>Gesamtbeitrag:</span><span id="gkvTotal">–</span></div>
+                <div class="row sub" id="gkvEmployerRow"><span>AG-Anteil:</span><span id="gkvEmployer">–</span></div>
               </div>
             </article>
 
             <article class="card pkv">
               <span class="ribbon">EMPFEHLUNG</span>
               <h3 class="card-title primary" style="font-size:18px">Privat (PKV)</h3>
-              <p class="amount" style="margin-top:16px"><span data-lock id="pkvEmployee">–</span></p>
+              <p class="amount" style="margin-top:16px"><span id="pkvEmployee">–</span></p>
               <p class="amount-cap">Ihr geschätzter Beitrag</p>
               <div class="rows">
-                <div class="row"><span>Gesamtbeitrag:</span><span data-lock id="pkvTotal">–</span></div>
-                <div class="row sub" id="pkvEmployerRow"><span>AG-Zuschuss:</span><span data-lock id="pkvEmployer">–</span></div>
+                <div class="row"><span>Gesamtbeitrag:</span><span id="pkvTotal">–</span></div>
+                <div class="row sub" id="pkvEmployerRow"><span>AG-Zuschuss:</span><span id="pkvEmployer">–</span></div>
               </div>
             </article>
           </div>
@@ -514,22 +460,22 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
             </div>
 
             <div class="tiles">
-              <div class="tile"><p class="cap">Pro Monat</p><p class="num"><span data-lock id="savMonth">–</span></p></div>
-              <div class="tile"><p class="cap">Pro Jahr</p><p class="num"><span data-lock id="savYear">–</span></p></div>
-              <div class="tile accent wide"><p class="cap" id="savLongCap">In 30 Jahren</p><p class="num"><span data-lock id="sav30">–</span></p></div>
+              <div class="tile"><p class="cap">Pro Monat</p><p class="num"><span id="savMonth">–</span></p></div>
+              <div class="tile"><p class="cap">Pro Jahr</p><p class="num"><span id="savYear">–</span></p></div>
+              <div class="tile accent wide"><p class="cap" id="savLongCap">In 30 Jahren</p><p class="num"><span id="sav30">–</span></p></div>
             </div>
 
             <div class="proj">
               <h4 id="projTitle">Langfristige Hochrechnung</h4>
-              <div class="proj-row"><div class="line"><span>Nach 10 Jahren</span><b data-lock id="p10">–</b></div><div class="bar"><span id="b10"></span></div></div>
-              <div class="proj-row"><div class="line"><span>Nach 20 Jahren</span><b data-lock id="p20">–</b></div><div class="bar"><span id="b20"></span></div></div>
-              <div class="proj-row"><div class="line"><span>Nach 30 Jahren</span><b data-lock id="p30">–</b></div><div class="bar"><span id="b30"></span></div></div>
+              <div class="proj-row"><div class="line"><span>Nach 10 Jahren</span><b id="p10">–</b></div><div class="bar"><span id="b10"></span></div></div>
+              <div class="proj-row"><div class="line"><span>Nach 20 Jahren</span><b id="p20">–</b></div><div class="bar"><span id="b20"></span></div></div>
+              <div class="proj-row"><div class="line"><span>Nach 30 Jahren</span><b id="p30">–</b></div><div class="bar"><span id="b30"></span></div></div>
             </div>
 
             <div class="note" id="hinweis">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8"/></svg>
               <div>
-                <p><strong>Hinweis:</strong> Diese Berechnung dient als erste Orientierung. Die GKV-Berechnung rechnet mit 14,6 % allgemeinem Beitragssatz + 2,69 % Zusatzbeitrag + Pflegeversicherung (3,6 % mit Kindern, 4,2 % für Kinderlose). Die Beitragsbemessungsgrenze liegt bei 6.450 € monatlich (Höchstbeitrag rund 1.386 € brutto für Kinderlose). Die tatsächlichen PKV-Beiträge hängen von Ihrem Gesundheitszustand und dem gewählten Tarif ab.</p>
+                <p><strong>Hinweis:</strong> Diese Berechnung dient als erste Orientierung. Die GKV-Berechnung rechnet mit 14,6 % allgemeinem Beitragssatz + 2,69 % Zusatzbeitrag + Pflegeversicherung (3,6 % mit Kindern, 4,2 % für Kinderlose). Gerechnet wird derzeit mit <strong id="noteBbg">6.450 €</strong> monatlich als Bemessungsgrenze (Höchstbeitrag rund <span id="noteMax">1.386 €</span> brutto für Kinderlose). Die tatsächlichen PKV-Beiträge hängen von Ihrem Gesundheitszustand und dem gewählten Tarif ab.</p>
                 <p><strong>Der geschätzte PKV-Beitrag beinhaltet:</strong> private Kranken- und Pflegeversicherung, Krankentagegeld (100 € ab dem 43. Tag), Ein- bzw. Zweibettzimmer im Krankenhaus, keine Begrenzung der GOÄ (Gebührenordnung für Ärzte) bei stationären Behandlungen sowie 80 % Zahnersatz.</p>
                 <p><strong>Fehler im Original:</strong> Die 6.450 € sind nicht die Beitragsbemessungsgrenze, sondern die Versicherungspflichtgrenze (§ 2 Abs. 1 SVBezGrV 2026). Die Beitragsbemessungsgrenze 2026 liegt laut Bundesgesundheitsministerium bei <strong>5.812,50 €</strong> im Monat. Mit dem zu hohen Wert fällt der GKV-Beitrag rund 11 % zu hoch aus und die ausgewiesene Ersparnis entsprechend zu groß.</p>
                 <div class="switch" role="group" aria-label="Rechengrundlage für die Beitragsbemessungsgrenze">
@@ -539,59 +485,12 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
               </div>
             </div>
 
-            <div class="success" id="success" hidden>
-              <div class="success-box">
-                <span class="icon-circle" aria-hidden="true">
-                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </span>
-                <h4>Wir haben 3 TOP-Treffer für Sie!</h4>
-                <p class="card-desc">Im Original heißt es hier: „Unsere Experten prüfen jetzt Ihre individuellen Tarifoptionen und melden sich innerhalb von 24 Stunden." In diesem Nachbau passiert nichts dergleichen — die Eingaben haben den Browser nie verlassen.</p>
-              </div>
-              <button class="btn ghost block" id="printBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                Ergebnis als PDF speichern / drucken
-              </button>
-            </div>
+            <button class="btn ghost block" id="printBtn" style="margin-top:24px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              Ergebnis als PDF speichern / drucken
+            </button>
           </article>
 
-          <article class="card gate" id="gate">
-            <div class="gate-head">
-              <h3>Ergebnis freischalten</h3>
-              <p class="card-desc">Ihre Berechnung ist fertig! Geben Sie kurz Ihre Kontaktdaten an, um alle Zahlen sofort aufzudecken.</p>
-            </div>
-            <form id="gateForm" novalidate>
-              <div class="pair">
-                <label class="label" for="name">Vollständiger Name</label>
-                <input type="text" id="name" name="name" placeholder="Max Mustermann" autocomplete="name" required>
-              </div>
-              <div class="pair">
-                <label class="label" for="email">E-Mail-Adresse</label>
-                <input type="email" id="email" name="email" placeholder="max@beispiel.de" autocomplete="email" required>
-              </div>
-              <div class="pair">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-                  <label class="label" for="phone">Telefonnummer</label>
-                  <span class="chip">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Verifizierte Nummer
-                  </span>
-                </div>
-                <input type="tel" id="phone" name="phone" placeholder="z. B. 0170 1234567" autocomplete="tel" required>
-                <p class="hint">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  Bitte geben Sie Ihre echte Telefonnummer für eventuelle Rückfragen an.
-                </p>
-              </div>
-              <p class="error" id="gateError" role="alert"></p>
-              <button class="btn block md" type="submit">
-                Zahlen jetzt aufdecken
-                <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-              </button>
-            </form>
-            <p class="fineprint">Mit dem Absenden erklären Sie sich mit der Verarbeitung Ihrer Daten zur Kontaktaufnahme einverstanden.</p>
-            <p class="fineprint"><strong>Demonstration:</strong> Diese Seite verschickt nichts. Ihre Eingaben bleiben im Browser und schalten nur die Zahlen frei.</p>
-            <p class="fineprint"><button type="button" class="linkbtn" id="skipGate">Zum Testen: Zahlen ohne Formular aufdecken</button></p>
-          </article>
 
         </div>
       </section>
@@ -623,7 +522,7 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
       </span>
       <span>Kranken<span class="primary">vergleich</span></span>
     </a>
-    <small>Demonstrations-Nachbau eines GKV/PKV-Rechners. Keine Versicherungsberatung, keine Vermittlung.</small>
+    <small>Rechnet vollständig im Browser. Keine Datenerhebung, kein Tracking, keine Versicherungsberatung und keine Vermittlung.</small>
   </div>
 </footer>
 
@@ -651,8 +550,6 @@ const state = {
   spouse     : 'gesetzlich',
   kids       : 0,
   bbg        : BBG_ORIGINAL,
-  calculated : false,
-  unlocked   : false,
 };
 
 function berechne(s){
@@ -786,6 +683,10 @@ function render(){
   document.getElementById('gkvEmployerRow').hidden = !angestellt;
   document.getElementById('pkvEmployerRow').hidden = !angestellt;
 
+  // Der Hinweistext nennt die Grenze, mit der gerade gerechnet wird.
+  set('noteBbg', euro(state.bbg));
+  set('noteMax', euro(state.bbg * (SATZ_KV + SATZ_ZUSATZ + SATZ_PFLEGE + ZUSCHLAG_KINDERLOS)));
+
   // Bei teurerer PKV wird aus der Ersparnis eine Mehrbelastung — das muss dastehen.
   const spart = r.monthlySavings >= 0;
   set('savingsTitle', spart ? 'Ihre potenzielle Ersparnis' : 'Ihre potenzielle Mehrbelastung');
@@ -806,7 +707,6 @@ function render(){
     document.getElementById(bid).style.width = pct + '%';
   });
 
-  document.querySelectorAll('[data-lock]').forEach(el => el.classList.toggle('locked', !state.unlocked));
 }
 
 /* ---------------------------- Verdrahtung ---------------------------- */
@@ -849,68 +749,8 @@ elKids.addEventListener('input', () => {
   paint(elKids); render();
 });
 
-document.getElementById('calcBtn').addEventListener('click', () => {
-  state.calculated = true;
-  document.getElementById('placeholder').hidden = true;
-  document.getElementById('results').hidden = false;
-  render();
-  setTimeout(() => document.getElementById('results-section')
-    .scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-});
-
-/* Telefonprüfung: deutsche Fest- oder Mobilnummer, ohne externe Bibliothek. */
-function telefonOk(raw){
-  const s = raw.trim().replace(/[\s/().-]/g, '');
-  if (!/^(\+49|0049|0)[1-9]\d{6,13}$/.test(s)) return false;
-  const ziffern = s.replace(/\D/g, '');
-  return ziffern.length >= 10;
-}
-
-document.getElementById('gateForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const fehler = document.getElementById('gateError');
-  const name  = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-
-  if (!name || !email || !phone) {
-    fehler.textContent = 'Bitte füllen Sie alle Felder aus.';
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    fehler.textContent = 'Bitte geben Sie eine gültige E-Mail-Adresse an.';
-    return;
-  }
-  if (!telefonOk(phone)) {
-    fehler.textContent = 'Bitte geben Sie eine echte, vollständige Telefonnummer an.';
-    return;
-  }
-
-  fehler.textContent = '';
-  state.unlocked = true;
-  document.getElementById('gate').hidden = true;
-  document.getElementById('success').hidden = false;
-  render();
-  setTimeout(() => document.getElementById('results-section')
-    .scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
-});
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
-
-/* Zahlen ohne Formular aufdecken — zum Testen, auch über ?demo in der Adresse. */
-function freischalten(){
-  state.unlocked = true;
-  document.getElementById('gate').hidden = true;
-  document.getElementById('success').hidden = false;
-  render();
-}
-document.getElementById('skipGate').addEventListener('click', freischalten);
-if (new URLSearchParams(location.search).has('demo')) {
-  state.calculated = true;
-  document.getElementById('placeholder').hidden = true;
-  document.getElementById('results').hidden = false;
-  freischalten();
-}
 
 /* Umschalter Beitragsbemessungsgrenze */
 document.querySelectorAll('.swb').forEach(btn => btn.addEventListener('click', () => {

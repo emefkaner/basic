@@ -66,8 +66,9 @@ Weitere Eigenheiten, die übernommen wurden:
 - **Reglergrenzen**: jährlich 77.400/60.000 … 180.000 € in 1.000er-Schritten,
   monatlich 6.450/5.000 … 15.000 € in 100er-Schritten.
 - **Ergebnis-Sperre**: Nach „Jetzt berechnen" sind alle Zahlen weichgezeichnet.
-  Erst das Kontaktformular deckt sie auf — das ist der eigentliche Zweck der
-  Seite (Lead-Erfassung).
+  Erst das Kontaktformular mit Name, E-Mail und Telefonnummer deckt sie auf —
+  das ist der eigentliche Zweck der Seite (Lead-Erfassung). **Der Nachbau hat
+  das nicht**: er rechnet beim Laden und zeigt alles sofort.
 
 ## Geprüft, nicht behauptet
 
@@ -88,9 +89,11 @@ Weitere Eigenheiten, die übernommen wurden:
   | Ersparnis / Jahr | 5.728,83 € |
   | in 30 Jahren | 171.865 € |
 
-- **Oberfläche**: im kopflosen Chromium durchgespielt — Rechnen, Sperre,
-  Freischalten, Tätigkeitswechsel, Monats-/Jahresansicht, Ehepartner-Block,
-  Handybreite 390 px (kein waagerechter Überlauf), keine Konsolenfehler.
+- **Oberfläche**: im kopflosen Chromium durchgespielt — sofortige Anzeige beim
+  Laden, Live-Neuberechnung bei jedem Regler und jeder Auswahl,
+  Tätigkeitswechsel, Monats-/Jahresansicht, Ehepartner-Block,
+  Bemessungsgrenzen-Umschalter, Handybreite 390 px (kein waagerechter
+  Überlauf), keine Konsolenfehler.
 
 ## Datenbasis — was belegt ist und was nicht
 
@@ -172,25 +175,24 @@ potenzielle Ersparnis".
 - BMG, Beitragszuschlag für Kinderlose — <https://www.bundesgesundheitsministerium.de/service/begriffe-von-a-z/b/beitragszuschlag-fuer-kinderlose>
 - TK, Zusatzbeitrag 2026 — <https://www.tk.de/presse/themen/gesundheitssystem/selbstverwaltung/zusatzbeitrag-2026-festgelegt-2188214>
 
-## Ergebnisse zum Testen sehen
+## Keine Datenerhebung
 
-Zwei Wege an der Formularsperre vorbei:
-
-1. Unter dem Formular auf **„Zum Testen: Zahlen ohne Formular aufdecken"** klicken.
-2. `?demo` an die Adresse hängen — dann ist beim Laden schon alles gerechnet
-   und aufgedeckt.
+Der Nachbau sammelt nichts. Es gibt kein Kontaktformular, kein Eingabefeld für
+Name, E-Mail oder Telefon, keinen Tracker und keinen Netzwerkaufruf außer dem
+Laden der Schriften. Die Rechnung läuft vollständig im Browser und die
+Ergebnisse stehen sofort beim Laden da — jeder Regler rechnet live nach.
 
 ## Bewusste Abweichungen vom Original
 
 | | Original | Nachbau | Warum |
 |---|---|---|---|
 | Marke, Impressum, Datenschutz, Erstinformation | echte Firma | neutral, keine Firmendaten | Kein Nachbau einer fremden Firmenidentität. |
-| Meta Pixel, CRM-Anbindung | vorhanden | entfernt | Kein Tracking, keine Datenweitergabe; das Formular prüft und schaltet nur lokal frei. |
+| Meta Pixel, CRM-Anbindung | vorhanden | entfernt | Kein Tracking, keine Datenweitergabe. |
 | Zahlenformat | `477.40 €` (englisch) | `477,40 €` | Auf einer deutschen Seite ein Fehler. |
 | Negative Ersparnis | „Ihre potenzielle Ersparnis: -107.60 €", Balken kaputt | Überschrift wechselt zu „Mehrbelastung", Balken bleiben heil | Bei 5 Kindern + familienversichertem Ehepartner ist die PKV teurer — das tritt wirklich ein. |
 | Dunkler Modus | nur im CSS angelegt, nie erreichbar | folgt der Systemeinstellung | — |
-| Technik | React + Vite, 800 KB | eine HTML-Datei, 46 KB | Kein Bauschritt, kein Abhängigkeitsbaum. |
-| Ergebnis-Sperre | nur über das Formular | zusätzlich `?demo` und ein Knopf | Zum Testen muss man die Zahlen sehen können. |
+| Technik | React + Vite, 800 KB | eine HTML-Datei, 38 KB | Kein Bauschritt, kein Abhängigkeitsbaum. |
+| Ergebnis-Sperre | Zahlen weichgezeichnet bis zur Abgabe von Name, E-Mail und Telefon | **ganz entfernt** — rechnet beim Laden, zeigt alles sofort, rechnet live nach | Ein Rechner, der erst die Kontaktdaten will, ist kein Rechner, sondern ein Formular. |
 | Beitragsbemessungsgrenze | 6.450 € ohne Hinweis | 6.450 € **mit** Hinweis und Umschalter auf 5.812,50 € | Der Wert ist falsch (s. o.); ihn stillschweigend zu übernehmen wäre ein Defekt. |
 
 ## Was der Nachbau ausdrücklich **nicht** ist

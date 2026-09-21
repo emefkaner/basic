@@ -329,6 +329,19 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
 @media(min-width:768px){.foot{flex-direction:row;justify-content:space-between;text-align:left}}
 .foot small{font-size:12px;color:hsl(var(--muted-foreground))}
 
+.switch{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.swb{
+  border:1px solid hsl(var(--border));background:hsl(var(--card));color:hsl(var(--muted-foreground));
+  border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer;transition:all .2s;
+}
+.swb:hover{border-color:hsl(var(--primary)/.5)}
+.swb[aria-pressed="true"]{background:hsl(var(--primary));color:hsl(var(--primary-foreground));border-color:transparent;font-weight:500}
+.swb:focus-visible{outline:2px solid hsl(var(--primary));outline-offset:2px}
+.linkbtn{
+  border:0;background:none;padding:0;font-size:inherit;color:hsl(var(--primary));
+  text-decoration:underline;text-underline-offset:2px;cursor:pointer;
+}
+.linkbtn:hover{filter:brightness(1.15)}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 @media print{
@@ -518,6 +531,11 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
               <div>
                 <p><strong>Hinweis:</strong> Diese Berechnung dient als erste Orientierung. Die GKV-Berechnung rechnet mit 14,6 % allgemeinem Beitragssatz + 2,69 % Zusatzbeitrag + Pflegeversicherung (3,6 % mit Kindern, 4,2 % für Kinderlose). Die Beitragsbemessungsgrenze liegt bei 6.450 € monatlich (Höchstbeitrag rund 1.386 € brutto für Kinderlose). Die tatsächlichen PKV-Beiträge hängen von Ihrem Gesundheitszustand und dem gewählten Tarif ab.</p>
                 <p><strong>Der geschätzte PKV-Beitrag beinhaltet:</strong> private Kranken- und Pflegeversicherung, Krankentagegeld (100 € ab dem 43. Tag), Ein- bzw. Zweibettzimmer im Krankenhaus, keine Begrenzung der GOÄ (Gebührenordnung für Ärzte) bei stationären Behandlungen sowie 80 % Zahnersatz.</p>
+                <p><strong>Fehler im Original:</strong> Die 6.450 € sind nicht die Beitragsbemessungsgrenze, sondern die Versicherungspflichtgrenze (§ 2 Abs. 1 SVBezGrV 2026). Die Beitragsbemessungsgrenze 2026 liegt laut Bundesgesundheitsministerium bei <strong>5.812,50 €</strong> im Monat. Mit dem zu hohen Wert fällt der GKV-Beitrag rund 11 % zu hoch aus und die ausgewiesene Ersparnis entsprechend zu groß.</p>
+                <div class="switch" role="group" aria-label="Rechengrundlage für die Beitragsbemessungsgrenze">
+                  <button type="button" class="swb" data-bbg="original" aria-pressed="true">6.450 € — wie im Original</button>
+                  <button type="button" class="swb" data-bbg="amtlich" aria-pressed="false">5.812,50 € — amtlich 2026</button>
+                </div>
               </div>
             </div>
 
@@ -572,6 +590,7 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
             </form>
             <p class="fineprint">Mit dem Absenden erklären Sie sich mit der Verarbeitung Ihrer Daten zur Kontaktaufnahme einverstanden.</p>
             <p class="fineprint"><strong>Demonstration:</strong> Diese Seite verschickt nichts. Ihre Eingaben bleiben im Browser und schalten nur die Zahlen frei.</p>
+            <p class="fineprint"><button type="button" class="linkbtn" id="skipGate">Zum Testen: Zahlen ohne Formular aufdecken</button></p>
           </article>
 
         </div>
@@ -614,7 +633,8 @@ footer{border-top:1px solid hsl(var(--border));padding:40px 0;margin-top:80px;ba
 /* ----------------------------------------------------------------
    Rechengrundlagen — 1:1 aus dem analysierten Original übernommen
 ------------------------------------------------------------------ */
-const BBG_MONAT          = 6450;    // Beitragsbemessungsgrenze, monatlich
+const BBG_ORIGINAL       = 6450;    // was das Original „Beitragsbemessungsgrenze" nennt
+const BBG_AMTLICH        = 5812.5;  // echte BBG 2026 (BMG); 6.450 € ist die Versicherungspflichtgrenze
 const SATZ_KV            = 0.146;   // allgemeiner Beitragssatz
 const SATZ_ZUSATZ        = 0.0269;  // kassenindividueller Zusatzbeitrag
 const SATZ_PFLEGE        = 0.036;   // Pflegeversicherung mit Kindern
@@ -630,13 +650,14 @@ const state = {
   family     : 'single',
   spouse     : 'gesetzlich',
   kids       : 0,
+  bbg        : BBG_ORIGINAL,
   calculated : false,
   unlocked   : false,
 };
 
 function berechne(s){
   const monat = s.grossYearly / 12;
-  const basis = Math.min(monat, BBG_MONAT);
+  const basis = Math.min(monat, s.bbg);
 
   const kinderlos = s.kids === 0 ? ZUSCHLAG_KINDERLOS : 0;
   const satzGesamt = SATZ_KV + SATZ_ZUSATZ + SATZ_PFLEGE + kinderlos;
@@ -875,6 +896,28 @@ document.getElementById('gateForm').addEventListener('submit', e => {
 });
 
 document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+/* Zahlen ohne Formular aufdecken — zum Testen, auch über ?demo in der Adresse. */
+function freischalten(){
+  state.unlocked = true;
+  document.getElementById('gate').hidden = true;
+  document.getElementById('success').hidden = false;
+  render();
+}
+document.getElementById('skipGate').addEventListener('click', freischalten);
+if (new URLSearchParams(location.search).has('demo')) {
+  state.calculated = true;
+  document.getElementById('placeholder').hidden = true;
+  document.getElementById('results').hidden = false;
+  freischalten();
+}
+
+/* Umschalter Beitragsbemessungsgrenze */
+document.querySelectorAll('.swb').forEach(btn => btn.addEventListener('click', () => {
+  state.bbg = btn.dataset.bbg === 'amtlich' ? BBG_AMTLICH : BBG_ORIGINAL;
+  document.querySelectorAll('.swb').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  render();
+}));
 
 /* Kopfzeile + mobiles Menü */
 const nav = document.getElementById('nav');

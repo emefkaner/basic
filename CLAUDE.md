@@ -343,16 +343,22 @@ als mein ursprünglicher fester 10-Minuten-Timer):
    Folgen/Einstellungen `FEED_MIRROR_PURGE_URL` auf (fire-and-forget). Render
    ist in dem Moment ohnehin wach, kostet also nichts zusätzlich. Deckt den
    Normalfall „ich habe etwas veröffentlicht/geändert" sofort ab.
-2. **Passiv, als Rückfall:** ohne Leerung hält der Worker den Feed 60 Minuten,
-   danach holt der **nächste tatsächliche Aufruf** einmal frisch nach — nie
-   von selbst. Fängt eine eingeplante Folge auf, die ohne Zutun des Nutzers
-   fällig wird.
+2. **Passiv, als Rückfall:** ohne Leerung hält der Worker den Feed **48
+   Stunden**, danach holt der **nächste tatsächliche Aufruf** einmal frisch
+   nach — nie von selbst. Fängt eine eingeplante Folge auf, die ohne Zutun des
+   Nutzers fällig wird.
 
-**Wichtige Stellschraube, selbst durchgerechnet:** Die 60 Minuten (vorher
-fälschlich 10 Minuten vorgeschlagen) müssen **größer als Renders 15-Minuten-
-Schwelle** sein. Holt der Worker öfter als alle 15 Minuten nach, bekommt Render
-nie eine Lücke zum Einschlafen und das Problem ist unverändert da — genau der
-Fehler, den ich zuerst gemacht hatte, bevor ich es zu Ende durchgerechnet habe.
+**Wichtige Stellschraube, selbst durchgerechnet:** Der Wert muss **größer als
+Renders 15-Minuten-Schwelle** sein. Holt der Worker öfter als alle 15 Minuten
+nach, bekommt Render nie eine Lücke zum Einschlafen und das Problem ist
+unverändert da — genau der Fehler, den ich zuerst gemacht hatte (10 Minuten
+vorgeschlagen), bevor ich es zu Ende durchgerechnet habe. Danach zunächst auf
+60 Minuten gesetzt — auch das noch zu kurz für das, was der Nutzer eigentlich
+wollte: Er fragte ausdrücklich, ob Render tagelang durchschlafen kann, wenn
+niemand zugreift, und braucht den Server nur, wenn eine Folge live geht — mit
+höchstens 48 h Vorlauf, und selbst diese Verzögerung ist ihm ausdrücklich
+recht. Deshalb jetzt **48 Stunden**: Ohne jede Nutzung wacht Render höchstens
+alle 48 Stunden einmal kurz auf, statt stündlich.
 
 `config.feedMirrorUrl` (env `FEED_MIRROR_URL`) trägt `<itunes:new-feed-url>`
 in den Feed ein, `config.feedMirrorPurgeUrl` (env `FEED_MIRROR_PURGE_URL`)
@@ -360,9 +366,12 @@ löst die Leerung aus. Beide leer = Verhalten unverändert wie vorher, geprüft
 im Rauchtest (33/33, mit und ohne gesetzte Variable).
 
 **Ungeprüft von hier aus:** ob der Worker in echt wie gedacht cached (keine
-Cloudflare-Umgebung hier verfügbar), und ob die 60 Minuten in der Praxis
-reichen, damit Render tatsächlich öfter einschläft — das zeigt sich erst an
-Renders eigener Instanzstunden-Anzeige nach ein paar Tagen Betrieb.
+Cloudflare-Umgebung hier verfügbar), und ob Render tatsächlich so selten wach
+wird wie gerechnet — das zeigt sich erst an Renders eigener Instanzstunden-
+Anzeige nach ein paar Tagen Betrieb. Auch ungeprüft: ob ein Origin-Abruf des
+Worker Renders Aufwach-Verzögerung (laut Renders Doku ~1 Minute) klaglos
+übersteht — im Zweifel liefert der Worker dann einmalig einen Fehler und der
+nächste Aufruf holt erneut nach, statt den Fehler zwischenzuspeichern.
 
 ## Gäste: gehören an die FOLGE, nicht in die Einstellungen
 

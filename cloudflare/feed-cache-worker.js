@@ -19,11 +19,17 @@
 //      Minuten sein — sonst holt der Zwischenspeicher öfter nach, als Render
 //      zum Einschlafen braucht, und nichts ist gewonnen.
 //
+// CACHE_SEKUNDEN steht auf 48 Stunden: Eingeplante Folgen liegen laut Nutzer
+// höchstens 48 h in der Zukunft, und eine Verzögerung bis zu dieser Grenze ist
+// ausdrücklich in Ordnung. So kann Render tagelang durchschlafen, wenn niemand
+// etwas ändert und niemand den Feed abruft — es wacht dann höchstens alle
+// 48 Stunden einmal kurz auf, statt stündlich.
+//
 // Ursprungsadresse: die bestehende App bleibt unverändert erreichbar, dieser
 // Worker fragt sie nur seltener ab, als es Verzeichnisse/Apps sonst täten.
 
 const URSPRUNG = 'https://cinespasten.emefka.com/feed.xml';
-const CACHE_SEKUNDEN = 60 * 60; // 60 Minuten Rückfalllösung — siehe Begründung oben
+const CACHE_SEKUNDEN = 48 * 60 * 60; // 48 Stunden Rückfalllösung — siehe Begründung oben
 const CACHE_KEY = new Request('https://feed-cache.internal/feed.xml', { method: 'GET' });
 
 export default {
@@ -47,7 +53,7 @@ export default {
     });
 
     // Fehler beim Ursprung (Render schläft/deployed gerade) NICHT zwischenspeichern —
-    // sonst hängt der Fehler bis zu 60 Minuten fest.
+    // sonst hängt der Fehler bis zu 48 Stunden fest.
     if (!ursprungsAntwort.ok) return ursprungsAntwort;
 
     const body = await ursprungsAntwort.arrayBuffer();

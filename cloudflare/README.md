@@ -11,9 +11,12 @@ Zwischenspeicher:
 
 - **Leert sich sofort**, wenn du in der App etwas veröffentlichst oder änderst
   (`/purge`) — Render ist in dem Moment ohnehin wach, kostet also nichts extra.
-- **Sonst höchstens einmal pro Stunde** neu von Render — und selbst das nur,
+- **Sonst höchstens alle 48 Stunden** neu von Render — und selbst das nur,
   wenn wirklich jemand fragt, nie von selbst. Das fängt nur den Sonderfall ab,
-  dass eine eingeplante Folge fällig wird, ohne dass du etwas tust.
+  dass eine eingeplante Folge fällig wird, ohne dass du etwas tust. 48 Stunden
+  gewählt, weil eine Folge laut Aussage des Nutzers nie weiter als 48 h im
+  Voraus eingeplant wird und diese Verzögerung dafür in Ordnung ist. Ohne
+  jeden Zugriff kann Render damit tagelang durchschlafen.
 
 Der Code liegt in `feed-cache-worker.js`. Cloudflare-Konto braucht ihr wegen R2
 schon.

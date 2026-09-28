@@ -63,6 +63,29 @@ clip, not at one timestamp.
 - S17_04 (10 s): passed with the defused packaging (three timed flashes).
 - S17_05 (4 s): one flash at 0:02 toward the lens; prompt delivered.
 
+## S18 (locomotive cab, airborne)
+
+- Height in S18 is **50 m**; the landscape moves **right to left** through the
+  cab opening (the left-to-right series default was wrong for this camera
+  side — user corrected it after seeing the first flight run).
+- Output format for S18 is **21:9** (user request), Seedance 2.5,
+  `omni_reference`, plate as `video_references`, element embedded in the
+  prompt. Generation now runs through this chat via the API (user has no
+  Unlimited anymore); ~84 credits at 1080p / ~49 at 720p per 7 s. Failed jobs
+  are refunded; one identical retry has already recovered one such failure.
+- **`@WILDWEST-AERIAL` exists as a workspace element** (built from a
+  text-only aerial still + gblur post pass; see CLAUDE.md "Flight windows
+  need an AERIAL element"). With it the flight finally read on the first
+  try, after three ground-level failures with `@WILDWEST`.
+- S18_03 (7.5 s): run 4 (720p, right-to-left, translation-locked) is the
+  current candidate — direction verified by landmark tracking, slight speed
+  jitter; awaiting user sign-off, then a 1080p final re-run of the same
+  prompt. Earlier runs: orbit bug (aerial still animated as drone circle),
+  then direction wrong.
+- S18_01 (6.2 s) and S18_02 (6.4 s): prompts delivered for the app in the
+  old @WILDWEST form — **rework both to @WILDWEST-AERIAL, right-to-left,
+  21:9** before generating.
+
 ## Music keeps sneaking in
 
 Despite a closing "No music." the model scored the first artifact shot. Since

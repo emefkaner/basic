@@ -155,6 +155,34 @@ Two details that carry the whole thing: **"a photograph, not a subject"** in the
 background header, and the closing sentence of INTEGRATION that scopes the change to
 lighting, colour and edges — so "harmonise" is never read as permission to re-animate.
 
+## Flight windows need an AERIAL element (verified, S18_03)
+
+Three shots in a row (S16_05, S17_03, S18_03) came back driving at ground
+level no matter how hard the text insisted on altitude. Cause: `@WILDWEST`
+is photographed from the ground, and the image beats the text — the element
+drags its eye-level perspective into every window, in video AND image
+generation alike (an aerial re-shoot prompt with @WILDWEST attached came
+back at ground level twice).
+
+The fix that worked end to end:
+
+- Generate the aerial view **without any reference attached** (a reference
+  anchors the camera back to the ground). Pure text, positives only — no
+  exclusion lists ("no rails, no fence" summoned a fence; naming the camera
+  platform "hot-air balloon" put a balloon in frame).
+- Get **geometry only** from the model, sharp; bake the anamorphic defocus
+  in post (`gblur=sigma=H:sigmaV=V` with H≈1.7×V for oval highlights) —
+  the image model refused uniform defocus three times and instead pasted
+  bokeh discs over a sharp image.
+- Save as element `@WILDWEST-AERIAL`, tag it in flight shots as **"a
+  photograph, not a subject"**. First run with it: the flight finally read.
+- **The model animates an aerial still as a drone orbit** (its prior). Lock
+  translation with checkable properties, without naming the orbit: "the
+  horizon stays perfectly level and at the same height in every frame; every
+  landmark enters at the left edge, travels a straight horizontal line and
+  leaves at the right edge exactly once, never returning" + falsification.
+  Verified: second run had zero rotation.
+
 ## Moderation-safe packaging (verified on IRON CLOUD, S17_04)
 
 Higgsfield's text filter cluster-matches on vocabulary, not on what the footage shows.

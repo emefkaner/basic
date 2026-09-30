@@ -22,6 +22,49 @@ Hard-won rules from working on this film. Apply these before writing any new pro
   failure modes touched (orbit prior, direction, re-staging, music),
   moderation risk, and whether the plate has already passed once.
 
+## Filing every generation in Higgsfield (user rule, 09/2026)
+
+Every image or video generation for IRON CLOUD goes straight into the
+Higgsfield project "IRON CLOUD" via `folder_id`. **Never generate without a
+target folder.** IDs verified against `list_folders` on 30.09.2026.
+
+- Workspace `db9c3bdd-1fc9-4b35-8e50-9ee3572cebaf`
+- Project   `1d392fa4-c334-4367-b7a3-8e2ccddf22f8`
+
+Root folders:
+
+| Folder | ID | Contents |
+|---|---|---|
+| `_SHOTLIST` | `d38253d0-51eb-4e47-98f1-0fb8a4376f70` | all shots, one subfolder per scene |
+| `LOCATION` | `f6e88a4e-9b14-4b70-9b7a-e9ae24d4c4ae` | location plates, environments (e.g. `@WILDWEST-AERIAL` stills) |
+| `CHARACTER` | `7ff3e40d-ff8a-4b20-ba5d-97adfc72fb6d` | character references |
+| `INTRO` | `60785877-bd9c-4652-a5ee-f1b4bd251e5f` | intro |
+| `TESTSHOTs` | `167cef42-4653-4abe-858e-bc342ed70419` | tests without a shot number |
+
+Rule 1: shot number "19_01" = scene 19 → `_SHOTLIST/S19`. Scene subfolders
+under `_SHOTLIST`:
+
+| Scene | ID | | Scene | ID |
+|---|---|---|---|---|
+| S01 | `9db0f59b-2d11-410c-8f61-7f36fb9a3006` | | S13 | `f531b421-4089-4c60-aa36-844c93735273` |
+| S02 | `3804e11d-cdc6-4d10-9b0a-e4dec3d18b08` | | S14 PROPS OUT | `779c37ce-df8c-4097-8591-74ed13ba07ec` |
+| S03 | `528885e4-cf89-47e6-902f-0213b35d5303` | | S15 LIFTOFF | `f2abdd5c-0ce2-4cc2-8636-f5cc2ce5d012` |
+| S04 | `69663daa-0510-4e62-a41f-66b32206b22e` | | S16 | `f398dad7-094a-46a7-953d-670576bacd03` |
+| S05 | `19c8db0e-5d85-4c54-a9a7-ea0c9295ae6e` | | S17 | `f6d11f64-147b-4f42-add4-eb611d354f69` |
+| S05 INFLATE | `2832eb43-aad1-4d74-9525-25b31317652c` | | S18 | `00e16d68-d79d-47a1-b888-825fd1d836ba` |
+| S06 | `b3225400-382f-4cd9-bb5a-5d03b16c9cbe` | | S19 | `6767187b-f604-4ecb-8ab7-1d330b70e953` |
+| S07 | `46697a3b-18cb-44d5-8a1b-8304b393dd16` | | S20 | `fd1136f9-2214-4e7a-bbb5-2620f13005b9` |
+| S08 | `0a5528c5-30c2-4ff7-99a0-17c802111585` | | S23 | `f673bab8-b272-402c-a3ea-31ad70d93c7a` |
+| S09 | `81fd8674-2651-453c-9930-d15a314d502d` | | S24 | `f42119c9-b8b8-49b3-956e-547925819f22` |
+| S10 | `24effd21-1e18-4ba8-b5ee-1e75d411281a` | | S25 | `288e3c27-0447-4ba6-848d-4bf54fb3b622` |
+| S11 | `9fbe72b5-7583-42e7-97d3-5201d691919b` | | | |
+
+Also present, purpose not yet stated by the user: `_SHOTLIST/H264`
+(`666a7fb2-…`), `_SHOTLIST/_` (`d3b7f085-…`), root `_` (`7e3fa50b-…`).
+No folder exists yet for S12, S21, S22. The user's rule list was cut off
+after rule 1 — ask for the rest before assuming how missing scene folders,
+the special folders or plate uploads are handled.
+
 ## Iterative camera moves beat absolute descriptions
 
 When a generated image has the right subject but the wrong distance, angle or framing,

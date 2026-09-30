@@ -11,6 +11,46 @@ Hard-won rules from working on this film. Apply these before writing any new pro
 - **Always close with an asset list**: state explicitly which assets the user must
   attach to the prompt in Higgsfield (source plate video, @-tagged reference
   elements, @image1/@image2 slots) — and which must NOT be attached.
+- **Always close with a credit call**: draft or normal, and why. See below.
+
+## Credit call — draft vs. normal, with every prompt
+
+The user runs Seedance 2.5 in **draft** (cheap, for verifying that a shot is built
+right) and **normal** (expensive, for the take that gets used). Every prompt ships with
+a verdict, so the decision is never a coin flip.
+
+Give a traffic light, never a percentage — a made-up number is worse than an honest
+judgement:
+
+- 🟢 **Straight to normal.** Static or simple camera, one or two references, short,
+  nothing that has failed before in this shape.
+- 🟡 **One draft, then normal.** One genuinely new element — a camera move, a new
+  element, an unverified beat. The draft answers one question, then the normal run.
+- 🔴 **Draft mandatory, expect several.** Multiple risk factors stacked. Say plainly
+  that the normal run is likely wasted until the draft is clean, and say whether
+  splitting the shot into two generations is the cheaper route overall.
+
+Weigh these, because each has cost real generations here:
+
+| Factor | Cheap | Expensive |
+|---|---|---|
+| Duration | ≤ 5 s | ≥ 10 s — drift and invention grow with length |
+| Camera | locked or one simple move | crane plus arc, height change, landing on a mark |
+| References | 1–3 | 6+ — every extra one dilutes the rest |
+| Tagged faces | 0–1 | 3+ that must stay distinct and in a fixed order |
+| Subject motion | free movement | must stop on an exact mark, or stay in frame throughout |
+| Environment | one element | two elements of one place that must agree |
+| History | a shape that has worked | a shape that has failed before, fix unverified |
+
+**A draft run must answer a named question.** State which checkable frame property the
+draft is being watched for ("at second seven, do the rails run diagonally to the lower
+left?"), otherwise it is a guess with a smaller price tag.
+
+**Strip the identity layer for a geometry draft.** Camera, blocking, timing and the
+stop mark can all be judged without the right faces. Dropping the character elements
+for the draft run removes the biggest source of dilution and makes the geometry easier
+to read — then the full reference set goes on the normal run, with the camera block
+unchanged so the draft still predicts it.
 
 ## Iterative camera moves beat absolute descriptions
 

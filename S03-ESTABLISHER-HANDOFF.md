@@ -63,9 +63,36 @@ Ein Kran-Abstieg braucht ein Paar mit gleicher Blickrichtung und gleicher Gleiss
 `SOUTH-2` → `SOUTH-LOW` ist ein solches Paar (beide nach Norden, ~25 m auf Augenhöhe).
 `NORTH-HIGH` → `NORTH-LOW` blickt nach Süden mit dem Gleis rechts.
 
-Das Gleis liegt **in der Hauptstraße**, nicht in einem Bahnhofsgelände: kein
-Schotterbett, keine Bahnsteigkante. Prompts, die Schotter, Bahnsteig oder Güterschuppen
-beschreiben, reden gegen die Bilder.
+### Was die Bilder wirklich zeigen (geöffnet, nicht aus Beschreibungen geschlossen)
+
+`SOUTH-LOW` und `SOUTH-2` zeigen übereinstimmend:
+
+- **Ein richtiges Schotterbett ist da** — grauer Bruchstein, erhöht, mit sichtbarer
+  Kante zum gestampften ockerfarbenen Sand daneben. Eine frühere Notiz hier behauptete
+  aus der NORTH-HIGH-*Beschreibung* heraus, es gäbe keinen Schotter. Falsch. Das ist die
+  Lehre: die Beschreibung eines Elements ist eine Behauptung, das Bild ist der Befund.
+- Zweistöckige Holz-Falschfassaden **links** vom Gleis, Schild `LAND OFFICE`, Boardwalk
+  davor. Rechts das Gebäude mit dem Schild **`YOUNG & Co.`** samt überdachter Veranda
+  und Plankensteg.
+- **Wasserturm** auf Stelzen, rechts vom Gleis in der Mittelentfernung, dahinter eine
+  Koppel mit Lattenzaun.
+- Telegrafenmasten mit durchhängenden Drähten beidseitig, Saguaros und Mesas am
+  Horizont, Hitzedunst über der Ferne.
+- Breite Sandfläche mit Wagenspuren rechts vom Gleis — dort ist Platz für die fünf.
+- In `SOUTH-2` liegt das Gleis **mittig** im Bild, in `SOUTH-LOW` in der **linken**
+  Bildhälfte. Ein Kranabstieg von SOUTH-2 nach SOUTH-LOW wandert also nach rechts,
+  genau wie die Vierteldrehung des Establishers.
+
+`@Schmitzkowsky` ist ein **dreiteiliges Character-Sheet auf grauem Seamless**: Front
+(ohne Kopf), Rücken, Nahporträt. Er trägt eine **schwarze Melone mit Messing-Goggles
+auf der Krempe**, braunen langen Mantel über Weste, cremefarbenes Hemd, dunkle
+Strickkrawatte, sandfarbene Hose. Die Goggle-Variante wird für den Establisher nicht
+gebraucht — die Brille sitzt hier schon auf dem Hut.
+
+Zwei Risiken daraus: Das Sheet ist eine Studioaufnahme mit locked-off Kamera und
+neutralem Hintergrund (zieht die Kamera zum Stillstand, siehe die Notiz zu
+`@IRON-CLOUD-Inflated` in `CLAUDE.md`), und **eine der drei Ansichten hat keinen Kopf**.
+Bei Nahaufnahmen darauf achten, ob das durchschlägt.
 
 ## Film-Grunddaten
 

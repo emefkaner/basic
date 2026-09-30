@@ -299,6 +299,32 @@ Rules:
 - Grid overlays (drawgrid) on full frames beat eyeballing crops for
   coordinates; measure once properly instead of chasing slivers.
 
+## Ablage für IRON-CLOUD-Generierungen (Higgsfield)
+
+Jede Bild- oder Videogenerierung für IRON CLOUD wird direkt im Higgsfield-Projekt
+„IRON CLOUD" einsortiert. **Nie ohne Zielordner generieren.**
+
+- Workspace-ID: `db9c3bdd-1fc9-4b35-8e50-9ee3572cebaf`
+- Projekt-ID: `1d392fa4-c334-4367-b7a3-8e2ccddf22f8`
+
+Ordner in der Projektwurzel:
+
+| Ordner | ID | Inhalt |
+|---|---|---|
+| `_SHOTLIST` | `d38253d0-51eb-4e47-98f1-0fb8a4376f70` | alle Shots, Unterordner S01, S02 … pro Szene |
+| `LOCATION` | `f6e88a4e-9b14-4b70-9b7a-e9ae24d4c4ae` | Location-Platten und Umgebungen |
+| `CHARACTER` | `7ff3e40d-ff8a-4b20-ba5d-97adfc72fb6d` | Figuren-Referenzen |
+| `INTRO` | `60785877-bd9c-4652-a5ee-f1b4bd251e5f` | Intro |
+| `TESTSHOTs` | `167cef42-4653-4abe-858e-bc342ed70419` | Tests ohne Shotnummer |
+
+Regeln:
+
+1. Shotnummer „19_01" = Szene 19 → Ordner …
+
+> **Unvollständig.** Die Vorlage bricht hier mitten in Regel 1 ab; Regel 2 und
+> folgende fehlen. Bis der Rest nachgereicht ist: Zielordner vor jeder
+> Generierung erfragen, statt ihn zu raten.
+
 ## Draft or Normal — a recommendation ships with every prompt
 
 Every video prompt is delivered together with an honest estimate: does this shot

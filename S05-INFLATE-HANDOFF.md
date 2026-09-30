@@ -1,0 +1,415 @@
+# IC Prompt Master S05 INFLATE — Session-Handoff
+
+Beim Start dieser Session: **zuerst `CLAUDE.md` lesen** (dort stehen alle hart
+erarbeiteten Prompting-Regeln), dann diese Datei. Die Rolle und Arbeitsweise sind
+identisch zu `S03-ESTABLISHER-HANDOFF.md` — dort steht sie ausführlich; das Wichtigste:
+
+- User beschreibt auf Deutsch, du lieferst **englische Prompts in Codeblöcken**,
+  Video immer über das Skill `higgsfield-seedance-prompt`.
+- **Niemals selbst generieren** — der User generiert in der App. API kostet Credits.
+- **Eine Änderung pro Generation**, gezielt an der kaputten Stelle nachbessern.
+- **Immer vollständige Prompts liefern, nie Austausch-Absätze.** Auch wenn sich nur ein
+  Satz ändert: der ganze Prompt kommt neu, in einem Codeblock, zum Kopieren. Der User
+  soll nichts zusammenstückeln müssen.
+- **Vor jedem Prompt steht, was zu laden ist.** Eine kleine Tabelle mit `start_image`,
+  Basisbild und jedem Referenz-Element — und ausdrücklich auch, was *nicht* getaggt wird.
+  Der User muss vor dem Abschicken wissen, ob ihm noch ein Asset fehlt.
+- Ergebnisse immer selbst ansehen: Share-Link und CDN sind erreichbar, das Vorgehen steht
+  in `CLAUDE.md` unter „Watch the results". Niemals ein Ergebnis beschreiben, das nicht
+  tatsächlich geöffnet wurde.
+
+## Der Shot
+
+Das Dach des grünen Waggons klappt auf, ein Zeppelin-Ballon entfaltet sich daraus,
+bläst sich auf und verbindet sich über Stahlseile mit Lok, Tender und Waggon.
+Hintergrund `@WILDWEST`. Zug fährt dabei.
+
+## Was schiefging und warum
+
+Die erste Fassung war ein Vier-Bild-Storyboard (`@image1` geschlossen → `@image2`
+aufgeblasen → `@image3` ganzer Zug → `@image4` Endlook) plus ein wieder zuklappendes
+Dach im Text. Ergebnis laut User: „das Aufklappen ist da, aber doppelt und komisch."
+
+Drei Ursachen, alle strukturell:
+
+1. **Zeitrollen an Referenzen.** Referenzen tragen Identität, keine Reihenfolge.
+   `image1` und `image4` zeigten beide ein geschlossenes Dach → der Zustand lag
+   doppelt im Korb → das Dach klappte zweimal auf.
+2. **Zwei gegenläufige Dachbewegungen** (auf *und* wieder zu) in einer Generierung —
+   ohne Ordnungssignal macht das Modell beide mehrfach.
+3. **Aussehen doppelt beschrieben** (Text *und* Bilder): „DB 01 150", „named IRON
+   CLOUD", „dark green with polished metallic accents". Verstößt gegen „One owner for
+   appearance"; der Name im Text lädt zusätzlich Schriftzüge auf die Maschine ein —
+   genau dafür existiert `@LOCO-BASE`.
+
+Die verallgemeinerte Regel steht jetzt in `CLAUDE.md` unter
+„References carry identity, not sequence — one direction of change per shot".
+
+## Aktueller Ansatz (Stand: erste Fassung geliefert, Ergebnis steht aus)
+
+Ein einziger durchgehender Take, **eine Bewegungsrichtung**: alles öffnet sich,
+nichts kehrt zurück. Das Zuklappen ist gestrichen — unter dem fertigen Ballon
+ohnehin kaum sichtbar, notfalls später eigener Insert.
+
+| Slot | Inhalt |
+|---|---|
+| `start_image` | bisheriges Image 1 (Zug geschlossen, High Noon) |
+| Referenz | `@WILDWEST` (Location) |
+| Referenz | `@IRON-CLOUD-Inflated` (Endzustand, letztes Frame) |
+| entfällt | die bisherigen Image 3 und Image 4 |
+
+Zug-Identität kommt aus dem `start_image`, deshalb **kein** zusätzlicher Lok-Tag.
+Der Ballon ist das Einzige, was in Frame 1 noch nicht existiert — dafür genau eine
+Referenz. Drei Stufen als *Endzustände* formuliert (Klappen liegen an → Hülle länger
+als der Waggon, Unterseite noch schlaff → Hülle prall über dem ganzen Zug, Seile
+straff), Größen über Menschenhöhen verankert, nicht in Metern.
+
+**Frame-1-Test:** geschlossenes, ungeteiltes Dach, leerer Himmel darüber, Boden
+bereits in Bewegung. Bei Naht oder Ballonansatz in Frame 1 hat `start_image` nicht
+gegriffen — dann nicht am Text drehen.
+
+**Fallback, falls es weiter doppelt:** Split in zwei Generierungen, Schnitt wenn die
+Dachklappen unten liegen. Shot A endet auf offenem Dach; Shot B nimmt dessen letztes
+Frame als `start_image`.
+
+## Generierung 1 — ausgewertet
+
+Video: `higgsfield.ai/s/pjtQvAeeq7c`, 10,08 s, 24 fps, 2206×946. Frames gezogen wie in
+`CLAUDE.md` unter „Watch the results" beschrieben.
+
+| Zeit | Bild |
+|---|---|
+| 0–0,8 s | Zug sauber, Dach zu. Vordergrund-Wischer und Staub funktionieren. |
+| 1,0–2,0 s | Ein **waggongroßer grüner Deckel** hebt sich ab und kippt. |
+| 2,5 s | Deckel weg, Dach wieder zu und normal. |
+| 3,0–5,5 s | **Weiße** geraffte Segeltuchmasse wächst aus dem jetzt offenen Dach. |
+| 5,5–6,5 s | Farbe kippt nach dunkelblau, Form streckt sich zum Zeppelin. |
+| 6,5–10 s | Endlook korrekt, Seile dran, hält ruhig. **Diese Hälfte ist gut.** |
+
+Vier Ursachen, drei davon am Material nachgewiesen:
+
+1. **Leerer Beat.** Das Dach hatte 3 s ganz allein, ohne Ballon und ohne ein Bild davon,
+   wie ein offenes Dach aussieht → der Deckel ist reine Füllerfindung. Ab 3,0 s, als der
+   Ballon den Beat trug, öffnete dasselbe Modell das Dach korrekt.
+2. **Zu wenige Pixel.** In der Totale ist das Waggondach ein schmaler Streifen; zwei
+   schmale Klappen sind darin nicht auflösbar. Framing-Problem, kein Wortproblem.
+3. **`@IRON-CLOUD-Inflated` zeigt das Dach geschlossen** — der Lock „Dach bleibt bis
+   zum letzten Frame offen" widersprach der Referenz frontal.
+4. **Farbumschlag war ein Prompt-Fehler:** der Text sagte „pale folded fabric", die
+   Referenz ist dunkelblau. Text besaß die Farbe früh, das Bild spät.
+
+Fix in Generierung 2: kein eigener Dach-Beat mehr — die Hülle drückt das Dach von innen
+auf, ein Ereignis. Kein Farbwort im Text, stattdessen Farbbindung an die Referenz
+**ab 1,0 s**. Referenzblock schränkt `@IRON-CLOUD-Inflated` auf Hülle und Beschläge ein.
+Kamera klettert und fällt durchgehend zurück.
+
+## Generierung 2 der Totale — `higgsfield.ai/s/xFPq--zljkY`
+
+Alle vier Fehler von Generierung 1 sind weg: das Dach klappt **genau einmal** auf (bei
+1,0 s offen, Klappen flach nach außen auf Dachhöhe, Waggonkörper unversehrt), **kein
+Farbsprung** (marineblau ab dem ersten sichtbaren Frame), die **Kamera arbeitet**
+(steigt und fällt zurück), Umgebung und Atmosphäre tragen, und der Endlook liegt sehr
+nah an `@IRON-CLOUD-Inflated`.
+
+Offen, nach Wichtigkeit:
+
+1. **Das Auffalten liest als dunkler Klumpen, nicht als Stoff.** Bei 3,5 s liegt eine
+   dunkle wulstige Masse auf dem Waggon — kein Textilsignal, keine Bahnen, keine Nähte,
+   keine Goldbänder, und vor allem **keine Richtung**. Fix in Runde 3: eine wandernde
+   Füllfront von der Nase zum Heck, davor prall und glatt, dahinter flach und flatternd,
+   die Grenze wandert und kehrt nie um. Prüfbar bei 4,5 s: vordere Hälfte rund, hintere
+   noch flach. Dazu Bahnen und Goldbänder ab dem ersten Moment gefordert, und ein
+   Lichtblock, der die Grenze allein optisch lesbar macht.
+2. **Die Hülle hängt gut anderthalb Waggonhöhen über dem Zug**, in der Referenz deutlich
+   knapper — liest als „Ballon schwebt über Zug" statt als eine Maschine.
+3. **Der Zug wird am Ende klein**, die Kamera fährt weiter zurück als nötig, und damit
+   verschwindet der rasende Vordergrund, der vorher das Tempo getragen hat.
+4. **Das Dach ist am Ende wieder zu** — die Referenz setzt sich durch, wie vorhergesagt.
+   Irrelevant, solange davor geschnitten wird.
+
+Punkt 2 und 3 sind beide Kamera- und Endzustandsfragen und gehören in eine eigene Runde,
+nicht mit Punkt 1 zusammen.
+
+## Generierung 3 der Totale — `higgsfield.ai/s/ebiw-lplcuk`
+
+**Die wandernde Füllfront funktioniert.** Bei 4,5 s ist die vordere Hälfte rund, glatt und
+straff mit der Messingnase im Gegenlicht, die hintere Hälfte hängt noch als schweres
+faltiges Tuch über dem Waggon, die Grenze wandert sauber nach hinten. Liest eindeutig als
+Stoff mit Gewicht. Bahnen, Goldbänder und Messingbeschläge sind ab dem ersten Moment da.
+Das Aufklappen ist ebenfalls sauber: bei 1,0 s zwei erkennbare Klappen, darunter sichtbar
+dunkles Material.
+
+Offen:
+
+1. **Abstand und Kamerafahrt sind dieselbe Ursache** — das war in Runde 2 falsch als zwei
+   Punkte notiert. Das Bild muss vertikal Zug + Abstand + Hülle fassen; der große Abstand
+   zwingt die Kamera zurück, und damit wird der Zug klein und der rasende Vordergrund
+   verschwindet. Fix: Abstand an der Waggonhöhe verankern (etwa halbe Waggonkörperhöhe),
+   und im Referenzblock ausdrücklich „wie eng die Hülle über dem Zug reitet" mit zu dem
+   zählen, was von `@IRON-CLOUD-Inflated` übernommen wird. Die Kamera bekommt dann keine
+   Bildanteils-Ziele mehr, sondern prüfbare Eigenschaften: Tender-Schriftzug bis zum
+   letzten Frame lesbar, Vordergrund läuft bis zum letzten Frame durch.
+2. **Die offenen Dachklappen stehen als schräge Bretter** über dem Waggon und lesen wie
+   loses Zeug. Fix: flach an die Dachlinie legen, damit die Oberkante sauber bleibt.
+
+### Abgenommen — und eine Korrektur an der obigen Mängelliste
+
+**Generierung 3 ist die finale Fassung.** Es wurde danach nichts mehr generiert; der
+Prompt mit der Abstands- und Kamerakorrektur wurde nie gefahren und wird nicht gebraucht.
+
+Punkt 1 der Mängelliste oben war **überzogen**. Er entstand aus dem 1-fps-Kontaktbogen und
+dem Frame bei 8,4 s. Am tatsächlich letzten Frame hält er nicht: „IRON CLOUD" auf dem
+Tender ist klar lesbar, der Zug ist nicht zu klein, und Gestrüpp ist bis zum Schluss im
+unteren Drittel, die unterste Bahn mit Bewegungsunschärfe. Die Kamera landet höher und
+weiter als in der Shot-Mitte, aber das liest als weite Vista, nicht als Verlust.
+
+**Lehre daraus:** ein Kontaktbogen bei 1 fps und ein herausgegriffenes Frame kurz vor
+Schluss sind gut für Artefakte und Abläufe, aber schlecht für ein Urteil über die
+Schlusskomposition. Vor jeder Aussage über das Ende den *tatsächlich letzten* Frame
+ziehen (`ffmpeg -sseof -0.15`), nicht den nächstbesten.
+
+Was am Schlussframe wirklich noch zu sehen ist, beides ohne Handlungsbedarf: der
+Vordergrund ist am Ende überwiegend scharf statt der rasenden unscharfen Bahn vom Anfang,
+der Tempo-Eindruck ist im Schlussdrittel also schwächer; und auf dem Waggon steht hinten
+ein dunkles schräges Teil hoch, vermutlich eine Dachklappe.
+
+## Stand S05 insgesamt
+
+| Shot | Stand |
+|---|---|
+| INFLATE, Totale | **fertig** — `higgsfield.ai/s/ebiw-lplcuk` ist die abgenommene Fassung |
+| DACH, Nahaufnahme | Mechanik, Umgebung und Schachttiefe sitzen; das gepackte Paket liest als Wülste statt als Lagen. **Geparkt** — der User schneidet die Stelle vorerst weg. |
+| `ZEPP-PACK-BAY` | Element noch nicht gebaut. Nur nötig, wenn der Dach-Shot wieder aufgenommen wird; Bild-Prompt liegt vor. |
+| ANKER-Inserts (Tender + Lok) | Prompts geschrieben, noch nicht generiert. Je ein Standbild (`ANCHOR-TENDER`, `ANCHOR-LOCO`) aus `v_end.png`, dann je ein 10-s-Clip. |
+
+## ANKER-Inserts — Magnetverankerung der Seile
+
+Nahaufnahmen zum Zwischenschneiden: die Seile klinken sich magnetisch an Tender und Lok.
+
+**Verseilung laut abgenommener Totale** (angesehen, nicht geraten): Messing-Aufhängungs-
+scheiben mit Nieten an der Hüllenflanke, dazwischen Messing-Girlanden, von jeder Scheibe
+senkrechte Messingseile hinunter auf einen durchgehenden **Messing-Kielspant**, der längs
+unter der Hülle über den ganzen Zug läuft. Von dort fallen die Seile auf den Zug — in der
+Totale auf das **Lokheck hinter dem Führerhaus** und vorn auf den **Waggon**; der Tender
+wird nur überspannt. Der Insert zeigt einen Tender-Anker, das ist mit der Totale
+vereinbar (im Weitwinkel hinter dem Spant verdeckt), aber die Stelle, an der ein
+Anschluss-Schnitt auffallen könnte.
+
+**Die Verankerung:** polierte Messing-Ankerplatte in schwarzem Eisensockel, Kupfer-
+wicklungen um den Kragen, vier Bolzen; am Seil ein massiver Messing-Kegelstecker mit
+Flansch an geflochtenem Stahlseil. Ablauf: Wicklungen glimmen bernsteinfarben → Eisenstaub
+und eine lose Schraube richten sich auf und stellen sich senkrecht → **die letzten zwanzig
+Zentimeter beschleunigt der Stecker, statt langsamer zu werden** → blauer Lichtbogen →
+harter Schlag ohne Nachfedern → Eisenring dreht eine Vierteldrehung, drei Messingklauen
+legen sich über den Flansch → Seil geht von der Kurve in die gerade Zuglinie und summt.
+
+**Das Abnahmekriterium ist die Beschleunigung.** Alles andere ist Dekoration: ein
+fallendes Objekt wird langsamer, ein angezogenes schneller. Ohne dieses Signal zeigt der
+Shot nur, wie etwas heruntergelassen wird.
+
+Zwei getrennte Generierungen statt Schnitte im Prompt — Begründung in `CLAUDE.md` unter
+„Cut in the edit, not in the prompt". Die Winkel sind bewusst verschieden: Tender von oben
+herab mit 47° und Kamera fährt hinein, Lok von unten herauf mit 29° und Kamera steigt.
+
+### Versuch 1 gescheitert — `higgsfield.ai/s/D_oY6_xALEY`
+
+Vier Fehler, drei davon in meinen Formulierungen:
+
+1. **Kamera landete auf dem Pufferdeck vorn an der Lok.** „Kamera auf Laufblechhöhe" plus
+   „nach vorn am Zug entlang" ergab den Bugbereich — dort kommt kein Seil herunter.
+2. **Weder Seil noch Hülle im Bild**, oben rechts nur Himmel. Ohne das Objekt, von dem das
+   Seil kommt, ist der Shot notwendig zusammenhanglos.
+3. **„anchor" hat einen Schiffsanker gerufen** — Messingplakette mit Ankersymbol auf dem
+   Pufferträger. Homonym, falsche Bedeutung gewählt.
+4. **Der Stecker morpht** ab Sekunde 4 in einen liegenden Zylinder mit Kupferwicklung, das
+   Seil verschwindet. Stecker und gewickeltes Gehäuse sind zu einem Objekt verschmolzen.
+
+Dazu eine Selbstkorrektur: **das Glühen musste raus.** Es rendert als rotglühende Scheibe
+mit Funkenkranz und liest als Schmiede, nicht als Magnet. Ich hatte selbst notiert, dass
+Glühen Dekoration ist — hier war es schädliche Dekoration.
+
+Alle drei Lehren stehen verallgemeinert in `CLAUDE.md`: „A close-up must contain what the
+action refers to", „Watch for words that name two different things", „Decoration that
+misleads is worse than no decoration".
+
+**Neuer Ansatz:** Element heißt `TENDER-LATCH`, nicht `ANCHOR-*`. Standbild komponiert in
+drei Bändern — unten zwei Drittel Tender mit lesbarem IRON-CLOUD-Schriftzug, oben ein
+Drittel unscharfe Hülle mit Kielspant, dazwischen das hängende Seil. Ort über ein
+eindeutiges Merkmal gepinnt („der Wagen direkt hinter der Lok, der mit dem goldenen
+Schriftzug"), nicht über eine Bewegungsrichtung. Nichts glüht; alles Licht ist Sonnenlicht.
+**Erst den Tender fertig machen, dann die Lok darauf aufbauen.**
+
+Der Weg zur fertigen Totale in drei Runden: Storyboard-Referenzen und Rückwärts-Beat raus
+→ Dach vom Ballon aufdrücken lassen statt eigener Beat, Farbe ab 1,0 s an die Referenz
+gebunden → wandernde Füllfront statt „wächst bis voll". Alle drei Erkenntnisse stehen
+verallgemeinert in `CLAUDE.md`.
+
+## Was die Referenzen wirklich zeigen (angesehen, nicht geraten)
+
+- **`@IRON-CLOUD-Inflated`** — Studio-Produktfoto auf grauem Seamless, erhöhte
+  Dreiviertelansicht, Modell auf Schotterbett. Dunkelblaue Hülle mit Messing-Nasenkappe,
+  Messing-Finnen am Heck, Messing-Gantry und Seilen zu Tender und Waggon. Der grüne
+  Waggon darunter hat sein **normales geschlossenes Dach** mit Messingknäufen. Weil es
+  ein Studiofoto ist, zieht es getaggt in Außenaufnahmen die Kamera Richtung Stillstand
+  — im Prompt ausdrücklich auf Hülle und Beschläge einschränken.
+- **`@WILDWEST`** — breite Wüsten-Panoramaplatte, Butte links, Mesas rechts, Saguaros und
+  Salbei, tiefblauer Himmel. **Kein Gleis**, also keine Blickrichtung, gegen die ein
+  Blocking verstoßen könnte. Der frühere Spiegel-Vorbehalt ist damit erledigt.
+- Der Zug im `start_image` trägt „IRON CLOUD" in Gold auf Lokflanke und Tender — die
+  Beschriftung kommt aus dem ersten Frame und ist kein Textproblem.
+
+## Offene Unbekannte
+
+- Ungeklärt: was `@IRON-CLOUD-FLY` gegenüber `@IRON-CLOUD-Airborne` zeigt, und ob
+  `@Cellar-Empty` / `@Cellar-Crowd` / `@Tanzpaar` zu S05 gehören.
+- Noch nicht gebaut: ein Element „Zug aufgeblasen **mit offenem Dach**". Solange es
+  fehlt, kann kein Shot das offene Dach bis zum Schlussframe halten.
+
+## Zweiter Shot — DACH (Nahaufnahme)
+
+Halbtotale bis Halbnah auf den grünen Waggon, Dach formatfüllend. Erst in dieser
+Bildgröße ist die Mechanik überhaupt darstellbar. Vorgehen: erst ein `start_image` als
+Kamerafahrt auf der vorhandenen Totale erzeugen („vier Meter an die Waggonflanke, zwei
+Meter über die Dachlinie, zwanzig Prozent nach unten kippen"), dann das Video darauf.
+
+**Gegen Morphen und Slop** trägt ein eigener `PHYSICS`-Block, der jedes Teil namentlich
+als starr benennt — Scharnierbänder, Bolzen, Nieten, Kolbenstangen, Verriegelungsstifte —
+und den einen entscheidenden Satz enthält: *das Einzige, was sich an den Klappen ändert,
+ist ihr Winkel um die Scharnierachse.* Dazu hartes Kantenlicht: weiches, gummiartiges
+Verhalten braucht weiches Licht, harte helle Linien an jeder Stahlkante erzwingen Form.
+Alles positiv formuliert, kein einziges Verbot.
+
+### Was in den Runden gelernt wurde
+
+- **Kein Referenz-Element für die Umgebung war ein Fehlschlag mit Ansage.** `@WILDWEST`
+  ist eine Breitbild-Panoramaplatte und zieht enge Einstellungen auf — deshalb hatte ich
+  sie weggelassen, und der Hintergrund kam generisch zurück. Die Lösung ist nicht
+  weglassen, sondern **„a photograph, not a subject"**: taggen und im Prompt darauf
+  festlegen, dass sie nur als weit hinten liegender, unscharfer Streifen vorkommt und
+  die Kamera nie zurückfährt, um sie einzufangen. Das `start_image` hält dabei die
+  Einstellung, der Tag färbt nur noch den Hintergrund.
+- **Unschärfe allein macht keine Location.** Ein weichgezeichneter Streifen liest sich
+  nur dann als Monument Valley, wenn Farbe und Silhouette erkennbar bleiben. Drei
+  Hintergrundebenen mit *unterschiedlichem Tempo* — rasende Sträucher, einzeln
+  durchschnippende Saguaro-Silhouetten, fast stehende rostrote Butte — machen die Tiefe,
+  die die Schärfe nicht machen darf.
+- **Ein Lock kann selbst der Fehler sein.** „The interior of the opening stays in deep
+  shadow" sollte verhindern, dass sich das Modell auf eine Hüllenfarbe festlegt. Ergebnis:
+  das Dach fuhr auf und gab einen komplett leeren Lagerraum frei. Das Modell hielt sich
+  exakt an die Anweisung. Bevor man einen Zustand wegsperrt, muss klar sein, was
+  stattdessen zu sehen ist.
+- **Ein Zwischenboden gehört in einen eigenen Block, vor die Aktion.** Ein leerer Raum
+  entsteht, wenn nicht beschrieben ist, was da sein soll. `WHAT IS UNDER THE ROOF` steht
+  deshalb weit oben, mit dem Satz „der Waggon darunter ist zu keinem Zeitpunkt sichtbar"
+  — der macht die Zwischendecke erst zur Decke statt zum Lagerraumboden.
+- **Text darf das Aussehen besitzen, wenn kein Bild es besitzt.** In diesem Shot ist
+  keine Hüllen-Referenz getaggt, also beschreibt der Text die gepackte Hülle: tiefes
+  Marineblau, mattes gummiertes Segeltuch, goldfarbene Längsbänder, Messingbeschläge —
+  rekonstruiert aus `@IRON-CLOUD-Inflated`. „One owner for appearance" verbietet *zwei*
+  Besitzer, nicht den Text an sich.
+- **Das gepackte Paket braucht seinen eigenen Stillstands-Lock**, sonst fängt die Hülle
+  hier schon an, sich zu entfalten: gepackt, verzurrt, flach, gleiche Größe, und das
+  Einzige, was sich daran ändert, ist das Licht.
+
+**Offen:** wenn die Marineblau-Beschreibung im Schnitt gegen die INFLATE-Hülle driftet,
+ein Standbild des gepackten Decks als eigenes Element speichern — dann besitzt ein Bild
+die Farbe für beide Shots.
+
+### Stand nach Runde 3 — `higgsfield.ai/s/zmtMKJoPViY`
+
+Funktioniert: Mechanik formstabil über den ganzen Bogen (Klappen behalten Form und
+Kanten, Scharnierseite bleibt), `@WILDWEST` liest erkennbar im unscharfen Hintergrund,
+Schacht wand-zu-wand gefüllt ohne sichtbaren Boden, Dampf an der Naht, Messing und
+genietete Schachtwände da.
+
+Offen: **die Menge liest immer noch nicht.** Im Schacht liegen rund acht dicke, runde,
+glänzende Wülste — Matratzen-Anmutung. Zwei Prompt-Fehler, beide dokumentiert in
+`CLAUDE.md` unter „Quantity reads as layer count, not as lobe size":
+
+1. Der Größenanker „each fold about as deep as a forearm" hat unterarmdicke Rollen
+   erzeugt. Menge liest sich über Lagenzahl, nicht über Faltendicke.
+2. Runde Kuppen mit Glanzlichtern lesen als Bettzeug, egal wie das Material genannt wird.
+   Es braucht flache Oberseiten, stehende Bruchkanten, grobe Webstruktur, Staub in den
+   Kniffen.
+
+Dazu: die Kamera endete fast senkrecht über dem Schacht, und Schichtung liest sich an der
+**Flanke** des Stapels, nicht auf seiner Oberseite.
+
+**Nächster Schritt (empfohlen):** nicht weiter am Text drehen. Nur noch Aussehen ist
+offen, und Aussehen gehört den Bildern. Das Frame bei 9,6 s als Basisbild nehmen, die
+Wülste per Bild-Edit durch dünne flache Lagen ersetzen, als Element `ZEPP-PACK-BAY`
+speichern und `WHAT IS UNDER THE ROOF` im Video-Prompt auf zwei Sätze mit dem Tag
+eindampfen. Das Element löst zugleich die Farbkonsistenz zum INFLATE-Shot.
+
+## Elemente selbst gebaut — 2026-09-16
+
+Auf ausdrückliche Freigabe des Users über die API generiert (`nano_banana`, 1 Credit pro
+Bild, 6 Credits verbraucht). **Es gibt kein Cinema-Studio-Projekt** — Einzelheiten in
+`CLAUDE.md` unter „Generating images from here". Sortiert wurde über den Namenspräfix
+`IC-` und eine Beschreibung, die mit „IRON CLOUD / S05" beginnt.
+
+| Element | Inhalt |
+|---|---|
+| `IC-TENDER-LATCH` | Tender, drei Bänder: Kielspant oben, Messing-Kegelstecker am Seil mittig, **runde** Messing-Latch-Plate in schwarzem Gusseisengehäuse auf der Kohleladung |
+| `IC-LOCO-LATCH` | Lok, tiefe Kamera am Kessel entlang, Kegelstecker am Seil, **eckiger** gusseiserner Block mit quadratischer Messingauflage auf dem Kesselrücken |
+
+Warum die Lok eckig ist: bei runder Platte **verschmolz das Modell Platte und Stecker zu
+einem Objekt**, zweimal reproduziert. Verschiedene Silhouetten lösen es — Regel steht in
+`CLAUDE.md` unter „Two similar shapes close together merge into one".
+
+Beide Video-Prompts sind geschrieben, noch nicht generiert. Abnahmekriterien in dieser
+Reihenfolge: bleiben Stecker und Platte zwei getrennte Objekte, ist das Seil in jedem
+Frame da, beschleunigt der Stecker zum Schluss.
+
+## ⚠ Umbenennungen im Account — 2026-09-16
+
+- `IRON-CLOUD-Inflated` heißt jetzt **`ic-inflated`**. Der Tag `@IRON-CLOUD-Inflated` aus
+  allen bisherigen INFLATE-Prompts **existiert nicht mehr**.
+- `IRON-CLOUD-FLY` heißt jetzt **`ic-fly`** und zeigt inzwischen dasselbe Bild wie
+  `IRON-CLOUD-Airborne` (gleiche media-id).
+
+Die Registry unten ist damit an zwei Stellen überholt. Sie war schon vorher nur eine
+Momentaufnahme — vor jedem Prompt `show_reference_elements` abfragen.
+
+## Tag-Registry — Stand 2026-08-31 (frisch aus dem Account)
+
+Gegenüber der Liste in `S03-ESTABLISHER-HANDOFF.md` sind **fünf Elemente neu**:
+
+| Element | Kategorie | Beschreibung im Account |
+|---|---|---|
+| `@IRON-CLOUD-FLY` | character | — |
+| `@Cellar-Empty` | environment | — |
+| `@Cellar-Crowd` | environment | — |
+| `@Tanzpaar` | character | — |
+| `@LOCO-BASE` | prop | neutral benannter Zwilling von `@IRON-CLOUD-Normal`, damit der Elementname keine Wörter enthält, die als Schriftzug auf die Maschine gemalt werden |
+
+`@LOCO-BASE` und `@IRON-CLOUD-Normal` zeigen **dasselbe Bild** (identische media-id).
+
+Vollständig, wie im Account benannt:
+
+- **Figuren:** `@EISENSTEIN` · `@PINKERTON` (mit Hut und Mantel) · `@PINKERTON2`
+  (mit Hut, ohne Mantel) · `@OHarris` · `@VILLAIN` (mit Kapuze, Standardvariante) ·
+  `@VILLAIN-NOHOOD` · `@Young` · `@Schmitzkowsky` (Hero) · `@SchmitzkowskyGoggle` ·
+  `@CHRIS` · `@JOHN` (Heizer) · `@Tanzpaar`
+- **Zug & Requisiten:** `@IRON-CLOUD-Normal` · `@LOCO-BASE` · `@IRON-CLOUD-Inflated` ·
+  `@IRON-CLOUD-Airborne` · `@IRON-CLOUD-FLY` · `@VILLAINs-Eye`
+- **Führerkanzel (innen!):** `@LOK-FRONT` · `@LOK-LEFT` · `@LOK-BACK`
+- **Locations:** `@TRAIN-STATION-NORTH-HIGH` · `@TRAIN-STATION-NORTH-LOW` ·
+  `@TRAIN-STATION-SOUTH-2` · `@TRAIN-STATION-SOUTH-LOW` · `@IRON-CLOUD-STAIRS` ·
+  `@WILDWEST` · `@Cellar-Empty` · `@Cellar-Crowd`
+
+Die Location-Geometrie-Tabelle der vier Bahnhofs-Elemente steht in
+`S03-ESTABLISHER-HANDOFF.md` und gilt unverändert.
+
+## Film-Grunddaten
+
+Spaghetti-Western „IRON CLOUD", 1860er. Konsist-Lock: **schwarze Lok – schwarzer
+Tender – grüner Waggon**, der Zug endet an der Rückwand des grünen Waggons.
+Standardwetter: High Noon, „cloudless deep hot blue sky, hard crisp shadows"
+(nie „bleached white sky" — das erzeugt Bewölkung). Bahnhofsschild: **YOUNG & CO.**
+
+## Starter-Prompt für diese Session
+
+> Lies CLAUDE.md und S05-INFLATE-HANDOFF.md. Du bist mein Prompt Master für
+> IRON CLOUD, Fokus S05 INFLATE. Übernimm alle Regeln und den dortigen Arbeitsstand
+> und melde dich kurz, wenn du bereit bist.

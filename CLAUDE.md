@@ -69,6 +69,12 @@ Also present, purpose not yet stated by the user: `_SHOTLIST/H264`
 No folder exists yet for S12, S21, S22 — creating one is part of the
 filing question, never done silently.
 
+**Shot status ("in progress" etc.) cannot be set from here** (checked
+30.09.2026). The Higgsfield tools only list folders and assets, create
+folders, and generate into a folder; the asset listing carries no file names
+and its `status` field is the upload state, not a workflow status. Status
+changes in Cinema Studio stay manual in the app.
+
 ## Iterative camera moves beat absolute descriptions
 
 When a generated image has the right subject but the wrong distance, angle or framing,

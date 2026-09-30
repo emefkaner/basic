@@ -299,6 +299,45 @@ Rules:
 - Grid overlays (drawgrid) on full frames beat eyeballing crops for
   coordinates; measure once properly instead of chasing slivers.
 
+## Draft or Normal — a recommendation ships with every prompt
+
+Every video prompt is delivered together with an honest estimate: does this shot
+stand a real chance of landing on the first run (then it is worth spending a
+Normal render), or will it take iterations (then the first runs go to Draft and
+only the confirmed setup is re-run on Normal)? Guessing generously here costs
+real credits, so the estimate names the specific risk, not a vague feeling.
+
+**Draft answers structural questions, Normal answers look questions.** Draft is
+fully adequate for: does it open on the intended first frame, does the subject
+enter from the intended side, does it travel in the intended direction, is there
+dead time, does the framing land, is the count of objects right. Judging grain,
+flare character, motion blur, metal glints or skin needs Normal — Draft will
+mislead there.
+
+Risk factors, all of them observed on this film, each one pushing toward Draft:
+
+- **Something must enter or move in a direction that is not visible in frame**
+  (a train arriving from behind the camera). Proven coin-flip: the model puts
+  the subject at the visible vanishing point and reverses the move.
+- **A tagged element carries a different framing than the shot's opening.**
+  Proven: the element's geometry wins and drags the whole shot into itself.
+- **Timecoded pacing across more than about eight seconds.** Proven weak — the
+  model runs the described move at its own speed and then waits.
+- **A held camera.** A frame with no camera movement and no described event goes
+  dead; every second needs something moving in it.
+- Several independent things must behave correctly at once.
+- Identity of more than one face, mechanical transformation, an object changing
+  shape, or anything the moderation filter may read as person-directed.
+
+Lowering risk: a `start_image` removes the framing question entirely and is the
+single strongest lever; short durations; one owner per appearance; nothing
+tagged that is not in frame.
+
+Rule of thumb: **one or more proven factors → Draft, and say how many runs to
+expect. No proven factor and the shot is structurally pinned → Normal is worth
+it.** After a Draft confirms the structure, the keeper runs on Normal with the
+same prompt, unchanged.
+
 ## Failure modes seen repeatedly
 
 - Describing a *process* ("the wheel swings out and rotates") invites invention. Describe

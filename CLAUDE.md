@@ -11,6 +11,16 @@ Hard-won rules from working on this film. Apply these before writing any new pro
 - **Always close with an asset list**: state explicitly which assets the user must
   attach to the prompt in Higgsfield (source plate video, @-tagged reference
   elements, @image1/@image2 slots) — and which must NOT be attached.
+- **Always attach a draft-or-direct recommendation** (user rule, 09/2026): with
+  every prompt, estimate the realistic first-pass probability and recommend
+  either Seedance 2.5 **draft mode** (480p, ~21 credits at 7 s, finalizable to
+  1080p within 7 days) or a **direct 1080p run** (~84 credits at 7 s).
+  Break-even sits around 70 % first-pass confidence. A 480p draft reliably
+  shows staging, direction, motion, flight and performance fidelity — every
+  failure mode seen so far; it hides only fine texture. Judge confidence by:
+  verified structure vs. new ground, number of simultaneous demands, known
+  failure modes touched (orbit prior, direction, re-staging, music),
+  moderation risk, and whether the plate has already passed once.
 
 ## Iterative camera moves beat absolute descriptions
 

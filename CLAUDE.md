@@ -41,8 +41,13 @@ Root folders:
 | `INTRO` | `60785877-bd9c-4652-a5ee-f1b4bd251e5f` | intro |
 | `TESTSHOTs` | `167cef42-4653-4abe-858e-bc342ed70419` | tests without a shot number |
 
-Rule 1: shot number "19_01" = scene 19 → `_SHOTLIST/S19`. Scene subfolders
-under `_SHOTLIST`:
+**Rule 0 (user, 30.09.2026): before EVERY generation, ask the user where
+to file it** — even when the mapping below looks obvious. Propose the folder
+you would pick (name + why) as the recommended option, then wait for the
+answer. Never infer and generate in one step.
+
+Rule 1: shot number "19_01" = scene 19 → `_SHOTLIST/S19` (use this as the
+default proposal). Scene subfolders under `_SHOTLIST`:
 
 | Scene | ID | | Scene | ID |
 |---|---|---|---|---|
@@ -61,9 +66,8 @@ under `_SHOTLIST`:
 
 Also present, purpose not yet stated by the user: `_SHOTLIST/H264`
 (`666a7fb2-…`), `_SHOTLIST/_` (`d3b7f085-…`), root `_` (`7e3fa50b-…`).
-No folder exists yet for S12, S21, S22. The user's rule list was cut off
-after rule 1 — ask for the rest before assuming how missing scene folders,
-the special folders or plate uploads are handled.
+No folder exists yet for S12, S21, S22 — creating one is part of the
+filing question, never done silently.
 
 ## Iterative camera moves beat absolute descriptions
 

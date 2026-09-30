@@ -642,11 +642,20 @@ the physics that actually signals it.
 
 ## Generating images from here — what this access can and cannot do
 
-There is **no "Cinema Studio" project**. Cinema Studio is a *model* name
-(`cinematic_studio_2_5`), not a container. `list_workspaces` shows one private
-workspace, and elements carry only name, category and description — no project or folder
-field. The only organisation available is a **name prefix** (`IC-…`) plus a description
-that opens with the film and scene.
+Cinema Studio is a *model* name (`cinematic_studio_2_5`), not a container — there is no
+"Cinema Studio" project.
+
+**Media projects and folders do exist**, and an earlier note here claiming otherwise was
+wrong. `list_projects`, `list_folders`, `list_project_assets` and `create_folder` all
+work, and IRON CLOUD has a project with a full folder tree — see `HIGGSFIELD-ABLAGE.md`
+for the IDs and the filing rules. **Every generation goes into its shot's folder; never
+generate without a destination folder.**
+
+The two things that hold at once: *generations and uploads* live in project folders,
+while *reference elements* (`show_reference_elements`) carry only name, category and
+description and have no folder field at all. Elements are organised by a **name prefix**
+plus a description that opens with the film and scene; generations are organised by
+folder.
 
 Generating over MCP costs credits and the app's unlimited mode does **not** apply here.
 `nano_banana` is the 1-credit image model; confirm with `get_cost: true` rather than

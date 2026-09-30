@@ -21,6 +21,10 @@ Hard-won rules from working on this film. Apply these before writing any new pro
   verified structure vs. new ground, number of simultaneous demands, known
   failure modes touched (orbit prior, direction, re-staging, music),
   moderation risk, and whether the plate has already passed once.
+- **Always state the remaining balance** (user rule, 30.09.2026): whenever a
+  credit cost is quoted or a paid run is proposed, check `balance` first and
+  write "costs X, leaves Y of Z". Measured costs so far: Seedance 2.5 21:9
+  draft 4 s = 12, draft 7 s = 21, 720p 7 s = 49, 1080p 7 s = 84.
 
 ## Filing every generation in Higgsfield (user rule, 09/2026)
 
@@ -47,7 +51,16 @@ you would pick (name + why) as the recommended option, then wait for the
 answer. Never infer and generate in one step.
 
 Rule 1: shot number "19_01" = scene 19 → `_SHOTLIST/S19` (use this as the
-default proposal). Scene subfolders under `_SHOTLIST`:
+default proposal). **Generations go into a `<scene>_GEN` subfolder inside the
+scene folder** (user, 30.09.2026) — e.g. `_SHOTLIST/S23/S23_GEN`; the scene
+folder itself holds the plates. Create the `_GEN` folder on first use.
+Existing: `S23_GEN` = `a270635d-2c20-4aba-8ab9-14821b97b481`.
+
+Rule 2: **plates shorter than 4 s are always generated at 4 s** (user,
+30.09.2026) — Seedance 2.5's minimum; the tail past the plate end is
+expected and trimmed in the edit.
+
+Scene subfolders under `_SHOTLIST`:
 
 | Scene | ID | | Scene | ID |
 |---|---|---|---|---|

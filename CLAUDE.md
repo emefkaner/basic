@@ -58,7 +58,13 @@ Existing: `S23_GEN` = `a270635d-2c20-4aba-8ab9-14821b97b481`.
 
 Rule 2: **plates shorter than 4 s are always generated at 4 s** (user,
 30.09.2026) — Seedance 2.5's minimum; the tail past the plate end is
-expected and trimmed in the edit.
+expected and trimmed in the edit. **Pitfall (S23_01 draft 1):** with a 3.2 s
+plate the model filled the missing 0.8 s with a hard cut to the
+`@WILDWEST-AERIAL` still, full frame — the text line "continue the last
+motion smoothly" did not prevent it. Planned fix (unverified): pad the plate
+itself to 4 s before upload by cloning the last frame
+(`tpad=stop_mode=clone:stop_duration=0.8`, audio `apad`), so the reference
+already covers the whole output.
 
 Scene subfolders under `_SHOTLIST`:
 

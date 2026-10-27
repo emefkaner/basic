@@ -15,6 +15,44 @@ Hard-won rules from working on this film. Apply these before writing any new pro
   length, distance, time of day, which plate or reference is meant).
 - **A credit call goes with every prompt**: draft or normal, and why. See below.
 
+## Generating drafts here — one at a time, then stop
+
+When the user hands over generation ("nutze higgsfield draft bis der shot sitzt"), that
+is the explicit clearance the standing rule requires — but it is clearance for **drafts
+only**, and it does not change the rhythm:
+
+- **One draft per turn. Then stop and wait.** The user intervenes after every single
+  draft and gives feedback. Never queue a second one, never generate variants with
+  `count`, never "try two approaches at once". A batch takes the user's steering out of
+  the loop, which is the whole point of their watching.
+- **Preflight with `get_cost: true` before the first run of a new shape**, and say the
+  number. It submits nothing. A 30-second Seedance 2.5 draft is 90 credits.
+- **Pull the result and read it frame by frame** before saying anything about it, with
+  the contact-sheet recipe below. Then report what is actually wrong and propose the
+  one change for the next draft.
+- Always pass `folder_id` — the shot's own folder, never the project root.
+
+### Seedance 2.5 vs 2.0, and how the draft flag works
+
+`seedance_2_0` caps at **15 seconds**; `seedance_2_5` runs **4 to 30**. Anything longer
+than fifteen seconds has to be 2.5.
+
+2.5 carries a `draft` parameter: a 480p render that can be **finalized to 1080p within
+seven days as the same job**, via `draft_job_id`. That makes the draft a preview of the
+exact take rather than a separate test — so the draft runs the **full** prompt, with the
+full reference set. A stripped-down geometry draft would be a different job and could
+never be finalized, which is why the earlier advice to strip the identity layer does not
+apply on 2.5.
+
+`mode: 'omni_reference'` **requires at least one entry in `medias`**. The
+`<<<element-uuid>>>` placeholders are not counted at validation time, so a prompt
+carrying only element placeholders is rejected 422. Put the plates in `medias` with role
+`image_references` and refer to them in the text as `<<<image_1>>>`, `<<<image_2>>>`;
+reference elements stay as `<<<uuid>>>` placeholders in the prompt.
+
+Note the roster marks `seedance_2_0` and `seedance_2_0_mini` `supports_unlim` and
+**2.5 not** — so 2.5 may bill credits even where the app's unlimited covers 2.0.
+
 ## Credit call — draft vs. normal, with every prompt
 
 The user runs Seedance 2.5 in **draft** (cheap, for verifying that a shot is built

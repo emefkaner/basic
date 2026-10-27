@@ -167,6 +167,34 @@ des grünen Waggons. Standard-Wetter: High Noon, „cloudless deep hot blue sky,
 hard crisp shadows" (nie „bleached white sky" — das erzeugt Bewölkung).
 Bahnhofsschild: **YOUNG & CO.**
 
+## S03_03 CRANE — abgenommen (2026-10-27)
+
+Die 1080p-Fassung liegt in `_SHOTLIST/S03/S03_03 CRANE`, Job
+`5e8391d3-a777-455e-bafa-b447eaf78d89`, 30 s, 2206×946, HEVC. Finalisiert aus Draft 4
+(`01a48e9f-de7e-4999-9429-3f2b600dd7d1`) über `draft_job_id` — also derselbe Take, nur
+hochgezogen. Vier Drafts à 90 Credits plus 80 für die Finalisierung.
+
+Was den Shot gelöst hat, in der Reihenfolge der Wirkung:
+
+1. **Seedance 2.5 statt 2.0** — 2.0 deckelt bei 15 s, und in 15 s war nach dem Halt
+   keine Zeit mehr. Mit 30 s hat die Ankunft Raum.
+2. **Die Geometrie der Platte übernehmen statt sie zu beschreiben.** Kamera links vom
+   Gleis, Schienen in der rechten Bildhälfte, Boardwalk links — dann läuft der Zug von
+   selbst von links nach rechts.
+3. **Keine Rotation beschreiben.** „Fährt geradeaus, dreht sich nie, die Flanke öffnet
+   sich nur, weil die Maschine näher ist" statt „schwenkt nach breitseits".
+4. **Den Endpunkt der Kamerafahrt festnageln, nicht den Weg.** „Wo sie endet, ist fix
+   und ist der Sinn der ganzen Bewegung" plus die Bildbeschreibung der Landung.
+5. **Textanker für Schmitzkowsky** (korpulent, Melone mit Messing-Goggles) — ohne ihn
+   kam in Draft 2 ein fremder Mann im Führerstand.
+6. **Dampf-Obergrenze als prüfbare Eigenschaft** — „in jedem Frame bleiben Führerstand,
+   die Köpfe der Fünf und der blaue Himmel sichtbar" beendete den Weißabriss.
+
+Bewusst nicht gelöst und bei Bedarf noch zu holen: Die Fünf fehlen in den ersten drei
+Sekunden (aus der Kranhöhe baut das Modell sie nicht; ein tieferer Kranstart wäre der
+nächste Versuch), Eisensteins Karabiner bleibt geschultert statt umgehängt, und der
+grüne Waggon liest sich dunkeloliv statt deutlich grün.
+
 ## Aktueller Stand der offenen Shots (S03)
 
 1. **Transformations-Shot** (Lok wird flugfähig: Frontkappe löst sich wie ein

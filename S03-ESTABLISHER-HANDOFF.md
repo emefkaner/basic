@@ -94,6 +94,40 @@ neutralem Hintergrund (zieht die Kamera zum Stillstand, siehe die Notiz zu
 `@IRON-CLOUD-Inflated` in `CLAUDE.md`), und **eine der drei Ansichten hat keinen Kopf**.
 Bei Nahaufnahmen darauf achten, ob das durchschlägt.
 
+## Zwei Fehler, die mehrfach passiert sind — vor jedem Prompt gegenprüfen
+
+**1. Der Zug kommt von VORNE.** Frontal die Gerade herunter auf Kamera und Gruppe zu,
+nicht seitlich ins Bild geschoben, nicht von hinten. Das ist eine Vorgabe des Users,
+keine Variable.
+
+Der Konflikt, an dem ich zweimal gescheitert bin: Ein frontaler Anflug auf eine Kamera
+hinter der Gruppe hat scheinbar keinen Weg zum seitlichen Halt, also habe ich den Anflug
+schräg gestellt (*„It is never seen dead head-on"*) — und damit stillschweigend die
+Vorgabe des Users durch meine Lösung ersetzt. Falsch, zweimal.
+
+Die richtige Auflösung: **Eine Lok auf geraden Schienen dreht sich nie.** Dass die Flanke
+breiter wird, macht allein die Perspektive, weil sie näher kommt. Also nie „schwenkt von
+dreiviertel nach breitseits" schreiben — das ist eine Rotation, durch die das Modell
+springt. Stattdessen: *fährt geradeaus, dreht sich nie, die Flanke öffnet sich nur, weil
+die Maschine näher ist.* Kein Schwenk, kein Sprung.
+
+**2. Die Gruppe steht auf der STADTSEITE, zusammen mit der Kamera.** Boardwalk und
+Ladenfronten im Rücken der Männer, Gleis vor ihnen, Kamera dahinter auf derselben Seite.
+
+Und der Grund, warum „rechts vom Gleis" nicht reicht: Sobald die Kamera quer zum Gleis
+landet statt längs, ist jede Links-rechts-Angabe bedeutungslos. Deshalb muss zuerst die
+**Blickachse** festgelegt werden, als prüfbare Bildeigenschaft: *die beiden Schienen
+laufen aus dem Vordergrund in die Tiefe und treffen sich in einem Fluchtpunkt am
+Horizont, der in jedem Frame sichtbar bleibt.* Liegt das Gleis waagerecht wie ein Zaun
+durchs Bild, ist der Shot schon falsch, egal wer wo steht.
+
+**3. Die fünf fehlen am Anfang.** In beiden bisherigen Versuchen war die Straße die
+ersten vier bis sechs Sekunden leer; die Gruppe tauchte erst auf, als die Kamera unten
+war. Aus 25 m sind fünf Männer dem Modell zu klein, um sie überhaupt zu bauen. Gegenmittel:
+Kranstart tiefer ansetzen und im FIRST-FRAME-Block eine zählbare Größe verankern —
+*fünf Figuren, jede etwa so lang im Bild wie eine Schwelle, jede mit eigenem hartem
+Schatten.* Noch unbestätigt, ob das reicht.
+
 ## Film-Grunddaten
 
 Spaghetti-Western „IRON CLOUD", 1860er, Wüste/Western-Stadt mit Bahnhof.

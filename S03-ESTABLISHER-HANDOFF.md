@@ -121,6 +121,36 @@ laufen aus dem Vordergrund in die Tiefe und treffen sich in einem Fluchtpunkt am
 Horizont, der in jedem Frame sichtbar bleibt.* Liegt das Gleis waagerecht wie ein Zaun
 durchs Bild, ist der Shot schon falsch, egal wer wo steht.
 
+**2b. Die Laufrichtung des Zuges folgt aus der Platte, nicht aus dem Text.**
+`TRAIN-STATION-NORTH-LOW` zeigt: Kamera **links** vom Gleis, Schienen in der **rechten**
+Bildhälfte, Boardwalk links. Daraus folgt zwangsläufig alles andere — das Gleis läuft
+vom Fluchtpunkt zur rechten unteren Ecke, also fährt ein frontal heranrollender Zug im
+Bild nach rechts, und am Halt zeigt die Rauchkammer nach rechts, Tender und grüner
+Waggon stehen links.
+
+Ich habe in jedem Prompt „die Fünf stehen rechts vom Gleis" geschrieben. Das ist die
+Spiegelung der Platte. Damit landet das Gleis links, der Zug läuft nach links unten
+aus, und am Ende fährt er rechts nach links — dreimal hintereinander derselbe Fehler,
+und jedes Mal habe ich ihn für ein Modellproblem gehalten.
+
+**Die Regel:** Vor jeder Links-rechts-Angabe die Platte aufmachen und ihre Geometrie
+übernehmen, statt sie im Text neu zu erfinden. Die Laufrichtung ist dann keine Variable
+mehr, die man absichern muss — sie ergibt sich. Und wenn der User sagt „das müsste
+automatisch gehen", ist das genau der Befund: Es geht automatisch, sobald der Text
+aufhört, gegen das Bild anzuschreiben.
+
+**2c. Was die Figuren-Referenzen mitbringen.** Erst beim Öffnen gesehen, nachdem ein
+Gewehr im Ergebnis auftauchte, das nirgends im Prompt stand: `@EISENSTEIN` trägt in
+seinem Element **einen Karabiner über der Schulter und eine zweite Langwaffe an der
+Hüfte** — die Waffe kommt also mit, das Bild besitzt das Aussehen. `@Young` ist der
+**ältere Herr mit runder Brille und grauem Haar** im sandfarbenen Mantel, nicht ein
+beliebiger Großgewachsener. `@VILLAIN` trägt unter der Kapuze eine **dunkle Binde über
+einem Auge**. Alle fünf sind dreiteilige Studio-Sheets mit kopfloser Frontansicht.
+
+Haltung ist Verhalten und gehört dem Text: *„der Karabiner bleibt über dem Rücken
+gehängt, beide Hände unten"* steuert die Waffe, ohne gegen das Bild zu arbeiten.
+Waffe plus Kapuzenträger ist laut `CLAUDE.md` außerdem eine Moderations-Kombination.
+
 **3. Die fünf fehlen am Anfang.** In beiden bisherigen Versuchen war die Straße die
 ersten vier bis sechs Sekunden leer; die Gruppe tauchte erst auf, als die Kamera unten
 war. Aus 25 m sind fünf Männer dem Modell zu klein, um sie überhaupt zu bauen. Gegenmittel:

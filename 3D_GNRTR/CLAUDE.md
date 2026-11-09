@@ -456,5 +456,6 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
+| `bett-raeumen/` | G-Code-Schnipsel fuers Bambu-Ende: Kopf schiebt die fertigen Teile nach vorne vom Bett | Bahnen ueber die Plattenbreite, mehrere Schiebehoehen, Abkuehlschritt, Trockenlauf-Variante |
 | `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | sieben Schreibschriften zur Wahl (`--schrift`, Vergleichsblatt), Inseln per Steg angebunden, Zusammenhangsprüfung, Strichbreitenmessung, Farbstapel mit Unterlage + Schwebeprüfung |
 | `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

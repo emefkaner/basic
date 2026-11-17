@@ -142,9 +142,20 @@ Gold in den Lichtern ins Weißgelbe zieht.
 
 Die Seite trägt `noindex`, Suchmaschinen nehmen sie also nicht auf.
 
-**Hochladen:** auf dem Strato-Webspace im Hauptordner der Website einen
-Ordner `lina` anlegen und beide Dateien hinein. `emefka.com/lina` leitet
-auf `www.emefka.com/lina` weiter und nimmt den Pfad mit (geprüft).
+**Hochladen** geht nur vom eigenen Rechner aus: Strato nimmt Dateien nur
+per SFTP auf Port 22 an, und der ist in der Cloud-Sitzung gesperrt
+(geprüft). Ziel auf dem Webspace ist `/neu/lina/` — `/neu` ist das
+Wurzelverzeichnis von emefka.com, nicht der oberste Ordner. Beide Dateien
+zusätzlich nach `Dropbox/_CLAUDE/WEB_emefka.com/lina/` legen, damit das
+Webprojekt sie kennt. Für zwei Dateien einzeln per paramiko hochladen,
+nicht das ganze Projekt neu (2,4 GB). Zugangsdaten liest das Werkzeug
+selbst aus `WEB_emefka.com/tools/.deploy-credentials`; das Passwort nie
+ausgeben. Prüfen mit Cache-Brecher, Strato hat einen Zwischenspeicher:
+
+    curl -s -o /dev/null -w "%{http_code}\n" "https://www.emefka.com/lina/?cb=$RANDOM"
+
+`emefka.com/lina` leitet auf `www.emefka.com/lina` weiter und nimmt den
+Pfad mit (geprüft).
 
 **Geprüft** in Chromium per Playwright: lädt in 1280 × 800 und in
 400 × 820, dreht sich beim Ziehen, Lackregler wirkt, keine

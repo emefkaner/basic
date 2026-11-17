@@ -122,3 +122,33 @@ der Mitte teilen und stehend ohne Überhang drucken.
 
 Rechtliches: Das Logo ist Marke des Unternehmens. Die Figur ist für den
 Eigengebrauch gedacht, nicht zum Verkauf.
+
+## Vorschau im Browser: `web/`
+
+Drehbare Ansicht mit Metallic-Gold, für `www.emefka.com/lina`. Zwei
+Dateien, sonst nichts:
+
+| Datei | Inhalt |
+|---|---|
+| `web/index.html` | Seite mit three.js 0.187 vom CDN jsdelivr |
+| `web/lina.glb` | die Figur, auf 150 000 Dreiecke reduziert, 3,6 MB |
+
+Das Gold ist ein physikalisch basiertes Material: Metallic 1, darüber
+eine Klarlackschicht, und ein Studioraum (`RoomEnvironment`) zum
+Spiegeln — ohne Umgebung sähe Metall flach braun aus. Der Regler unten
+rechts stellt den Lack von matt bis hochglänzend ein, das hilft bei der
+Wahl des Sprühlacks. Tonemapping ist `Neutral` statt `ACES`, weil ACES
+Gold in den Lichtern ins Weißgelbe zieht.
+
+Die Seite trägt `noindex`, Suchmaschinen nehmen sie also nicht auf.
+
+**Hochladen:** auf dem Strato-Webspace im Hauptordner der Website einen
+Ordner `lina` anlegen und beide Dateien hinein. `emefka.com/lina` leitet
+auf `www.emefka.com/lina` weiter und nimmt den Pfad mit (geprüft).
+
+**Geprüft** in Chromium per Playwright: lädt in 1280 × 800 und in
+400 × 820, dreht sich beim Ziehen, Lackregler wirkt, keine
+Konsolenfehler. Nicht geprüft: Safari auf dem iPhone.
+
+Das Web-Netz ist nur für die Ansicht reduziert. Gedruckt wird die volle
+Auflösung aus `aufbereiten.py`.

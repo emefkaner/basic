@@ -223,6 +223,40 @@ Formschluss-Prinzipien, die sich bewährt haben:
   Aufdicken per Polygon-Offset waere das Gegenteil: es blaeht auch die
   Rundungen auf, schmiert enge Punzen zu und erzeugt an engen Kurven
   Selbstueberschneidungen.
+- **Ein Bild hat keine Rueckseite -- also eine erzeugen.** Eine
+  Bild-zu-3D-Rekonstruktion erfindet alles, was die Vorlage nicht zeigt;
+  beim Tuerschild-Nachbarprojekt wurden aus langen Haaren hinten ein
+  glatter Lappen. Der Fix kostet 0,25 Credits: aus der Front ein
+  Rueckenbild erzeugen lassen (Pose und Stil ausdruecklich
+  festschreiben), beide Ansichten auf dieselbe Figurhoehe bringen und
+  mehransichtig rekonstruieren. Danach hat der Hinterkopf Straehnen,
+  Steppmuster und Gesaesstaschen. Vorher die Rueckansicht ansehen und
+  abnicken lassen, nicht blind durchrechnen.
+- **Farbe aus dem Bild aufs Netz: drei Fallen, alle teuer.** (1) Eine
+  reine Projektion faerbt auch Flaechen, die im Bild verdeckt sind --
+  die Brust hinter dem angewinkelten Arm bekam die Aermelfarbe, die
+  Seiten waren uebersaet mit Flecken. Dagegen hilft ein Tiefenpuffer in
+  Bildaufloesung: nur das vorderste Dreieck je Bildpunkt darf
+  nachschlagen. (2) Ein einzelnes Pixel trifft an der Silhouette fast
+  immer die schwarze Outline und faerbt jede Koerperkante dunkel --
+  stattdessen ein 5x5-Fenster abtasten und die haeufigste Klasse werten.
+  (3) Punktweise Zuordnung ist fleckig: ungefiltert zerfiel allein die
+  Hautfarbe in 344 Inseln. Mehrheitsfilter im 3x3x3-Fenster, danach
+  Kleinstinseln aufloesen.
+  **Und: was die Farbe nicht trennt, trennt die Geometrie.** Weste und
+  Jeans hatten im Bild Helligkeitssumme 214 gegen 221 -- dasselbe Blau,
+  die ganze Figur wurde einfarbig. Getrennt wurden sie ueber die Hoehe,
+  abgelesen am Zeilenprofil der Vorlage. Eine Aussage ueber das
+  Kleidungsstueck ist ohnehin ehrlicher als eine ueber ein paar Pixel.
+- **Mehrfarbig heisst Volumen teilen, nicht Schalen stapeln.** Fuer ein
+  mehrteiliges Objekt im Slicer muessen die Koerper sich das Volumen
+  ueberschneidungsfrei teilen. Zuverlaessig geht das ueber ein
+  Voxelraster: Figur fuellen, jedes Voxel bekommt die Farbe des
+  naechsten Oberflaechendreiecks, je Farbe Marching Cubes. Kostet die
+  Originaloberflaeche (0,3 mm Raster = bis 0,15 mm Abweichung, unter der
+  Aufloesung einer 0,4-mm-Duese) und 4,6 % Mehrvolumen durch die halbe
+  Voxelschale. Nachtraegliches Dezimieren verbietet sich: es reisst die
+  Koerper auf (24 bis 216 offene Kanten), wasserdicht schlaegt klein.
 - **"Haengt zusammen" ist keine Aussage ueber Stabilitaet.** Der
   Zusammenhangstest sagte "ein Stueck" -- und trotzdem hing das halbe
   Schild an einem 2,5-mm-Steg zwischen zwei fetten Buchstaben, den der
@@ -456,6 +490,7 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
+| `lidl-statue/` | Comicbild -> stehende Figur 150 mm, vierfarbig fuer die AMS zerlegt | Front- und Rueckansicht rekonstruiert, Farbe per Projektion mit Tiefenpuffer, Weste/Jeans ueber die Hoehe getrennt, Voxelpartition in vier wasserdichte Koerper |
 | `bett-raeumen/` | G-Code-Schnipsel fuers Bambu-Ende: Kopf schiebt die fertigen Teile nach vorne vom Bett | Bahnen ueber die Plattenbreite, mehrere Schiebehoehen, Abkuehlschritt, Trockenlauf-Variante |
 | `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | sieben Schreibschriften zur Wahl (`--schrift`, Vergleichsblatt), Inseln per Steg angebunden, Zusammenhangsprüfung, Strichbreitenmessung, Farbstapel mit Unterlage + Schwebeprüfung |
 | `rc-transportbox/` | Koffer für Hot Wheels RC 1:64 + 3 lose Autos | gemessene Konturmulde, Federbögen, Schnapper, Stufenfalz, Filament-Scharnier, AMS-Logo, T-Nut-Griff optional (`--mit-griff`) |

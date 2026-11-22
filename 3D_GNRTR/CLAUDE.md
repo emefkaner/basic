@@ -469,6 +469,13 @@ Formschluss-Prinzipien, die sich bewährt haben:
   naechsten Nachbarn anbinden und den Zusammenhang danach PRUEFEN
   (Union-Find ueber Konturueberlappung). Laufweite bei 100 % lassen --
   verbundene Schriften treffen nur dort.
+- **Webseiten, die automatische Abrufe blocken** (MakerWorld liefert
+  403, ebenso oft Printables und Amazon): **in Chrome ansehen**, über
+  Claude in Chrome (`mcp__claude-in-chrome__*`), mit den Anmeldungen des
+  Nutzers. Wunsch des Nutzers, gilt dauerhaft. Fehlen die Chrome-Werkzeuge
+  (Cloud-Sitzung ohne verbundenen Rechner), das sofort sagen und um
+  Titel, Screenshot oder die STL/3MF bitten. Nicht aus dem Gedächtnis
+  raten, was auf der Seite steht.
 
 ## 7. Neues Projekt anlegen
 

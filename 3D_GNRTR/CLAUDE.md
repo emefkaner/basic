@@ -490,6 +490,7 @@ Formschluss-Prinzipien, die sich bewährt haben:
 | `rennsitz-verkleidung/` | Designblatt, wartet auf Foto/Maße | — |
 | `fernrohrhalter/` | Alt-Az-Halter fürs Piraten-Spyglass | Raute/Tropfen, Balance + Reibung, Schnapp-Schelle |
 | `hochzeitsornament/` | Herz „Ute & Werner · 50" + Sockel | fontTools-Schrift, Brücken-Triangulierung, Containment-Check |
+| `backbone-kappe/` | Kappe auf den Lightning-Stecker des Backbone One, damit das Telefon an Kunststoff statt Metall anliegt | belegte Steckermaße statt geschätzter, drei Spielvarianten an der Länge unterscheidbar, Griff nur auf die vorderen 3,5 mm |
 | `lidl-statue/` | Comicbild -> stehende Figur 150 mm, vierfarbig fuer die AMS zerlegt | Front- und Rueckansicht rekonstruiert, Farbe per Projektion mit Tiefenpuffer, Weste/Jeans ueber die Hoehe getrennt, Voxelpartition in vier wasserdichte Koerper |
 | `bett-raeumen/` | G-Code-Schnipsel fuers Bambu-Ende: Kopf schiebt die fertigen Teile nach vorne vom Bett | Bahnen ueber die Plattenbreite, mehrere Schiebehoehen, Abkuehlschritt, Trockenlauf-Variante |
 | `tuerschild/` | Türschild: großer Serifen-Buchstabe + Name in Schreibschrift, zweifarbig — als AMS-Stapel (ein Druck) oder zum Kleben | sieben Schreibschriften zur Wahl (`--schrift`, Vergleichsblatt), Inseln per Steg angebunden, Zusammenhangsprüfung, Strichbreitenmessung, Farbstapel mit Unterlage + Schwebeprüfung |

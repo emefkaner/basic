@@ -45,14 +45,32 @@ USPTO-Dokument und mehrere Herstellerseiten stimmen überein).
 
 ## Wichtig vor dem Benutzen
 
-**Mit Kappe funktioniert der Backbone nicht als Controller.** Der
-Backbone One Lightning hat weder Bluetooth noch Akku, er spricht nur über
-den Stecker mit dem Telefon (Herstellerseite, Sony-Support, iFixit). Ist
-der Stecker abgedeckt, ist er ein Griff ohne Funktion. Das iPhone Duo hat
-USB-C; ob es mit Apples USB-C-auf-Lightning-Adapter dazwischen klappt, ist
-ungeprüft.
+**Die Kappe deckt den Stecker ab, die Verbindung läuft übers Kabel.**
+Der Backbone One Lightning hat weder Bluetooth noch Akku, er spricht nur
+über den Stecker mit dem Telefon (Herstellerseite, Sony-Support, iFixit).
+Mit einem Kabel zwischen Backbone und dem iPhone Duo (USB-C) funktioniert
+er: Das wurde am Gerät getestet.
 
 **Das iPhone Duo ist zugeklappt 11,3 mm dick** (aufgeklappt 5,2 mm). Ob
 das zugeklappt in die Wiege des Backbone passt, ist ungeprüft.
 
-    python3 generate.py
+## Dateien
+
+| Datei | Inhalt |
+|---|---|
+| `projekt/backbone_lightning_kappe_3varianten.3mf` | **für Bambu Studio:** drei getrennte, benannte Objekte, mittig auf der Platte der H2S |
+| `stl/backbone_lightning_kappe_3varianten.stl` | dieselben drei Kappen als ein STL-Objekt |
+
+In der 3MF ist jede Kappe ein eigenes Objekt mit Namen, etwa „Kappe 1 -
+0.10 mm Spiel - stramm (12 mm lang)“. So lässt sich im Slicer eine
+einzelne Kappe abwählen oder nachdrucken. Jede Kappe ist vorher zu einem
+dichten Körper vereinigt; die strenge Prüfung von lib3mf meldet keine
+Warnung, und alle drei Objekte sind geschlossen und richtig orientiert.
+
+Beim Öffnen sagt Bambu Studio, die Datei stamme nicht aus Bambu Studio,
+und lädt nur die Geometrie. Das ist so gewollt: Drucker, Filament und
+Schichthöhe kommen aus deinen eigenen Profilen. Danach einmal speichern,
+dann ist es ein richtiges Bambu-Projekt.
+
+    python3 generate.py                 # STL
+    <venv>/bin/python bambu_projekt.py  # 3MF, braucht trimesh, manifold3d, lxml
